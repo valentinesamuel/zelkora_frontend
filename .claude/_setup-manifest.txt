@@ -1,0 +1,5 @@
+installed_at=2026-07-26T16:23:18Z
+source=remote:https://raw.githubusercontent.com/valentinesamuel/claude-design-skills/main
+files=58
+roles=accessibility-tester architect-reviewer code-reviewer compliance-auditor debugger frontend-developer fullstack-developer javascript-pro performance-engineer qa-expert react-specialist typescript-pro ui-designer
+industries=health

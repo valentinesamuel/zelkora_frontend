@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Dashboard — Dr. Okonjo-Nwosu — role-dashboard-shell prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="theme.css" />
+</head>
+<body>
+
+<div class="proto-bar">
+  <strong>Prototype review controls</strong>
+  <button data-state="default" class="active">Default</button>
+  <button data-state="empty">Empty</button>
+  <button data-state="loading">Loading</button>
+  <button data-state="error">Error</button>
+  <button data-state="stress">Stress (40+ queue, long names)</button>
+  <button data-state="boundary">Stress (queue at 6, no overflow)</button>
+  <div class="sep"></div>
+  <button id="viewport-toggle">640px viewport (bp-sm)</button>
+  <a href="NOTES.md">Notes</a>
+</div>
+
+<div class="viewport-frame">
+<div class="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><span class="label">Zelkora HMS</span></div>
+    <nav class="sidebar-nav" aria-label="Primary">
+      <button class="nav-item active"><span class="icon dot-icon filled"></span><span class="label">Dashboard</span></button>
+      <button class="nav-item" disabled><span class="icon dot-icon"></span><span class="label">Patients</span></button>
+      <button class="nav-item" disabled><span class="icon dot-icon"></span><span class="label">Queue &amp; Appointments</span></button>
+      <button class="nav-item" disabled><span class="icon dot-icon"></span><span class="label">Consultations</span></button>
+      <button class="nav-item" disabled><span class="icon dot-icon"></span><span class="label">Lab</span></button>
+      <button class="nav-item" disabled><span class="icon dot-icon"></span><span class="label">Pharmacy</span></button>
+      <button class="nav-item" disabled><span class="icon dot-icon"></span><span class="label">Billing &amp; Claims</span></button>
+      <button class="nav-item" disabled><span class="icon dot-icon"></span><span class="label">Inventory</span></button>
+      <button class="nav-item" disabled><span class="icon dot-icon"></span><span class="label">Staffing</span></button>
+      <button class="nav-item" disabled><span class="icon dot-icon"></span><span class="label">Reports</span></button>
+    </nav>
+    <button class="collapse-toggle" id="collapse-toggle">‹ Collapse</button>
+    <div class="sidebar-footer">
+      <div class="avatar">EO</div>
+      <div class="user-meta">
+        <div class="name">Dr. Ezinne Okonjo-Nwosu</div>
+        <div class="role">Doctor · Living Grace Hospital, Ikeja</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="header">
+      <div class="header-title" id="greeting">Good morning, Dr. Okonjo-Nwosu</div>
+      <div class="header-actions">
+        <button class="search-trigger">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><line x1="11" y1="11" x2="15" y2="15"/></svg>
+          Search patients…
+        </button>
+        <button class="icon-btn" aria-label="Notifications">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 6a4 4 0 0 1 8 0c0 2.5 1 4 1 4H3s1-1.5 1-4Z"/><path d="M6.5 12.5a1.5 1.5 0 0 0 3 0"/></svg>
+          <span class="badge"></span>
+        </button>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- Queue widget -->
+      <section class="widget" id="queue-widget" aria-labelledby="queue-title">
+        <div class="widget-header">
+          <span class="widget-title" id="queue-title">Queue</span>
+          <span class="widget-count" id="queue-count">· 9 waiting</span>
+          <span class="widget-spacer"></span>
+          <span class="live-indicator"><span class="live-dot"></span><span class="live-label">Live</span></span>
+        </div>
+        <div id="queue-body"><!-- rows injected by state script --></div>
+        <div class="widget-footer" id="queue-footer" style="display:none;"></div>
+      </section>
+
+      <div class="content-side">
+        <!-- Current consultation widget -->
+        <section class="widget" id="consult-widget" aria-labelledby="consult-title">
+          <div class="widget-header">
+            <span class="widget-title" id="consult-title">Current consultation</span>
+          </div>
+          <div class="consult-card" id="consult-body"><!-- injected --></div>
+        </section>
+
+        <!-- Awaiting review widget -->
+        <section class="widget" id="results-widget" aria-labelledby="results-title">
+          <div class="widget-header">
+            <span class="widget-title" id="results-title">Awaiting review</span>
+            <span class="widget-count" id="results-count">· 4 awaiting review</span>
+          </div>
+          <div id="results-body"><!-- injected --></div>
+          <div class="widget-footer" id="results-footer" style="display:none;"></div>
+        </section>
+      </div>
+
+    </main>
+  </div>
+
+</div>
+</div>
+
+<script>
+/* Realistic, internally-consistent fixture data. Long names are real
+   compound-surname patterns, not synthetic stress padding. */
+const QUEUE_DEFAULT = [
+  { name: 'Chidinma Eze', wait: 4, triage: 'routine' },
+  { name: 'Babatunde Fashola', wait: 9, triage: 'urgent' },
+  { name: 'Ngozi Adeyemi-Balogun', wait: 12, triage: 'routine' },
+  { name: 'Ibrahim Musa Yola', wait: 14, triage: 'routine' },
+  { name: 'Folake Ogunleye', wait: 22, triage: 'critical' },
+  { name: 'Emeka Okafor', wait: 31, triage: 'routine' },
+];
+const QUEUE_STRESS = [
+  { name: 'Chukwuemeka Anthony Chibueze Nnamdi Okoli-Nwachukwu', wait: 2, triage: 'critical' },
+  { name: 'Folasade Aduke Adebayo-Williams', wait: 18, triage: 'urgent' },
+  { name: 'Ngozi Adeyemi-Balogun', wait: 26, triage: 'routine' },
+  { name: 'Ibrahim Musa Yola', wait: 34, triage: 'routine' },
+  { name: 'Blessing Chiamaka Okonkwo-Igwe', wait: 41, triage: 'routine' },
+  { name: 'Emeka Okafor', wait: 88, triage: 'routine' },
+];
+const RESULTS_DEFAULT = [
+  { name: 'Grace Adamu', type: 'Full blood count', flag: false },
+  { name: 'Segun Balogun', type: 'Malaria RDT', flag: true },
+  { name: 'Chika Nnamdi', type: 'Liver function panel', flag: false },
+  { name: 'Halima Sadiq', type: 'Urinalysis', flag: false },
+];
+const QUEUE_BOUNDARY = [
+  { name: 'Uche Nwankwo', wait: 3, triage: 'urgent' },
+  { name: 'Amara Chukwuma', wait: 6, triage: 'routine' },
+  { name: 'Yusuf Abdullahi', wait: 11, triage: 'routine' },
+  { name: 'Chiamaka Obi-Nnamdi', wait: 15, triage: 'routine' },
+  { name: 'Tunde Bakare', wait: 19, triage: 'critical' },
+  { name: 'Efe Igbinedion', wait: 27, triage: 'routine' },
+];
+const RESULTS_STRESS = [
+  { name: 'Oluwaseun Temitope Ajayi-Rotimi', type: 'Comprehensive metabolic panel', flag: true },
+  { name: 'Grace Adamu', type: 'Full blood count', flag: false },
+  { name: 'Segun Balogun', type: 'Malaria RDT', flag: true },
+  { name: 'Chika Nnamdi', type: 'Liver function panel', flag: false },
+  { name: 'Halima Sadiq', type: 'Urinalysis', flag: false },
+  { name: 'Patience Ebele Uzoma', type: 'HbA1c', flag: false },
+];
+
+function fmtWait(min) {
+  if (min < 60) return min + "'";
+  const h = Math.floor(min / 60), m = min % 60;
+  return h + "h" + String(m).padStart(2, '0');
+}
+function chipIcon(t) { return t === 'routine' ? '' : '<span class="dot"></span>'; }
+
+function renderQueueRows(list, animateLast) {
+  return list.slice(0, 6).map((p, i) => `
+    <button class="queue-row${animateLast && i === 0 ? ' entering' : ''}" tabindex="0">
+      <span class="triage-chip ${p.triage}">${chipIcon(p.triage)}${p.triage}</span>
+      <span class="patient-name" title="${p.name}">${p.name}</span>
+      <span class="wait-time">${fmtWait(p.wait)}</span>
+    </button>`).join('');
+}
+function renderResultRows(list) {
+  return list.slice(0, 6).map(r => `
+    <button class="result-row" tabindex="0">
+      ${r.flag ? '<span class="flag-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 2 1 14h14L8 2Z"/><line x1="8" y1="6.5" x2="8" y2="9.5"/><circle cx="8" cy="11.5" r="0.6" fill="currentColor"/></svg></span>' : '<span class="flag-spacer"></span>'}
+      <span class="patient-name" title="${r.name}">${r.name}</span>
+      <span class="result-type" title="${r.type}">${r.type}</span>
+    </button>`).join('');
+}
+function skeletonRows(n, blocks) {
+  return Array.from({length: n}).map(() => `
+    <div class="skeleton-row">
+      ${blocks.map(w => `<div class="skeleton-block" style="width:${w}"></div>`).join('<span style="width:12px"></span>')}
+    </div>`).join('');
+}
+
+const consultActive = `
+  <div class="row-1">
+    <span class="consult-name">Adaeze Nwosu</span>
+    <span class="consult-elapsed" id="elapsed">07:42</span>
+  </div>
+  <div class="consult-actions">
+    <button class="btn">Open chart</button>
+    <button class="btn primary">End consultation</button>
+  </div>`;
+const consultEmpty = `<div class="empty-state">No consultation in progress. Start one from the queue when you're ready for the next patient.</div>`;
+const consultLoading = `
+  <div style="height:24px; display:flex; align-items:center;">
+    <div class="skeleton-block" style="width:140px; height:16px;"></div>
+  </div>
+  <div class="consult-actions">
+    <div class="skeleton-block" style="width:100%;height:32px"></div>
+    <div class="skeleton-block" style="width:100%;height:32px"></div>
+  </div>`;
+const consultError = `<div class="error-banner"><div class="msg">Couldn't load your current consultation.</div><a href="#" onclick="return false;">Retry</a></div>`;
+
+const states = {
+  default: () => {
+    setQueue(QUEUE_DEFAULT, '9 waiting', renderQueueRows(QUEUE_DEFAULT, true), true, 3);
+    document.getElementById('consult-body').innerHTML = consultActive;
+    setResults(RESULTS_DEFAULT, '4 awaiting review', renderResultRows(RESULTS_DEFAULT), false);
+  },
+  empty: () => {
+    document.getElementById('queue-count').textContent = '· 0 waiting';
+    document.getElementById('queue-body').innerHTML = '<div class="empty-state">No patients waiting. New check-ins will appear here automatically.</div>';
+    document.getElementById('queue-footer').style.display = 'none';
+    document.getElementById('consult-body').innerHTML = consultEmpty;
+    document.getElementById('results-count').textContent = '· 0 awaiting review';
+    document.getElementById('results-body').innerHTML = '<div class="empty-state">Nothing waiting on your review right now.</div>';
+    document.getElementById('results-footer').style.display = 'none';
+  },
+  loading: () => {
+    document.getElementById('queue-count').textContent = '';
+    document.getElementById('queue-body').innerHTML = skeletonRows(6, ['64px','1fr','56px']);
+    document.getElementById('queue-footer').style.display = 'none';
+    document.getElementById('consult-body').innerHTML = consultLoading;
+    document.getElementById('results-count').textContent = '';
+    document.getElementById('results-body').innerHTML = skeletonRows(6, ['16px','1fr','96px']);
+    document.getElementById('results-footer').style.display = 'none';
+  },
+  error: () => {
+    document.getElementById('queue-count').textContent = '';
+    document.getElementById('queue-body').innerHTML = '<div class="error-banner"><div class="msg">Couldn\'t load the queue.</div><a href="#" onclick="return false;">Retry</a></div>';
+    document.getElementById('queue-footer').style.display = 'none';
+    document.getElementById('consult-body').innerHTML = consultError;
+    document.getElementById('results-count').textContent = '';
+    document.getElementById('results-body').innerHTML = '<div class="error-banner"><div class="msg">Couldn\'t load pending results.</div><a href="#" onclick="return false;">Retry</a></div>';
+    document.getElementById('results-footer').style.display = 'none';
+  },
+  stress: () => {
+    setQueue(QUEUE_STRESS, '41 waiting', renderQueueRows(QUEUE_STRESS, false), true, 35);
+    document.getElementById('consult-body').innerHTML = `
+      <div class="row-1">
+        <span class="consult-name" title="Yetunde Adeola Bankole-Afolabi">Yetunde Adeola Bankole-Afolabi</span>
+        <span class="consult-elapsed">4:12</span>
+      </div>
+      <div class="consult-actions">
+        <button class="btn">Open chart</button>
+        <button class="btn primary">End consultation</button>
+      </div>`;
+    setResults(RESULTS_STRESS, '19 awaiting review', renderResultRows(RESULTS_STRESS), true, 13);
+  },
+  boundary: () => {
+    setQueue(QUEUE_BOUNDARY, '6 waiting', renderQueueRows(QUEUE_BOUNDARY, false), false);
+    document.getElementById('consult-body').innerHTML = consultActive;
+    setResults(RESULTS_DEFAULT, '4 awaiting review', renderResultRows(RESULTS_DEFAULT), false);
+  },
+};
+
+function setQueue(list, count, rowsHtml, showOverflow, overflowN) {
+  document.getElementById('queue-count').textContent = '· ' + count;
+  document.getElementById('queue-body').innerHTML = rowsHtml;
+  const footer = document.getElementById('queue-footer');
+  if (showOverflow) {
+    footer.style.display = 'flex';
+    footer.innerHTML = `<a href="#" onclick="return false;">+${overflowN} more waiting · View full queue</a>`;
+  } else { footer.style.display = 'none'; }
+}
+function setResults(list, count, rowsHtml, showOverflow, overflowN) {
+  document.getElementById('results-count').textContent = '· ' + count;
+  document.getElementById('results-body').innerHTML = rowsHtml;
+  const footer = document.getElementById('results-footer');
+  if (showOverflow) {
+    footer.style.display = 'flex';
+    footer.innerHTML = `<a href="#" onclick="return false;">+${overflowN} more · View all results</a>`;
+  } else { footer.style.display = 'none'; }
+}
+
+document.querySelectorAll('.proto-bar [data-state]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.proto-bar [data-state]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    states[btn.dataset.state]();
+  });
+});
+document.getElementById('collapse-toggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
+document.getElementById('viewport-toggle').addEventListener('click', (e) => {
+  document.querySelector('.viewport-frame').classList.toggle('narrow');
+  e.target.classList.toggle('active');
+});
+
+states.default();
+</script>
+</body>
+</html>
