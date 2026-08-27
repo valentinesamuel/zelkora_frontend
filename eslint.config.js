@@ -19,4 +19,17 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Decision D9 (DE-approved 2026-08-27): the components/** layer is
+    // domain-agnostic and must never import from features/**. See INV-L2.
+    files: ['src/components/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{
+          group: ['**/features/*', '**/features/**'],
+          message: 'components/** is domain-agnostic: it must never import from features/**. Move the domain logic into features/, or lift the generic part into components/.',
+        }],
+      }],
+    },
+  },
 ])

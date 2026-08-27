@@ -1,7 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import { ApiError } from '../../../lib/apiClient';
+import { FormError } from '../../../components/form/FormError';
+import { FormField } from '../../../components/form/FormField';
 import type { LoginResult } from '../types';
+import { credentialsSchema, type CredentialsValues } from '../schemas';
 import { useAuthStore } from '../authStore';
 
 interface CredentialsStepProps {
@@ -11,72 +15,72 @@ interface CredentialsStepProps {
 
 export function CredentialsStep({ notice, onResult }: CredentialsStepProps) {
   const loginWithCredentials = useAuthStore((s) => s.loginWithCredentials);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<CredentialsValues>({
+    resolver: zodResolver(credentialsSchema),
+    mode: 'onTouched',
+    reValidateMode: 'onChange',
+    defaultValues: { email: '', password: '' },
+  });
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
-    setPending(true);
+  async function onSubmit(values: CredentialsValues) {
     try {
-      const result = await loginWithCredentials({ email, password });
+      const result = await loginWithCredentials(values);
       onResult(result);
     } catch (err) {
       // Render the backend's human-readable message inline
       // ("invalid email or password", "account is disabled").
-      setError(
-        err instanceof ApiError
-          ? err.apiMessage
-          : 'Something went wrong. Please try again.',
-      );
-      setPending(false);
+      setError('root', {
+        message:
+          err instanceof ApiError
+            ? err.apiMessage
+            : 'Something went wrong. Please try again.',
+      });
     }
   }
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit} noValidate>
+    <form className="auth-form" onSubmit={handleSubmit(onSubmit)} noValidate>
       {notice && (
         <p className="auth-notice" role="status">
           {notice}
         </p>
       )}
 
-      <label className="auth-label" htmlFor="email">
-        Email
-        <input
-          id="email"
-          type="email"
-          className="auth-input"
-          autoComplete="username"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </label>
+      <FormField
+        id="email"
+        label="Email"
+        type="email"
+        autoComplete="username"
+        required
+        labelClassName="auth-label"
+        inputClassName="auth-input"
+        errorClassName="auth-error"
+        registration={register('email')}
+        error={errors.email}
+      />
 
-      <label className="auth-label" htmlFor="password">
-        Password
-        <input
-          id="password"
-          type="password"
-          className="auth-input"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </label>
+      <FormField
+        id="password"
+        label="Password"
+        type="password"
+        autoComplete="current-password"
+        required
+        labelClassName="auth-label"
+        inputClassName="auth-input"
+        errorClassName="auth-error"
+        registration={register('password')}
+        error={errors.password}
+      />
 
-      {error && (
-        <p className="auth-error" role="alert">
-          {error}
-        </p>
-      )}
+      <FormError message={errors.root?.message} className="auth-error" />
 
-      <button className="auth-button" type="submit" disabled={pending}>
-        {pending ? 'Signing in…' : 'Sign in'}
+      <button className="auth-button" type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Signing in…' : 'Sign in'}
       </button>
     </form>
   );

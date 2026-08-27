@@ -1,8 +1,13 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import * as QRCode from 'qrcode';
 
 import { ApiError } from '../../../lib/apiClient';
+import { FormError } from '../../../components/form/FormError';
+import { FormField } from '../../../components/form/FormField';
 import * as api from '../api';
+import { enrollVerifySchema, type EnrollVerifyValues } from '../schemas';
 
 interface EnrollMfaStepProps {
   enrollmentToken: string;
@@ -20,9 +25,17 @@ export function EnrollMfaStep({
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [passcode, setPasscode] = useState('');
-  const [verifyError, setVerifyError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<EnrollVerifyValues>({
+    resolver: zodResolver(enrollVerifySchema),
+    mode: 'onTouched',
+    reValidateMode: 'onChange',
+    defaultValues: { passcode: '' },
+  });
 
   useEffect(() => {
     if (startedRef.current) {
@@ -54,10 +67,7 @@ export function EnrollMfaStep({
 
   }, []);
 
-  async function handleVerify(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setVerifyError(null);
-    setPending(true);
+  async function onVerify({ passcode }: EnrollVerifyValues) {
     try {
       await api.verifyEnroll(enrollmentToken, passcode);
       onEnrolled();
@@ -66,12 +76,12 @@ export function EnrollMfaStep({
         onEnrolled();
         return;
       }
-      setVerifyError(
-        err instanceof ApiError
-          ? err.apiMessage
-          : 'Verification failed. Please try again.',
-      );
-      setPending(false);
+      setError('root', {
+        message:
+          err instanceof ApiError
+            ? err.apiMessage
+            : 'Verification failed. Please try again.',
+      });
     }
   }
 
@@ -107,32 +117,28 @@ export function EnrollMfaStep({
         </p>
       )}
 
-      <form className="auth-form" onSubmit={handleVerify} noValidate>
-        <label className="auth-label" htmlFor="enroll-passcode">
-          6-digit code from your authenticator
-          <input
-            id="enroll-passcode"
-            className="auth-input"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            value={passcode}
-            onChange={(e) => setPasscode(e.target.value)}
-            required
-          />
-        </label>
+      <form className="auth-form" onSubmit={handleSubmit(onVerify)} noValidate>
+        <FormField
+          id="enroll-passcode"
+          label="6-digit code from your authenticator"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          required
+          labelClassName="auth-label"
+          inputClassName="auth-input"
+          errorClassName="auth-error"
+          registration={register('passcode')}
+          error={errors.passcode}
+        />
 
-        {verifyError && (
-          <p className="auth-error" role="alert">
-            {verifyError}
-          </p>
-        )}
+        <FormError message={errors.root?.message} className="auth-error" />
 
         <button
           className="auth-button"
           type="submit"
-          disabled={pending || !qrDataUrl}
+          disabled={isSubmitting || !qrDataUrl}
         >
-          {pending ? 'Verifying…' : 'Enable MFA'}
+          {isSubmitting ? 'Verifying…' : 'Enable MFA'}
         </button>
       </form>
     </div>
