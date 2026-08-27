@@ -44,6 +44,5 @@ export interface RefreshResult {
   accessToken: string;
 }
 
-// Three states, not a boolean: `loading` is what prevents a flash of `/login`
-// on every reload while the silent bootstrap refresh is in flight.
+
 export type AuthStatus = 'loading' | 'authed' | 'anon';

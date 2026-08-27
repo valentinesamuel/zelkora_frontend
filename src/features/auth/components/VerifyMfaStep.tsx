@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ApiError } from '../../../lib/apiClient';
 import * as api from '../api';
 import { getDeviceLabel } from '../deviceLabel';
-import { useAuth } from '../useAuth';
+import { useAuthStore } from '../authStore';
 
 interface VerifyMfaStepProps {
   preAuthToken: string;
@@ -12,7 +12,7 @@ interface VerifyMfaStepProps {
 }
 
 export function VerifyMfaStep({ preAuthToken, onExpired }: VerifyMfaStepProps) {
-  const { completeLogin } = useAuth();
+  const completeLogin = useAuthStore((s) => s.completeLogin);
   const navigate = useNavigate();
 
   const [passcode, setPasscode] = useState('');

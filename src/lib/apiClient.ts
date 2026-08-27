@@ -10,7 +10,7 @@
 //   - On 401, transparently refresh the access token (single-flight) and replay
 //     the original request exactly once.
 //
-// INV-13: this module NEVER imports AuthContext. It reads the token via
+// INV-13: this module NEVER imports authStore. It reads the token via
 // `tokenStore` and signals auth failure via a registered callback.
 // INV-2 / INV-21: the refresh token is never read or logged here; nothing logs
 // token material at all.
@@ -50,8 +50,8 @@ export interface RequestOptions {
 
 // ---------------------------------------------------------------------------
 // Auth-failure callback registration (F2.7).
-// Registered once by AuthProvider (F3). Keeps the dependency arrow
-// AuthContext -> apiClient one-directional.
+// Registered once by authStore (F3). Keeps the dependency arrow
+// authStore -> apiClient one-directional.
 // ---------------------------------------------------------------------------
 
 type AuthFailureCallback = () => void;

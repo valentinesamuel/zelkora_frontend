@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 
-import { useAuth } from './useAuth';
+import { useAuthStore } from './authStore';
 
 function AuthSpinner() {
   return (
@@ -16,10 +16,9 @@ function AuthSpinner() {
   );
 }
 
-// 'loading' -> spinner (this is what prevents a flash of /login on reload);
-// 'anon' -> redirect to /login; 'authed' -> render children.
+
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const { status } = useAuth();
+  const status = useAuthStore((s) => s.status);
   if (status === 'loading') {
     return <AuthSpinner />;
   }
@@ -29,10 +28,9 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-// 'loading' -> spinner; 'authed' -> redirect to /; 'anon' -> render children.
-// `replace` on both so Back does not bounce through a redirect loop.
+
 export function PublicOnly({ children }: { children: ReactNode }) {
-  const { status } = useAuth();
+  const status = useAuthStore((s) => s.status);
   if (status === 'loading') {
     return <AuthSpinner />;
   }

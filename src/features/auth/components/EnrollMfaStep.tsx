@@ -13,10 +13,7 @@ export function EnrollMfaStep({
   enrollmentToken,
   onEnrolled,
 }: EnrollMfaStepProps) {
-  // One-shot guard. StrictMode double-invokes effects in dev; a second
-  // POST /auth/mfa/enroll runs SetMFASecret again and the QR the user just
-  // scanned corresponds to a superseded secret -> every subsequent code is
-  // rejected as "invalid mfa code" on an objectively correct code (R2 / KFM-3).
+
   const startedRef = useRef(false);
 
   const [secret, setSecret] = useState<string | null>(null);
@@ -33,22 +30,17 @@ export function EnrollMfaStep({
     }
     startedRef.current = true;
 
-    let cancelled = false;
-
     void (async () => {
       try {
         const { secret: mfaSecret, otpAuthUrl } =
           await api.enrollMfa(enrollmentToken);
-        // otpAuthUrl MUST be rendered as a scannable QR — users will not
-        // hand-type an `otpauth://` URI.
+
         const dataUrl = await QRCode.toDataURL(otpAuthUrl);
-        if (cancelled) return;
         setSecret(mfaSecret);
         setQrDataUrl(dataUrl);
       } catch (err) {
-        if (cancelled) return;
         if (err instanceof ApiError && err.statusCode === 409) {
-          // "mfa already enrolled" — nothing to enroll; send them to sign in.
+
           onEnrolled();
           return;
         }
@@ -60,12 +52,6 @@ export function EnrollMfaStep({
       }
     })();
 
-    return () => {
-      cancelled = true;
-    };
-    // Run exactly once on mount: `enrollmentToken` is fixed for this component
-    // instance and `onEnrolled` is only invoked, never observed.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleVerify(e: FormEvent<HTMLFormElement>) {

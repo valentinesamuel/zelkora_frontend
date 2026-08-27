@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 
 import { ApiError } from '../../../lib/apiClient';
 import type { LoginResult } from '../types';
-import { useAuth } from '../useAuth';
+import { useAuthStore } from '../authStore';
 
 interface CredentialsStepProps {
   notice?: string;
@@ -10,7 +10,7 @@ interface CredentialsStepProps {
 }
 
 export function CredentialsStep({ notice, onResult }: CredentialsStepProps) {
-  const { loginWithCredentials } = useAuth();
+  const loginWithCredentials = useAuthStore((s) => s.loginWithCredentials);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
