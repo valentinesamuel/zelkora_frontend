@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import '../auth/auth.css';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+
 import { useAuthStore } from '../auth/authStore';
 
 
@@ -24,34 +31,31 @@ export function ProfilePage() {
   }
 
   return (
-    <main className="auth-page">
-      <div className="auth-card">
-        <h1 className="auth-title">Profile</h1>
+    <main className="flex min-h-dvh items-center justify-center bg-muted p-6">
+      <Card className="w-full max-w-sm [--card-spacing:--spacing(6)]">
+        <CardHeader>
+          <CardTitle>
+            <h1 className="text-xl font-semibold">Profile</h1>
+          </CardTitle>
+        </CardHeader>
 
-        <dl style={{ margin: '0 0 1.25rem', display: 'grid', gap: '0.75rem' }}>
-          <div>
-            <dt className="auth-label" style={{ marginBottom: '0.15rem' }}>
-              Name
-            </dt>
-            <dd style={{ margin: 0, color: '#1a1c1f' }}>{user.fullName}</dd>
-          </div>
-          <div>
-            <dt className="auth-label" style={{ marginBottom: '0.15rem' }}>
-              Role
-            </dt>
-            <dd style={{ margin: 0, color: '#1a1c1f' }}>{user.role}</dd>
-          </div>
-        </dl>
+        <CardContent>
+          <dl className="mb-5 grid gap-3">
+            <div>
+              <dt className="mb-0.5 text-sm leading-none font-medium">Name</dt>
+              <dd className="m-0 text-foreground">{user.fullName}</dd>
+            </div>
+            <div>
+              <dt className="mb-0.5 text-sm leading-none font-medium">Role</dt>
+              <dd className="m-0 text-foreground">{user.role}</dd>
+            </div>
+          </dl>
 
-        <button
-          className="auth-button"
-          type="button"
-          onClick={handleLogout}
-          disabled={pending}
-        >
-          {pending ? 'Logging out…' : 'Log out'}
-        </button>
-      </div>
+          <Button type="button" onClick={handleLogout} disabled={pending}>
+            {pending ? 'Logging out…' : 'Log out'}
+          </Button>
+        </CardContent>
+      </Card>
     </main>
   );
 }

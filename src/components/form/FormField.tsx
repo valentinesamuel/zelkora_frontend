@@ -6,6 +6,9 @@
  * prop (INV-F3). It calls NO hooks and is a pure function of its props (INV-F4).
  * Binding is by registration-prop, not by context (INV-F5).
  *
+ * Note (D-shadcn-tailwind-5): this stays prop-based; the first consumer that
+ * needs the shadcn look should compose `<Input>`/`<Label>` internally.
+ *
  * Layering: this module is domain-agnostic and must never import feature or
  * transport modules (INV-L2). Dependency arrows point inward only.
  */

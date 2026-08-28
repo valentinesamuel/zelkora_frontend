@@ -3,11 +3,24 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as QRCode from 'qrcode';
 
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+
 import { ApiError } from '../../../lib/apiClient';
 import { FormError } from '../../../components/form/FormError';
 import { FormField } from '../../../components/form/FormField';
 import * as api from '../api';
 import { enrollVerifySchema, type EnrollVerifyValues } from '../schemas';
+
+// `FormField` is prop-based by locked decision (INV-F3/INV-F5): it renders its
+// own <label>/<input>, so the shadcn look arrives as Tailwind utility classes
+// mirroring `components/ui/{input,label}` rather than as those components.
+const labelClass = 'flex flex-col gap-1.5 text-sm leading-none font-medium';
+const inputClass =
+  'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base font-normal transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm';
+const fieldErrorClass = 'text-sm text-destructive';
+const formErrorClass =
+  'rounded-lg border bg-card px-2.5 py-2 text-sm text-destructive';
 
 interface EnrollMfaStepProps {
   enrollmentToken: string;
@@ -86,22 +99,22 @@ export function EnrollMfaStep({
   }
 
   return (
-    <div className="auth-enroll">
-      <p className="auth-help">
+    <div className="flex flex-col gap-4">
+      <p className="text-sm leading-relaxed text-muted-foreground">
         Scan this QR code with an authenticator app (Google Authenticator,
         1Password, Authy…). Enrolling does <strong>not</strong> sign you in — you
         will enter your email and password again once MFA is enabled.
       </p>
 
       {loadError && (
-        <p className="auth-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {loadError}
-        </p>
+        </Alert>
       )}
 
       {qrDataUrl && (
         <img
-          className="auth-qr"
+          className="size-[200px] self-center rounded-md border [image-rendering:pixelated]"
           src={qrDataUrl}
           alt="MFA QR code"
           width={200}
@@ -110,36 +123,38 @@ export function EnrollMfaStep({
       )}
 
       {secret && (
-        <p className="auth-secret">
+        <p className="text-center text-sm text-muted-foreground">
           Can&rsquo;t scan? Enter this key manually:
           <br />
-          <code className="auth-secret-code">{secret}</code>
+          <code className="mt-1.5 inline-block rounded-md bg-muted px-2 py-1.5 font-mono text-sm tracking-wider break-all text-foreground select-all">
+            {secret}
+          </code>
         </p>
       )}
 
-      <form className="auth-form" onSubmit={handleSubmit(onVerify)} noValidate>
+      <form
+        className="flex flex-col gap-3.5"
+        onSubmit={handleSubmit(onVerify)}
+        noValidate
+      >
         <FormField
           id="enroll-passcode"
           label="6-digit code from your authenticator"
           inputMode="numeric"
           autoComplete="one-time-code"
           required
-          labelClassName="auth-label"
-          inputClassName="auth-input"
-          errorClassName="auth-error"
+          labelClassName={labelClass}
+          inputClassName={inputClass}
+          errorClassName={fieldErrorClass}
           registration={register('passcode')}
           error={errors.passcode}
         />
 
-        <FormError message={errors.root?.message} className="auth-error" />
+        <FormError message={errors.root?.message} className={formErrorClass} />
 
-        <button
-          className="auth-button"
-          type="submit"
-          disabled={isSubmitting || !qrDataUrl}
-        >
+        <Button type="submit" disabled={isSubmitting || !qrDataUrl}>
           {isSubmitting ? 'Verifying…' : 'Enable MFA'}
-        </button>
+        </Button>
       </form>
     </div>
   );

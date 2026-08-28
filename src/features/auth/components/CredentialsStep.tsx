@@ -1,12 +1,25 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+
 import { ApiError } from '../../../lib/apiClient';
 import { FormError } from '../../../components/form/FormError';
 import { FormField } from '../../../components/form/FormField';
 import type { LoginResult } from '../types';
 import { credentialsSchema, type CredentialsValues } from '../schemas';
 import { useAuthStore } from '../authStore';
+
+// `FormField` is prop-based by locked decision (INV-F3/INV-F5): it renders its
+// own <label>/<input>, so the shadcn look arrives as Tailwind utility classes
+// mirroring `components/ui/{input,label}` rather than as those components.
+const labelClass = 'flex flex-col gap-1.5 text-sm leading-none font-medium';
+const inputClass =
+  'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base font-normal transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm';
+const fieldErrorClass = 'text-sm text-destructive';
+const formErrorClass =
+  'rounded-lg border bg-card px-2.5 py-2 text-sm text-destructive';
 
 interface CredentialsStepProps {
   notice?: string;
@@ -44,11 +57,15 @@ export function CredentialsStep({ notice, onResult }: CredentialsStepProps) {
   }
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form
+      className="flex flex-col gap-3.5"
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+    >
       {notice && (
-        <p className="auth-notice" role="status">
+        <Alert role="status" className="mb-1">
           {notice}
-        </p>
+        </Alert>
       )}
 
       <FormField
@@ -57,9 +74,9 @@ export function CredentialsStep({ notice, onResult }: CredentialsStepProps) {
         type="email"
         autoComplete="username"
         required
-        labelClassName="auth-label"
-        inputClassName="auth-input"
-        errorClassName="auth-error"
+        labelClassName={labelClass}
+        inputClassName={inputClass}
+        errorClassName={fieldErrorClass}
         registration={register('email')}
         error={errors.email}
       />
@@ -70,18 +87,18 @@ export function CredentialsStep({ notice, onResult }: CredentialsStepProps) {
         type="password"
         autoComplete="current-password"
         required
-        labelClassName="auth-label"
-        inputClassName="auth-input"
-        errorClassName="auth-error"
+        labelClassName={labelClass}
+        inputClassName={inputClass}
+        errorClassName={fieldErrorClass}
         registration={register('password')}
         error={errors.password}
       />
 
-      <FormError message={errors.root?.message} className="auth-error" />
+      <FormError message={errors.root?.message} className={formErrorClass} />
 
-      <button className="auth-button" type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Signing in…' : 'Sign in'}
-      </button>
+      </Button>
     </form>
   );
 }

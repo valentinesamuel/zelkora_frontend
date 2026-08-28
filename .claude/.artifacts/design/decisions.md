@@ -190,3 +190,258 @@ Trade-offs: `frontend-architect` (stage 4) must define what renders at each
 target route before its own feature exists — a stub/placeholder page, not a
 404. This is new scope for stage 4 beyond routing the dashboard itself.
 Next Owner: frontend-architect (stage 4)
+
+## D-shadcn-tailwind-1 — Adopt Tailwind v4 + shadcn/ui; reverse INV-23 / "locked decision 7"
+Author: operator / DE (task interrogation, pre-Phase 0)
+Date: 2026-08-27
+Context: The `zelkora_frontend` app shipped with hand-written plain CSS
+(`src/index.css` Vite-starter reset, `src/features/auth/auth.css`, dead
+`src/App.css`) under a prior standing decision recorded as INV-23 / "locked
+decision 7": *"No Tailwind, no shadcn"*. Meanwhile `.claude/knowledge/stack.md`
+mandates React 19 + Vite + TypeScript strict + Tailwind v4 + shadcn/ui, and the
+design pipeline's `design-system.md` is expressed in OKLCH design tokens that
+plain per-feature CSS cannot consume. The two could not both stand.
+Decision: Reverse INV-23 / "locked decision 7". Adopt Tailwind v4 +
+shadcn/ui per `.claude/knowledge/stack.md`. Remove ALL plain CSS. Reskin auth +
+profile now.
+Reasoning: The app must converge on the organisational stack before more domains
+are built on top of the divergent one; every additional feature written in plain
+CSS raises the migration cost and widens the gap to `design-system.md`. Doing the
+reskin now, while the surface is two pages (auth + profile), is the cheapest this
+migration will ever be.
+Alternatives: (a) Keep plain CSS and retire `stack.md`'s Tailwind mandate —
+rejected, `design-system.md`/`token-diff.mjs` and the whole design pipeline
+assume a token-driven utility stack. (b) Adopt Tailwind but not shadcn (utilities
+only, hand-rolled components) — rejected, gives up the accessible primitive set
+and the `npx shadcn add` upgrade path for no saving. (c) Adopt incrementally,
+leaving `auth.css` in place alongside Tailwind — rejected, two styling systems in
+one app is the worst of both and tends to become permanent.
+Trade-offs: A one-time reskin of every existing styled surface with a real
+regression risk (accessibility wiring, focus states, form behaviour), plus new
+dependencies (`tailwindcss`, `@tailwindcss/vite`, `class-variance-authority`,
+`clsx`, `tailwind-merge`, `lucide-react`, `radix-ui`, `tw-animate-css`). Accepted:
+the reskin was gated by an explicit 15-item parity checklist in Phase 5.
+Next Owner: superseded/closed — executed across Phases 1-6; see D-shadcn-tailwind-6.
+
+## D-shadcn-tailwind-2 — Ship the STOCK shadcn `neutral` theme; retokenising is a tracked follow-up
+Author: operator / DE (task interrogation, pre-Phase 0)
+Date: 2026-08-27
+Context: `.claude/.artifacts/design/design-system.md` defines the project's real
+OKLCH token set, and `.claude/knowledge/stack.md` states that shadcn's default
+tokens MUST be replaced with art-direction values ("no default neutral ramp,
+radius, or focus ring"). Wiring those tokens is a design-fidelity task of its own
+size, independent of the toolchain migration; bundling them would have made a
+single un-reviewable change.
+Decision: Ship shadcn STOCK `neutral` theme. Wiring
+`.claude/.artifacts/design/design-system.md` OKLCH tokens into
+`src/styles/theme.css` is a TRACKED FOLLOW-UP, out of scope. This knowingly
+violates `stack.md`'s "no default theme / tokens MUST be replaced with
+art-direction values" rule until that follow-up lands.
+Reasoning: Separates "does the toolchain work and does the app still behave" from
+"does the app look like the approved art direction". A stock theme is a known,
+documented baseline, which makes the later retokenisation a clean, reviewable
+token-only diff rather than an entangled one.
+Alternatives: (a) Retokenise in the same task — rejected as scope that would have
+merged a toolchain migration and a visual redesign into one gate. (b) Invent
+interim tokens — rejected, strictly worse than stock: undocumented, unapproved,
+and harder to diff against `design-system.md` later.
+Trade-offs: The app is knowingly off-brand and knowingly in violation of
+`stack.md` until the follow-up lands. Encoded as **INV-T1**, an explicitly
+time-boxed/expiring invariant that dies when the retokenisation ships — it is not
+a permanent licence. Residual risk R13: the follow-up never happens and the stock
+theme becomes permanent while `design-system.md` rots.
+Next Owner: UNASSIGNED — see D-shadcn-tailwind-6(b) and state.md Q2. Needs a named
+human owner and a ticket.
+
+## D-shadcn-tailwind-3 — Scaffold shadcn primitives on demand only
+Author: operator / DE (task interrogation, pre-Phase 0)
+Date: 2026-08-27
+Context: `npx shadcn add` can install an arbitrary number of primitives, and the
+common failure mode is scaffolding the full example set "so it's there", leaving
+dozens of unused, unreviewed, unpruned components in `src/components/ui/` that
+nobody owns but every audit must read.
+Decision: Scaffold primitives ON DEMAND only: `button input label card alert
+spinner`. If `spinner` is absent from the registry, use lucide `Loader2` +
+`animate-spin`. Do NOT add the full example set.
+Reasoning: Those six are exactly what the auth + profile reskin consumes. Every
+file in `components/ui/` is code this team owns and must keep passing strict TS,
+ESLint, and review; unused primitives are pure liability.
+Alternatives: Add the full shadcn set up front — rejected, unowned surface area
+and noise in every future diff and review.
+Trade-offs: Each future feature pays a small `npx shadcn add <name>` step. Cheap,
+and it keeps the addition visible in review. Phase 6 pruned the scaffolds further
+(Button variants/sizes, Card `size`) against whole-`src/` grep evidence of zero
+call sites — restore variants when a real consumer needs them.
+Next Owner: closed — Phase 3 (scaffold) + Phase 6 (prune). H2 resolved; see
+D-shadcn-tailwind-6(e).
+
+## D-shadcn-tailwind-4 — TanStack Query as infrastructure only; domain hooks live in features
+Author: operator / DE (task interrogation, pre-Phase 0)
+Date: 2026-08-27
+Context: The app's auth session lifecycle (bootstrap / refresh / login) is
+already implemented on Zustand + the single `apiRequest` seam in
+`src/lib/apiClient.ts`, protected by INV-13 (one-way `authStore → apiClient`) and
+INV-14 (all HTTP through `apiRequest`). Introducing TanStack Query invited an
+opportunistic rewrite of that lifecycle into `useQuery`. Separately,
+`stack.md` documents a global `src/api/` seam.
+Decision: TanStack Query INFRASTRUCTURE ONLY (provider + singleton `QueryClient`
++ dev-only devtools). Do NOT convert the auth session lifecycle:
+bootstrap/refresh/login is client state, stays on Zustand + `apiClient`
+(INV-13/INV-14 untouched). Domain query hooks will live at
+`features/<domain>/api/*.api.ts`, NOT a global `src/api/`. This diverges from
+`stack.md`'s global `src/api/` seam — recorded deliberately.
+Reasoning: Auth session state is genuinely client state with imperative
+sequencing (token refresh, failure callbacks), not server-cache state; modelling
+it as a query buys nothing and risks the app's most sensitive path. Co-locating
+query hooks with their domain keeps the feature slice vertical and self-contained
+and avoids a global directory that grows into a cross-domain junk drawer.
+Alternatives: (a) Convert auth to TanStack Query — rejected, high risk to
+INV-13/INV-14 for no benefit. (b) Global `src/api/` per `stack.md` — rejected,
+contradicts the feature-first architecture this task is encoding; a global seam
+makes every feature import sideways into shared domain code.
+Trade-offs: A documented divergence from `stack.md` that a future reader could
+mistake for drift — mitigated by recording it here, in `src/features/README.md`,
+and again in D-shadcn-tailwind-6(c). Also: no domain query hook exists yet, so the
+convention is asserted rather than proven by use.
+Next Owner: the first feature to add a domain query hook (must create
+`features/<domain>/api/<name>.api.ts`, not `src/api/`).
+
+## D-shadcn-tailwind-5 — Keep the prop-based `components/form` primitives; do not adopt shadcn's `Form` stack
+Author: operator / DE (task interrogation, pre-Phase 0)
+Date: 2026-08-27
+Context: `src/components/form/FormField.tsx` and `FormError.tsx` are existing
+domain-agnostic, prop-driven primitives (INV-F3/F4/F5: no CSS of their own, pure
+functions of props, no hooks, binding only via an RHF `register()` return). shadcn
+ships a competing context-based `Form`/`FormField`/`FormItem`/`FormControl` stack
+built on `react-hook-form`'s `FormProvider`.
+Decision: KEEP prop-based `components/form/{FormField,FormError}`. Do NOT adopt
+shadcn's context-based `Form`/`FormField`/`FormItem`/`FormControl` stack this
+task. When `FormField` is first consumed it should compose `<Input>`/`<Label>`
+internally.
+Reasoning: The existing primitives already carry correct accessibility wiring
+(`aria-invalid`, `aria-describedby`, `noValidate` + `handleSubmit`) that the three
+auth step components depend on. Swapping in a context-based stack would rewrite
+every form in the app during a phase whose stated goal was zero behavioural or
+accessibility regression.
+Alternatives: (a) Adopt shadcn's `Form` stack now — rejected, couples a styling
+migration to a forms-architecture migration. (b) Run both — rejected, two form
+conventions is worse than either.
+Trade-offs: The app forgoes shadcn's ergonomic context API and diverges from
+shadcn form examples, so copy-pasting registry form snippets needs adaptation.
+Accepted. Phase 5 consequence: `auth-input`/`auth-label` were reskinned by passing
+mirrored Tailwind utilities as `inputClassName`/`labelClassName` props rather than
+swapping in `<Input>`/`<Label>`, to respect the frozen `FormField` API — which also
+meant the flagged RHF `ref`-forwarding risk never arose.
+Next Owner: the first feature to consume `FormField` (compose `<Input>`/`<Label>`
+inside it at that point).
+
+## D-shadcn-tailwind-6 — Task change-log and resolved outcomes
+Author: architect-reviewer (Phase 7)
+Date: 2026-08-28
+Context: Phases 1-6 executed the Tailwind v4 + shadcn/ui migration (toolchain,
+`shadcn init`, primitive scaffolding, app shell + Query infrastructure, auth +
+profile reskin, dead-CSS deletion + pruning). Several of the plan's open
+hypotheses, risks, and deliberate rule violations resolved during execution and
+must be recorded in one place so a later reader does not have to reconstruct them
+from six checkpoints — and so the one still-open item cannot quietly disappear.
+Decision: Record the following eight outcomes as settled facts of this task.
+
+  **(a) INV-23 reversal — DONE.** The standing decision *"No Tailwind, no shadcn"*
+  (formerly INV-23 / "locked decision 7") is **REVERSED** by
+  D-shadcn-tailwind-1. Tailwind v4 (`tailwindcss@4.3.3` +
+  `@tailwindcss/vite@4.3.3`) and shadcn/ui (`shadcn@4.19.0`) are now the adopted
+  styling stack. All plain CSS is gone: `src/features/auth/auth.css` and
+  `src/App.css` deleted, the Vite-starter reset removed from `src/index.css`,
+  which is now the sole CSS file in `src/` (INV-C1). No source file repeats the
+  now-false claim — verified in Phase 7 by
+  `grep -rn "INV-23\|locked decision 7" src` returning zero matches.
+
+  **(b) D-2 follow-up — TRACKED, OUTSTANDING, AND UNOWNED.** The stock shadcn
+  `neutral` theme shipped per D-shadcn-tailwind-2 / INV-T1 **knowingly violates**
+  `.claude/knowledge/stack.md`'s rule that tokens MUST be replaced with
+  art-direction values (no default neutral ramp, radius, or focus ring). Wiring
+  `.claude/.artifacts/design/design-system.md`'s OKLCH tokens into
+  `src/styles/theme.css` is **TRACKED AND STILL OUTSTANDING** at the close of this
+  task. **No named owner has been assigned** — `state.md`'s open question **Q2**
+  ("who owns the retokenising follow-up, and by when?") is **UNRESOLVED**, and
+  risk R13 (the stock theme becomes permanent while `design-system.md` rots)
+  therefore remains live. **This needs a human-assigned owner and a ticket before
+  it can close.** INV-T1 is time-boxed and expires on that follow-up; it is not a
+  permanent licence and must not be cited as precedent for shipping default
+  tokens again.
+
+  **(c) D-4 divergence — deliberate, not an oversight.** Domain query hooks live
+  at `features/<domain>/api/*.api.ts`; there is no global `src/api/` directory and
+  none should be created. This **diverges from `.claude/knowledge/stack.md`'s
+  documented global `src/api/` seam** and is **recorded deliberately** (see
+  D-shadcn-tailwind-4). Anyone reading `stack.md` and this repo together should
+  treat the feature-local convention as authoritative here, and is also encoded in
+  `src/features/README.md`.
+
+  **(d) H1 resolved — CONFIRMED.** Hypothesis H1 (would the `@tailwindcss/vite`
+  plugin work on Vite 8, or would a PostCSS fallback be needed?) was **CONFIRMED
+  at runtime in Phase 1**: `@tailwindcss/vite@4.3.3` worked directly on
+  `vite@8.2.1` (probe utility compiled to OKLCH in the built CSS). **The PostCSS
+  fallback was never needed and never taken.**
+
+  **(e) H2 resolved — CONFIRMED.** Hypothesis H2 (`spinner` availability in the
+  shadcn registry) was **CONFIRMED in Phase 3**: `spinner` is present in the
+  shadcn v4 registry and installed normally; it wraps lucide's `Loader2Icon`
+  internally. **The manual `Loader2` + `animate-spin` fallback contemplated by
+  D-shadcn-tailwind-3 was not needed.** (Open backlog item R22, noted not
+  introduced: `spinner.tsx` has no `motion-reduce:` / `prefers-reduced-motion`
+  handling on `animate-spin`, which the `stack.md` a11y floor requires.)
+
+  **(f) `--legacy-peer-deps` — NOT required.** **NO.** Every phase (1 through 6)
+  completed a clean `npm install` / `npx shadcn init` / `npx shadcn add` with
+  **zero peer-dependency conflicts on React 19**. The flag was never used, and a
+  future contributor hitting a peer conflict should treat it as new information,
+  not as this stack's normal state.
+
+  **(g) Phase 2 amendment — v3 → v4 re-init, `new-york` → `radix-nova`.**
+  `shadcn init` was first run on **v3 (3.8.5)**, then **re-run on `shadcn@latest`
+  (v4.19.0) by explicit user instruction**, switching `style` from `new-york` to
+  **`radix-nova`** (v4's `-b radix -p nova`) while **`baseColor: "neutral"` stayed
+  intact** (D-2 preserved) — **token values byte-identical** to the v3 run. Two
+  v4-only init side effects were reverted to respect phase boundaries: the
+  auto-scaffolded `src/components/ui/button.tsx` (deleted — Phase 3's job per D-3)
+  and a bundled Geist font (import, theme vars, `html` rule, and npm dep all
+  stripped — ~76 kB of dead-weight `.woff2` in `dist/`, outside D-2's token-only
+  scope). Pre-amendment state backed up to `.claude/artifacts/backup-phase2-v3/`.
+  Also discovered in Phase 2/3: `shadcn init` **MERGES** into an existing
+  `index.css` rather than overwriting it (superseding the plan's R4 assumption),
+  which is what left the Vite-starter reset alive until Phase 6.
+
+  **(h) Phase 6 in-flight regression and same-phase fix.** A `:root` dedup pass on
+  `src/index.css` **briefly dropped shadcn's own `--border` and `--accent` custom
+  properties** — a name collision with the legacy Vite-starter block being removed
+  (risks R19/R20) — leaving light mode with undefined borders and accents. This
+  was **invisible to `tsc -b`, `build`, `lint`, and `test`**; it was caught by the
+  Review agent before sign-off, by diffing `:root` against `.dark` and
+  `@theme inline`, and **fixed in the same phase** by restoring the two
+  stock-neutral values matching the existing `.dark` pair. Standing lesson: any
+  merge or dedup of `:root`/`.dark` token blocks requires an explicit
+  symmetric-coverage check — every token defined in `.dark` must also resolve in
+  `:root` — because no automated gate in this repo catches its absence.
+
+Reasoning: These items are exactly the ones a future reader would otherwise
+mis-diagnose: (a) contradicts a decision still written down elsewhere in project
+history; (b) is a live, unowned violation of an organisational rule and the single
+most likely thing to rot; (c) looks like drift from `stack.md` but is not; (d)-(f)
+close hypotheses whose fallbacks are still described in the plan and would
+otherwise be re-litigated; (g)-(h) explain non-obvious file states
+(`radix-nova` + `neutral`, restored `--border`/`--accent`) that would look like
+mistakes without context. Consolidating them into one decision entry makes the
+task auditable from this file alone.
+Alternatives: Leave these in the per-phase `checkpoint.md` / `state.md` only —
+rejected, those are working documents scoped to the pipeline run, while
+`decisions.md` is the institutional memory that survives it. In particular the
+unowned D-2 follow-up would have expired with the run.
+Trade-offs: This entry mixes a policy reversal, an outstanding obligation, and
+execution history in one record, which is broader than a single decision. Accepted
+for traceability: each point is separately labelled (a)-(h) so it can be cited
+individually. It also does not, and cannot, resolve Q2 — that requires a human.
+Next Owner: **human / DE — assign an owner and ticket for the D-2 retokenising
+follow-up (point (b), state.md Q2, risk R13) so INV-T1 can expire.** Secondary:
+the next feature author, who inherits the contracts in `src/features/README.md`,
+`src/components/shared/README.md`, and `src/app/layouts/README.md`.

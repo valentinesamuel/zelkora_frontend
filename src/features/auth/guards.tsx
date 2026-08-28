@@ -1,16 +1,20 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 
+import { Spinner } from '@/components/ui/spinner';
+
 import { useAuthStore } from './authStore';
 
 function AuthSpinner() {
   return (
     <div
-      className="auth-spinner"
+      className="flex items-center justify-center gap-2 p-8 text-center text-sm text-muted-foreground"
       role="status"
       aria-live="polite"
-      style={{ padding: '2rem', textAlign: 'center' }}
     >
+      {/* The wrapper owns the live region; the icon is decorative so the
+          "Loading…" text is announced exactly once (as before). */}
+      <Spinner role={undefined} aria-label={undefined} aria-hidden="true" />
       Loading…
     </div>
   );
