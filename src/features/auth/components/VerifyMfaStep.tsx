@@ -72,7 +72,7 @@ export function VerifyMfaStep({ preAuthToken, onExpired }: Readonly<VerifyMfaSte
   return (
     <Form {...form}>
       <form
-        className="flex flex-col gap-3.5"
+        className="flex flex-col gap-5"
         onSubmit={form.handleSubmit(onSubmit)}
         noValidate
       >
@@ -116,7 +116,7 @@ export function VerifyMfaStep({ preAuthToken, onExpired }: Readonly<VerifyMfaSte
           </Alert>
         )}
 
-        <Button type="submit" disabled={form.formState.isSubmitting}>
+        <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Verifying…' : 'Verify'}
         </Button>
       </form>

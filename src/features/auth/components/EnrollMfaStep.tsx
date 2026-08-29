@@ -96,7 +96,7 @@ export function EnrollMfaStep({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <p className="text-sm leading-relaxed text-muted-foreground">
         Scan this QR code with an authenticator app (Google Authenticator,
         1Password, Authy…). Enrolling does <strong>not</strong> sign you in — you
@@ -111,7 +111,7 @@ export function EnrollMfaStep({
 
       {qrDataUrl && (
         <img
-          className="size-[200px] self-center rounded-md border [image-rendering:pixelated]"
+          className="size-[200px] shrink-0 self-center rounded-xl border bg-background p-2 [image-rendering:pixelated]"
           src={qrDataUrl}
           alt="MFA QR code"
           width={200}
@@ -123,7 +123,7 @@ export function EnrollMfaStep({
         <p className="text-center text-sm text-muted-foreground">
           Can&rsquo;t scan? Enter this key manually:
           <br />
-          <code className="mt-1.5 inline-block rounded-md bg-muted px-2 py-1.5 font-mono text-sm tracking-wider break-all text-foreground select-all">
+          <code className="mt-1.5 inline-block rounded-lg bg-muted px-3 py-2 font-mono text-sm tracking-wider break-all text-foreground select-all">
             {secret}
           </code>
         </p>
@@ -131,7 +131,7 @@ export function EnrollMfaStep({
 
       <Form {...form}>
         <form
-          className="flex flex-col gap-3.5"
+          className="flex flex-col gap-5"
           onSubmit={form.handleSubmit(onVerify)}
           noValidate
         >
@@ -175,7 +175,11 @@ export function EnrollMfaStep({
             </Alert>
           )}
 
-          <Button type="submit" disabled={form.formState.isSubmitting || !qrDataUrl}>
+          <Button
+            type="submit"
+            size="lg"
+            disabled={form.formState.isSubmitting || !qrDataUrl}
+          >
             {form.formState.isSubmitting ? 'Verifying…' : 'Enable MFA'}
           </Button>
         </form>

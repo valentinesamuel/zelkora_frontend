@@ -1,12 +1,6 @@
 import { useState } from 'react';
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-
+import { AuthShell } from './components/AuthShell';
 import { CredentialsStep } from './components/CredentialsStep';
 import { EnrollMfaStep } from './components/EnrollMfaStep';
 import { VerifyMfaStep } from './components/VerifyMfaStep';
@@ -42,38 +36,41 @@ export function LoginPage() {
     setStep({ name: 'credentials', notice });
   }
 
+  const titleByStep: Record<Step['name'], string> = {
+    credentials: 'Login',
+    enroll: 'Set up two-factor authentication',
+    verify: 'Two-factor authentication',
+  };
+
+  const subtitleByStep: Record<Step['name'], string> = {
+    credentials: "Let's log in to your Zelkora account first",
+    enroll:
+      'Scan the code with your authenticator app to finish securing your account',
+    verify: 'Enter the code from your authenticator app',
+  };
+
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-muted p-6">
-      <Card className="w-full max-w-sm [--card-spacing:--spacing(6)]">
-        <CardHeader>
-          <CardTitle>
-            <h1 className="text-xl font-semibold">Sign in</h1>
-          </CardTitle>
-        </CardHeader>
+    <AuthShell title={titleByStep[step.name]} subtitle={subtitleByStep[step.name]}>
+      {step.name === 'credentials' && (
+        <CredentialsStep
+          notice={step.notice}
+          onResult={handleCredentialsResult}
+        />
+      )}
 
-        <CardContent>
-          {step.name === 'credentials' && (
-            <CredentialsStep
-              notice={step.notice}
-              onResult={handleCredentialsResult}
-            />
-          )}
+      {step.name === 'enroll' && (
+        <EnrollMfaStep
+          enrollmentToken={step.enrollmentToken}
+          onEnrolled={handleEnrolled}
+        />
+      )}
 
-          {step.name === 'enroll' && (
-            <EnrollMfaStep
-              enrollmentToken={step.enrollmentToken}
-              onEnrolled={handleEnrolled}
-            />
-          )}
-
-          {step.name === 'verify' && (
-            <VerifyMfaStep
-              preAuthToken={step.preAuthToken}
-              onExpired={handlePreAuthExpired}
-            />
-          )}
-        </CardContent>
-      </Card>
-    </main>
+      {step.name === 'verify' && (
+        <VerifyMfaStep
+          preAuthToken={step.preAuthToken}
+          onExpired={handlePreAuthExpired}
+        />
+      )}
+    </AuthShell>
   );
 }
