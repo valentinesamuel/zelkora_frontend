@@ -32,7 +32,7 @@ interface EnrollMfaStepProps {
 export function EnrollMfaStep({
   enrollmentToken,
   onEnrolled,
-}: EnrollMfaStepProps) {
+}: Readonly<EnrollMfaStepProps>) {
 
   const startedRef = useRef(false);
 

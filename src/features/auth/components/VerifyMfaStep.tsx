@@ -30,7 +30,7 @@ interface VerifyMfaStepProps {
   onExpired(notice: string): void;
 }
 
-export function VerifyMfaStep({ preAuthToken, onExpired }: VerifyMfaStepProps) {
+export function VerifyMfaStep({ preAuthToken, onExpired }: Readonly<VerifyMfaStepProps>) {
   const completeLogin = useAuthStore((s) => s.completeLogin);
   const navigate = useNavigate();
 
@@ -57,12 +57,9 @@ export function VerifyMfaStep({ preAuthToken, onExpired }: VerifyMfaStepProps) {
         err instanceof ApiError &&
         err.apiMessage === 'invalid or expired token'
       ) {
-        // Pre-auth token expired — a retype cannot help; restart at credentials.
         onExpired('Your sign-in session expired. Please enter your password again.');
         return;
       }
-      // "invalid mfa code" and anything else: keep the step unchanged so the
-      // user can retype. Resetting to credentials on a typo is hostile UX.
       form.setError('root', {
         message:
           err instanceof ApiError

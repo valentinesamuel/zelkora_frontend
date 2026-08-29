@@ -28,8 +28,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       const me = await api.getMe();
       set({ user: me, status: 'authed' });
     } catch (err) {
-      // getMe failed after a successful MFA verify: fall back to 'anon' and
-      // surface the error rather than hanging on a half-authenticated state.
       clearAccessToken();
       set({ user: null, status: 'anon' });
       throw err;

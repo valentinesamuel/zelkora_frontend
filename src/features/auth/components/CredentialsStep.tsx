@@ -23,7 +23,7 @@ interface CredentialsStepProps {
   onResult(result: LoginResult): void;
 }
 
-export function CredentialsStep({ notice, onResult }: CredentialsStepProps) {
+export function CredentialsStep({ notice, onResult }: Readonly<CredentialsStepProps>) {
   const loginWithCredentials = useAuthStore((s) => s.loginWithCredentials);
   const form = useForm<CredentialsValues>({
     resolver: zodResolver(credentialsSchema),
@@ -37,8 +37,6 @@ export function CredentialsStep({ notice, onResult }: CredentialsStepProps) {
       const result = await loginWithCredentials(values);
       onResult(result);
     } catch (err) {
-      // Render the backend's human-readable message inline
-      // ("invalid email or password", "account is disabled").
       form.setError('root', {
         message:
           err instanceof ApiError

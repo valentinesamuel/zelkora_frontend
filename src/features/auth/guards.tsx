@@ -21,7 +21,7 @@ function AuthSpinner() {
 }
 
 
-export function RequireAuth({ children }: { children: ReactNode }) {
+export function RequireAuth({ children }: Readonly<{ children: ReactNode }>) {
   const status = useAuthStore((s) => s.status);
   if (status === 'loading') {
     return <AuthSpinner />;
@@ -33,7 +33,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 }
 
 
-export function PublicOnly({ children }: { children: ReactNode }) {
+export function PublicOnly({ children }: Readonly<{ children: ReactNode }>) {
   const status = useAuthStore((s) => s.status);
   if (status === 'loading') {
     return <AuthSpinner />;
