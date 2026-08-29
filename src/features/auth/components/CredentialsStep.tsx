@@ -132,6 +132,7 @@ export function CredentialsStep({ notice, onResult }: Readonly<CredentialsStepPr
             </div>
 
             <a href="#" className="text-auth-link text-sm font-medium">
+              {/* TODO: Create a forgot password screen */}
               Forgot Password
             </a>
           </div>
@@ -180,12 +181,12 @@ export function CredentialsStep({ notice, onResult }: Readonly<CredentialsStepPr
         Login with Google
       </Button>
 
-      <p className="text-center text-sm">
+      {/* <p className="text-center text-sm">
         Don&apos;t have an account?{' '}
         <a href="#" className="text-auth-link font-medium">
           Register Here
         </a>
-      </p>
+      </p> */}
     </>
   );
 }
