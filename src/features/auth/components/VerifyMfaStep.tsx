@@ -2,25 +2,28 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 
+import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from '@/components/ui/input-otp';
 
 import { ApiError } from '../../../lib/apiClient';
-import { FormError } from '../../../components/form/FormError';
-import { FormField } from '../../../components/form/FormField';
 import * as api from '../api';
 import { getDeviceLabel } from '../deviceLabel';
 import { verifyMfaSchema, type VerifyMfaValues } from '../schemas';
 import { useAuthStore } from '../authStore';
-
-// `FormField` is prop-based by locked decision (INV-F3/INV-F5): it renders its
-// own <label>/<input>, so the shadcn look arrives as Tailwind utility classes
-// mirroring `components/ui/{input,label}` rather than as those components.
-const labelClass = 'flex flex-col gap-1.5 text-sm leading-none font-medium';
-const inputClass =
-  'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base font-normal transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm';
-const fieldErrorClass = 'text-sm text-destructive';
-const formErrorClass =
-  'rounded-lg border bg-card px-2.5 py-2 text-sm text-destructive';
 
 interface VerifyMfaStepProps {
   preAuthToken: string;
@@ -31,12 +34,7 @@ export function VerifyMfaStep({ preAuthToken, onExpired }: VerifyMfaStepProps) {
   const completeLogin = useAuthStore((s) => s.completeLogin);
   const navigate = useNavigate();
 
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<VerifyMfaValues>({
+  const form = useForm<VerifyMfaValues>({
     resolver: zodResolver(verifyMfaSchema),
     mode: 'onTouched',
     reValidateMode: 'onChange',
@@ -65,7 +63,7 @@ export function VerifyMfaStep({ preAuthToken, onExpired }: VerifyMfaStepProps) {
       }
       // "invalid mfa code" and anything else: keep the step unchanged so the
       // user can retype. Resetting to credentials on a typo is hostile UX.
-      setError('root', {
+      form.setError('root', {
         message:
           err instanceof ApiError
             ? err.apiMessage
@@ -75,33 +73,56 @@ export function VerifyMfaStep({ preAuthToken, onExpired }: VerifyMfaStepProps) {
   }
 
   return (
-    <form
-      className="flex flex-col gap-3.5"
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-    >
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        Enter the current 6-digit code from your authenticator app.
-      </p>
+    <Form {...form}>
+      <form
+        className="flex flex-col gap-3.5"
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+      >
+        <FormField
+          control={form.control}
+          name="passcode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Authentication code</FormLabel>
+              <FormDescription>
+                Enter the current 6-digit code from your authenticator app.
+              </FormDescription>
+              <FormControl>
+                <InputOTP
+                  maxLength={6}
+                  autoComplete="one-time-code"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  name={field.name}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <FormField
-        id="verify-passcode"
-        label="Authentication code"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        required
-        labelClassName={labelClass}
-        inputClassName={inputClass}
-        errorClassName={fieldErrorClass}
-        registration={register('passcode')}
-        error={errors.passcode}
-      />
+        {form.formState.errors.root?.message && (
+          <Alert variant="destructive" role="alert">
+            {form.formState.errors.root.message}
+          </Alert>
+        )}
 
-      <FormError message={errors.root?.message} className={formErrorClass} />
-
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Verifying…' : 'Verify'}
-      </Button>
-    </form>
+        <Button type="submit" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? 'Verifying…' : 'Verify'}
+        </Button>
+      </form>
+    </Form>
   );
 }

@@ -445,3 +445,96 @@ Next Owner: **human / DE — assign an owner and ticket for the D-2 retokenising
 follow-up (point (b), state.md Q2, risk R13) so INV-T1 can expire.** Secondary:
 the next feature author, who inherits the contracts in `src/features/README.md`,
 `src/components/shared/README.md`, and `src/app/layouts/README.md`.
+
+## D-shadcn-tailwind-7 — Reopen D-shadcn-tailwind-5 — replace the prop-based `components/form` primitives with shadcn's context-based Form stack
+Author: operator / DE (task interrogation, pre-Phase 8)
+Date: 2026-08-29
+Context: D-shadcn-tailwind-5 (2026-08-27) decided to KEEP `components/form/{FormField,FormError}`
+prop-based (INV-F3/F4/F5 — no CSS of their own, pure functions of props, no hooks, binding only
+via an RHF `register()` return) and explicitly REJECTED shadcn's context-based `Form` stack. Its
+grounds were that swapping to a context stack would rewrite every form in the app during a phase
+whose stated goal was zero behavioural or accessibility regression. Two pieces of new information
+reopen it. First, the user's objective changed: shadcn-native forms are now an explicit goal in
+their own right — the user wants a component library genuinely based on shadcn, not shadcn styling
+draped over a bespoke forms architecture. The rewrite risk D-5 avoided is therefore no longer an
+incidental cost of a styling migration; it is the accepted price of the objective itself. Second,
+the audit found that the "frozen `FormField` API" which D-5's Phase 5 consequence protected had in
+practice produced 12 hand-copied Tailwind class constants spread across 3 files, passed in as
+`inputClassName`/`labelClassName`, and those copies had already drifted from `ui/input.tsx`. That
+is a maintenance cost D-5 did not anticipate when it treated the frozen API as the cheap option.
+Decision: Replace `FormField`/`FormError` with shadcn's
+`Form`/`FormField`/`FormItem`/`FormLabel`/`FormControl`/`FormDescription`/`FormMessage`, from
+`src/components/ui/form.tsx` — hand-authored rather than scaffolded, because the `radix-nova`
+shadcn style has no `form` registry entry (confirmed by a direct registry fetch, not inferred) —
+built on `react-hook-form`'s `FormProvider` + `Controller`. `src/components/form/` is DELETED.
+INV-F3, INV-F4, INV-F5 and INV-F8 are RETIRED: they described files that no longer exist.
+Reasoning: One form convention across the app, which is the same argument D-5 used against running
+both stacks — it now points the other way. The field input is literally `ui/input.tsx` instead of
+a hand-copy of its classes that can drift. shadcn's `Form` renders no DOM of its own (it is just
+`FormProvider`), so the existing `noValidate` + `handleSubmit` submission path and the `ApiError`
+handling survived untouched — verified byte-equivalent in Phase 9's review rather than assumed.
+Alternatives: (a) Let D-5 stand — rejected, the user's objective changed and D-5's stated grounds
+no longer describe the situation. (b) Migrate `FormField` only and keep `FormError` — rejected,
+leaves two form conventions in the app, which D-5 itself argued was worse than either alone.
+(c) Hand-roll a bespoke context stack with the same ergonomics — rejected, all of the migration
+cost with none of the registry upgrade path or shared-vocabulary benefit.
+Trade-offs: Accessibility parity is close but not identical, and each delta was applied or
+accepted deliberately. (1) The scaffolded `FormMessage` was patched to add `role="alert"`, which
+stock shadcn drops and the old `FormError` had. (2) A `FormDescription` was added to both MFA
+fields so their `aria-describedby` does not dangle. (3) `aria-invalid="false"` is now rendered
+explicitly on valid fields, where previously the attribute was simply absent. (4) The label is now
+a sibling element with `htmlFor` rather than wrapping the input. (5) Error element ids changed
+shape. Separately and knowingly accepted: `CredentialsStep`'s email and password fields still
+carry a dangling `aria-describedby` reference to a `FormDescription` that does not exist on those
+fields — documented in this task's parity-delta analysis and accepted because, unlike the MFA
+fields, they have no natural description copy worth inventing. Most importantly, and this bounds
+confidence in everything above: the entire verification for this task rested on a 24-row manual
+matrix, because this repo's Vitest suite is a single node-environment file
+(`src/lib/apiClient.test.ts`) that renders no components at all and therefore could not have
+caught a regression here.
+Next Owner: the next feature author building a form — use `@/components/ui/form`; there is no
+`src/components/form/` any more.
+
+## D-shadcn-tailwind-8 — Adopt shadcn `input-otp` for MFA passcode entry — reopen INV-A2 and accept a client-side 6-digit constraint the backend does not enforce
+Author: operator / DE (task interrogation, pre-Phase 8)
+Date: 2026-08-29
+Context: `src/features/auth/schemas.ts` documents that the backend binding for `Passcode` is
+`required` only — no 6-digit rule, no length rule, no charset rule — and states INV-A2: never add
+a client-side rule the backend does not enforce, because a client rule stricter than the server is
+a lockout. shadcn's `input-otp` structurally requires a fixed `maxLength` and a fixed number of
+slots, which is exactly such a rule. The lockout risk was raised explicitly with the user by the
+Distinguished Engineer during planning; the user weighed it and confirmed adoption twice, the
+second time after direct pushback. This entry exists so that the acceptance is on the record as a
+decision, rather than inferred later from the code.
+Decision: Scaffold shadcn `input-otp` and use a 6-slot `InputOTP` for the `passcode` field in both
+`VerifyMfaStep.tsx` and `EnrollMfaStep.tsx`. INV-A2 is REOPENED — it is no longer an absolute. It
+now reads "never add a client rule the backend does not enforce, except where a deliberate,
+recorded decision accepts the constraint," with this entry as its sole current exception.
+`src/features/auth/schemas.ts` was deliberately NOT changed: the 6-digit constraint lives in the
+widget only, via `maxLength={6}` and with no `pattern` restricting charset, so the trade-off has
+exactly one reversal point instead of two. Verified in Phase 10's review: no digit-only `pattern`
+was added, so the client still accepts non-digit characters — only the length is capped, which is
+the minimum necessary form of the exception.
+Reasoning: MFA entry is a high-friction moment — transcribing a code by hand against a
+time-limited TOTP window. Per-digit auto-advance and paste-splitting are material UX gains on what
+is the app's most-repeated interaction. The backend passcode format has been 6-digit TOTP since
+inception, and no backup-code or variable-length format is planned. Adding one primitive on demand
+for two real consumers complies with this project's existing on-demand scaffolding convention
+(D-shadcn-tailwind-3) rather than bending it.
+Alternatives: (a) Keep a plain `<Input inputMode="numeric">` — honours INV-A2 exactly as written;
+rejected by the user in favour of the UX gain. (b) Adopt `input-otp` and also add a `.length(6)`
+zod rule for consistency — rejected, it duplicates the constraint in two places and doubles the
+cost of reversing it. (c) Defer as a tracked follow-up — rejected, this repo already carries one
+unowned, unclosed follow-up (the D-2 retokenising follow-up, tracked in D-shadcn-tailwind-6(b))
+and does not need a second.
+Trade-offs: Stated plainly, verbatim:
+MFA login will reject any future backend passcode format that is not exactly 6 digits, until the frontend is patched.
+Backup codes, alphanumeric codes, or any change
+in TOTP digit count would all fail silently at the client, with no server round-trip and no
+diagnostic to point at the cause. This is knowingly accepted, not overlooked. Also accepted: a new
+runtime dependency, `input-otp`. Mitigating it, reversal is a single-file-pair change — swap
+`InputOTP` back to `Input` in the two MFA steps — and that cheapness is part of why the risk is
+acceptable at all.
+Next Owner: whoever changes the backend passcode format — they MUST patch `VerifyMfaStep.tsx` and
+`EnrollMfaStep.tsx` in the same change, or MFA login breaks. Record that obligation alongside any
+change to the backend `Passcode` binding.

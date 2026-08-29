@@ -5,22 +5,24 @@ import * as QRCode from 'qrcode';
 
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from '@/components/ui/input-otp';
 
 import { ApiError } from '../../../lib/apiClient';
-import { FormError } from '../../../components/form/FormError';
-import { FormField } from '../../../components/form/FormField';
 import * as api from '../api';
 import { enrollVerifySchema, type EnrollVerifyValues } from '../schemas';
-
-// `FormField` is prop-based by locked decision (INV-F3/INV-F5): it renders its
-// own <label>/<input>, so the shadcn look arrives as Tailwind utility classes
-// mirroring `components/ui/{input,label}` rather than as those components.
-const labelClass = 'flex flex-col gap-1.5 text-sm leading-none font-medium';
-const inputClass =
-  'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base font-normal transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm';
-const fieldErrorClass = 'text-sm text-destructive';
-const formErrorClass =
-  'rounded-lg border bg-card px-2.5 py-2 text-sm text-destructive';
 
 interface EnrollMfaStepProps {
   enrollmentToken: string;
@@ -38,12 +40,7 @@ export function EnrollMfaStep({
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<EnrollVerifyValues>({
+  const form = useForm<EnrollVerifyValues>({
     resolver: zodResolver(enrollVerifySchema),
     mode: 'onTouched',
     reValidateMode: 'onChange',
@@ -89,7 +86,7 @@ export function EnrollMfaStep({
         onEnrolled();
         return;
       }
-      setError('root', {
+      form.setError('root', {
         message:
           err instanceof ApiError
             ? err.apiMessage
@@ -132,30 +129,57 @@ export function EnrollMfaStep({
         </p>
       )}
 
-      <form
-        className="flex flex-col gap-3.5"
-        onSubmit={handleSubmit(onVerify)}
-        noValidate
-      >
-        <FormField
-          id="enroll-passcode"
-          label="6-digit code from your authenticator"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          required
-          labelClassName={labelClass}
-          inputClassName={inputClass}
-          errorClassName={fieldErrorClass}
-          registration={register('passcode')}
-          error={errors.passcode}
-        />
+      <Form {...form}>
+        <form
+          className="flex flex-col gap-3.5"
+          onSubmit={form.handleSubmit(onVerify)}
+          noValidate
+        >
+          <FormField
+            control={form.control}
+            name="passcode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>6-digit code from your authenticator</FormLabel>
+                <FormDescription>
+                  Enter the 6-digit code from your authenticator app.
+                </FormDescription>
+                <FormControl>
+                  <InputOTP
+                    maxLength={6}
+                    autoComplete="one-time-code"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    ref={field.ref}
+                    name={field.name}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormError message={errors.root?.message} className={formErrorClass} />
+          {form.formState.errors.root?.message && (
+            <Alert variant="destructive" role="alert">
+              {form.formState.errors.root.message}
+            </Alert>
+          )}
 
-        <Button type="submit" disabled={isSubmitting || !qrDataUrl}>
-          {isSubmitting ? 'Verifying…' : 'Enable MFA'}
-        </Button>
-      </form>
+          <Button type="submit" disabled={form.formState.isSubmitting || !qrDataUrl}>
+            {form.formState.isSubmitting ? 'Verifying…' : 'Enable MFA'}
+          </Button>
+        </form>
+      </Form>
     </div>
   );
 }

@@ -73,7 +73,7 @@ Cross-feature reuse is a design signal, not a shortcut. Resolve it one of three 
    depend on an explicitly-exported, documented surface — not an internal file.
 3. Recognise it as a third domain and give it its own feature.
 
-Dependency direction across the app is **`features → shared → form/ui`**. Lower layers never
+Dependency direction across the app is **`features → shared → ui`**. Lower layers never
 import upward: `src/components/**` importing `**/features/**` is an ESLint error (INV-L2,
 `no-restricted-imports` in `eslint.config.js`).
 
