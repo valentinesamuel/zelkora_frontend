@@ -8,7 +8,8 @@ CLI contract), Issue C (no write-on-init for a fresh profile), **Issue D (git ba
 gates)**.
 
 ```
-Current phase: Phase 1 COMPLETE (2026-08-30) — Phase 2 next. P0 done (Option A, BASELINE_SHA 1dfb27b).
+Current phase: Phase 2 COMPLETE (2026-08-30) — Phase 3 next. P0 + Phases 1-2 committed (BASELINE_SHA 1dfb27b).
+               Operator run "/operator execute phases P0,1,2" — DONE. Phase 3 needs the 360px AppHeader capture first (see baseline block).
 Phases:        6
 Prior work:    Zelkora CMO Dashboard & UI Overhaul, Phases 1-6, COMPLETE 2026-08-30.
                Historical record preserved in decisions.md / diff.md / checkpoint.md /
@@ -97,7 +98,7 @@ Never amend or rebase a completed phase — the SHAs are what the gates lean on.
 |---|---|---|---|---|---|---|---|
 | P0 baseline | `1dfb27b` | exit 0 | 45 | 0/1 | 15 | 544596 B | overhaul checkpoint + pipeline-store deletion; index.css sha ad8fbd93 |
 | 1 Filter foundation | `c2803df` | exit 0 | 89 | 0/1 | 15 | 544596 B | date-fns@4.4.0 exact, no --legacy-peer-deps; index.css sha ad8fbd93 unchanged; +44 tests, 5 new modules unmounted |
-| 2 UI primitives | | | | | | | record the exact CLI command; entry-chunk delta |
+| 2 UI primitives | `PENDING` | exit 0 | 89 | 0/1 | 15 | 544596 B | select/popover in-tree; calendar via out-of-tree fallback (button.tsx overwrite prompt); react-day-picker@10.0.1 exact, no --legacy-peer-deps; entry-chunk delta 0 B (rdp unmounted) — Phase 4 must lazy-load calendar; CSS bundle 51.6→61.8 kB |
 | 3 BranchSwitcher | | | | | | | 360px verdict vs. the P0 capture |
 | 4 DateRangeControl | | | | | | | `DashboardFilterBar` deleted |
 | 5 Query keying | | | | | | | exactly 11 files under `api/` |
@@ -142,8 +143,8 @@ against the 4 → 5 path.
 | # | Assumption | Status | If false |
 |---|---|---|---|
 | A1 | `radix-ui@^1.6.7` (unified) exports `Select` and `Popover`, so shadcn `select`/`popover` add no dependency | **VERIFIED** — `node_modules/radix-ui/dist/index.d.mts:38` (`Popover`), `:48` (`Select`) | Treat them like `react-day-picker`: pin exact, record the peer-dep path |
-| A2 | `react-day-picker@9` installs against React 19.2 (possibly with `--legacy-peer-deps`) | Unverified | Do **not** hand-roll a calendar. Ship Phase 4 presets-only with "Custom…" disabled and escalate to the user |
-| A3 | The shadcn CLI generates `from "radix-ui"` imports for `radix-nova`, matching `tooltip.tsx` | Unverified | Rewrite the imports by hand and remove any `@radix-ui/react-*` the CLI added (F2-b) |
+| A2 | `react-day-picker` installs against React 19.2 (possibly with `--legacy-peer-deps`) | **VERIFIED (Phase 2)** — `react-day-picker@10.0.1` installed clean, **no `--legacy-peer-deps`** (rdp v10 peer `react >=16.8.0`) | Do **not** hand-roll a calendar. Ship Phase 4 presets-only with "Custom…" disabled and escalate to the user |
+| A3 | The shadcn CLI generates `from "radix-ui"` imports for `radix-nova`, matching `tooltip.tsx` | **VERIFIED (Phase 2)** — `select.tsx` + `popover.tsx` both emit `from "radix-ui"`; no `@radix-ui/react-*` added | Rewrite the imports by hand and remove any `@radix-ui/react-*` the CLI added (F2-b) |
 | A4 | `noUnusedLocals` does not flag unused *exports*, so Phases 1–2 compile unmounted | Verified in the overhaul (Phase 2 shipped 11 unmounted components) | Wire each module in the phase that creates it; re-phase 1 and 2 |
 | A5 | `fixtures.test.ts` imports fixtures only, never hooks, so a hook change cannot break it | **VERIFIED** — read the file, all 6 imports are `*.fixtures` | Phase 5 also touches `fixtures.test.ts` |
 | A6 | React Query v5 `placeholderData: keepPreviousData` keeps `isPending === false` across a key change | High confidence (documented v5 behaviour) | Widgets flash to skeletons on every switch; audit each widget's loading predicate |
@@ -151,7 +152,7 @@ against the 4 → 5 path.
 | A8 | Branch is cosmetic: every fixture returns the same payload for every branch | Stated by the user, resolved | — |
 | A9 | The attached ecommerce sample is directional for the pill trigger only; its table / "Edit Dashboard" / kebab are out of scope | Stated by the user | — |
 | A10 | `token-diff.mjs` accepts `--theme` and must be given a **relative** path from the FE dir | Verified in the overhaul (R11) | See the gate-set note above |
-| A11 | `shadcn@4.19.0`'s `add` supports `-y/--yes`, `-o/--overwrite`, `-c/--cwd`, and goes non-interactive under `CI=1` | **Unverified — Phase 2 is written to fail fast rather than hang** | `< /dev/null` turns any unsuppressed prompt into an immediate EOF failure, routing to the out-of-tree fallback. **Never** drop the backstop and answer interactively (I-35b) |
+| A11 | `shadcn@4.19.0`'s `add` supports `-y/--yes`, `-o/--overwrite`, `-c/--cwd`, and goes non-interactive under `CI=1` | **PARTIALLY VERIFIED (Phase 2)** — `select`+`popover` generated fully non-interactively in-tree; `calendar` hit a *"button.tsx already exists — overwrite?"* prompt, `< /dev/null` declined it (button.tsx untouched, fast exit), and the **out-of-tree fallback** produced `calendar.tsx`. The backstop worked as designed. | `< /dev/null` turns any unsuppressed prompt into an immediate EOF failure, routing to the out-of-tree fallback. **Never** drop the backstop and answer interactively (I-35b) |
 | **A12** | **The user will authorise the P0 checkpoint commit** | **Unverified — must be asked** | Fallback B: recorded `shasum` comparisons replace every `git diff` gate, the "must be clean" precondition is dropped, and `D-cmo-branch-filter-9` records that no commits were made so a future reader does not hunt for SHAs |
 | **A13** | **`.claude/` is tracked, not gitignored** | **LIKELY** — the `.claude/.artifacts/design/` deletion is *staged*, which is only possible for tracked paths; and `.claude/artifacts/` appears as `??` (untracked) rather than being hidden | If `.claude/` is ignored, Phase 6 criterion 4 (`git diff HEAD -- art-direction.md`) is **silently vacuous** — it would pass no matter what changed. Fall back to a `shasum` of `art-direction.md` recorded at P0 |
 

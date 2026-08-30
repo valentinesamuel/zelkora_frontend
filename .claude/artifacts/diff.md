@@ -511,3 +511,45 @@ Documentation only. No source file, config, dependency or asset touched.
 - `npm run lint` — 0 errors, 1 pre-existing warning (`EnrollMfaStep.tsx:78`).
 - `token-diff --theme src/index.css` — **15**, unchanged. `shasum src/index.css`
   unchanged. No visible change to the app.
+
+---
+
+# Global Branch Switcher & Working Date Range — Phase 2: UI primitives
+
+**Executed:** 2026-08-30 · Operator · plan.md Phase 2 · HEAD at gate time = `a7b9e74` (Phase 1 SHA `c2803df`)
+
+### Added
+- `src/components/ui/select.tsx` — shadcn `radix-nova`, `import { Select as SelectPrimitive } from "radix-ui"` (house idiom, matches `tooltip.tsx:2`). `SelectContent` wrapped in `SelectPrimitive.Portal`. No non-component exports. No literal arbitrary values (`rounded-[min(var(--radius-md),10px)]` is a `min()` form — token-diff-exempt).
+- `src/components/ui/popover.tsx` — `import { Popover as PopoverPrimitive } from "radix-ui"`. `PopoverContent` wrapped in `PopoverPrimitive.Portal`. `"use client"` directive removed to match the house `tooltip.tsx`. Exports `Popover*` (all components).
+- `src/components/ui/calendar.tsx` — shadcn `calendar` wrapping `react-day-picker` v10, styled entirely through `classNames` overrides (no `react-day-picker/style.css` import). Exports `Calendar` + `CalendarDayButton` (both components — I-22).
+  **Normalised from the generator:** `text-[0.8rem]` → `text-xs` (×2), `ring-[3px]` → `ring-2` (I-7 / F2-e; token-diff back to 15). `buttonVariant` default `"ghost"` → `"outline"` and `<Button variant="ghost" size="icon">` → `variant="outline" size="default"` + `bg-transparent`, because the repo's customised `src/components/ui/button.tsx` exposes only `default | outline` / `default | lg` (no `ghost`, no `icon`).
+
+### Modified
+- `package.json` / `package-lock.json` — `react-day-picker` added, **re-pinned by hand from the CLI's `^10.0.1` to `10.0.1` exact** (I-35). Transitive: `@date-fns/tz@1.5.0` (rdp's own dependency, not added to `package.json`). `date-fns` unchanged at `4.4.0`. **No `--legacy-peer-deps`** (rdp v10 peer is `react >=16.8.0`; React 19.2 satisfies it).
+
+### Transient — did NOT survive the phase
+- `components.json` — `tailwind.css` temporarily redirected `src/index.css` → `src/__shadcn-scratch.css` for the CLI run, then restored **verbatim** from a backup (`git diff HEAD -- components.json` empty).
+- `src/__shadcn-scratch.css` — created empty, deleted after the run (`ls` → no such file).
+
+### CLI invocation (D-cmo-branch-filter-2 source)
+```
+# in-tree, components.json css redirected to the scratch file:
+CI=1 npx --yes shadcn@4.19.0 add select popover calendar --yes --cwd . < /dev/null
+```
+- Installed shadcn is **exactly 4.19.0** (`node_modules/shadcn/package.json`), matching the `^4.19.0` devDependency pin.
+- `select.tsx` + `popover.tsx` generated in-tree successfully. `react-day-picker` installed during the CLI's dependency step.
+- **`calendar.tsx` was NOT generated in-tree**: the CLI prompted *"The file button.tsx already exists. Would you like to overwrite?"* (the `calendar` registry entry pulls `button` as a dep). `< /dev/null` fed EOF → the CLI declined the overwrite (button.tsx untouched) and exited before writing `calendar.tsx`. **The backstop worked exactly as designed — a fast decline, not a hang, not a hand-typed answer.**
+- **Plan step-3 fallback used for `calendar` only:** out-of-tree generation in `$CLAUDE_JOB_DIR/tmp/zelkora-shadcn` (`npm init -y`; minimal `components.json` with `css: scratch.css`; minimal `tsconfig.json` carrying the `@/*` → `./src/*` alias), `CI=1 npx --yes shadcn@4.19.0 add calendar --yes --cwd . < /dev/null` → created `button.tsx` + `calendar.tsx` there; **only `calendar.tsx`** copied into the repo. This path structurally cannot touch `src/index.css`, `components.json` or `package.json`.
+
+### Not wired
+- No `AppHeader`, `CmoDashboardPage`, or feature-file change. Three unmounted primitives.
+
+### Impact summary
+- `npm run build` exit 0 — entry JS chunk **544596 B, byte-identical to P0**: `react-day-picker` is NOT in the entry chunk (calendar is unmounted). CSS bundle grew 51.57 → 61.79 kB — Tailwind v4 scans source for class strings regardless of the import graph, so the new primitives' utility classes compile now; this ships either way once Phase 3/4 wire them.
+- `npm test` — **89 passing**, unchanged (no tests in this phase).
+- `npm run lint` — 0 errors, 1 pre-existing warning.
+- `token-diff --theme src/index.css` — **15**, back to baseline after the calendar normalisation. `shasum src/index.css` unchanged (`ad8fbd93…`).
+- `git diff --stat HEAD` — only `package.json` + `package-lock.json` modified; `select.tsx` / `popover.tsx` / `calendar.tsx` new. `git status --porcelain src/components/ui/` → 3 `??`, zero `M`.
+
+### F4-g / Q4 recommendation (entry-chunk delta)
+Entry-chunk delta is **0 bytes** *only because the calendar is still unmounted*. `react-day-picker` (~30 kB gz JS) + `date-fns` locale code will land in the dashboard's chunk the moment Phase 4 imports `Calendar`. **Recommendation: Phase 4 MUST lazy-load the calendar view** (`lazy()` + `Suspense`, fallback sized to the loaded height per F4-g) so the preset-only path stays light.
