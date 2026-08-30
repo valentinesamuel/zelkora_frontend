@@ -655,7 +655,9 @@ byte-identical to P0.
 # Checkpoint — Global Branch Switcher & Working Date Range · Phase 5: Data-layer plumbing
 
 **Executed:** 2026-08-30 · **Operator** · plan.md Phase 5 · HEAD at gate time `fd0fd25`
-**Phase commit:** `d87492b` · **docs commit:** `<this run's docs(p5)>`
+**Phase commit:** `d87492b` · SHA recorded in `state.md` via the Phase 6 docs commit `df4b84a`
+(this run folded the Phase 5 and Phase 6 doc updates into one commit rather than a separate
+`docs(p5)`, since Phase 6 rewrites `state.md` wholesale anyway).
 
 ## Phase summary
 Keyed all 11 `src/features/dashboard/api/*.api.ts` by `(branchId, rangeKey)` and added
