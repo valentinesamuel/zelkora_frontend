@@ -1,0 +1,11 @@
+dist
+node_modules
+coverage
+src/components/ui
+*.md
+
+# Untracked auth module still in progress — leave WIP formatting alone.
+src/features/auth/Can.tsx
+src/features/auth/authorize.ts
+src/features/auth/authorize.test.ts
+src/features/auth/useCan.ts

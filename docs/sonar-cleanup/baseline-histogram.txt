@@ -1,0 +1,5 @@
+Total sonarjs findings: [33m14[39m
+Total non-sonarjs findings: [33m1[39m
+--- histogram (count | rule) ---
+  10 | sonarjs/no-nested-conditional
+   4 | sonarjs/todo-tag
