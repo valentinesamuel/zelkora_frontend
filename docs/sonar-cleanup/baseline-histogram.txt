@@ -1,0 +1,51 @@
+# SonarJS baseline — 2026-08-30
+
+Config: eslint-plugin-sonarjs recommended + Sonar-way additions (no-duplicate-string,
+prefer-immediate-return, no-collapsible-if, no-inconsistent-returns, no-nested-switch,
+no-commented-code). todo-tag downgraded to warn.
+
+## Histogram
+
+  10 | sonarjs/no-nested-conditional
+   4 | sonarjs/todo-tag
+   3 | sonarjs/no-inconsistent-returns
+   1 | no-empty
+
+## Findings
+
+src/features/auth/components/AuthCarousel.tsx:61:16  [error]  sonarjs/no-inconsistent-returns
+    Refactor this function to use "return" consistently.
+src/features/auth/components/AuthShell.tsx:40:19  [warn]  sonarjs/todo-tag
+    Complete the task associated to this "TODO" comment.
+src/features/auth/components/AuthShell.tsx:45:19  [warn]  sonarjs/todo-tag
+    Complete the task associated to this "TODO" comment.
+src/features/auth/components/CredentialsStep.tsx:135:19  [warn]  sonarjs/todo-tag
+    Complete the task associated to this "TODO" comment.
+src/features/dashboard/components/DeltaBadge.tsx:21:44  [error]  sonarjs/no-nested-conditional
+    Extract this nested ternary operation into an independent statement.
+src/features/dashboard/filters/dashboardFiltersStore.ts:43:11  [error]  no-empty
+    Empty block statement.
+src/features/dashboard/filters/dateRange.ts:95:10  [error]  sonarjs/no-inconsistent-returns
+    Refactor this function to use "return" consistently.
+src/features/patients/api/patientsRepository.ts:10:4  [warn]  sonarjs/todo-tag
+    Complete the task associated to this "TODO" comment.
+src/features/patients/components/PatientForm.tsx:287:17  [error]  sonarjs/no-nested-conditional
+    Extract this nested ternary operation into an independent statement.
+src/features/patients/components/PatientSearch.tsx:45:16  [error]  sonarjs/no-inconsistent-returns
+    Refactor this function to use "return" consistently.
+src/features/patients/components/PatientSortableHeader.tsx:41:15  [error]  sonarjs/no-nested-conditional
+    Extract this nested ternary operation into an independent statement.
+src/features/patients/components/PatientSortableHeader.tsx:53:11  [error]  sonarjs/no-nested-conditional
+    Extract this nested ternary operation into an independent statement.
+src/features/patients/pages/PatientDetailPage.tsx:100:11  [error]  sonarjs/no-nested-conditional
+    Extract this nested ternary operation into an independent statement.
+src/features/patients/pages/PatientDetailPage.tsx:108:17  [error]  sonarjs/no-nested-conditional
+    Extract this nested ternary operation into an independent statement.
+src/features/patients/pages/PatientEditPage.tsx:30:11  [error]  sonarjs/no-nested-conditional
+    Extract this nested ternary operation into an independent statement.
+src/features/patients/pages/PatientEditPage.tsx:38:17  [error]  sonarjs/no-nested-conditional
+    Extract this nested ternary operation into an independent statement.
+src/features/patients/pages/PatientListPage.tsx:52:11  [error]  sonarjs/no-nested-conditional
+    Extract this nested ternary operation into an independent statement.
+src/features/patients/pages/PatientListPage.tsx:54:11  [error]  sonarjs/no-nested-conditional
+    Extract this nested ternary operation into an independent statement.

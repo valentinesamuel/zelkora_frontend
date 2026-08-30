@@ -1,0 +1,20 @@
+dist
+node_modules
+coverage
+*.md
+
+# Skill-pack tooling — not application code.
+.claude
+
+# SonarJS cleanup artifacts (data dumps, not source).
+.sonar-baseline.json
+.sonar-current.json
+
+# shadcn-generated primitives — keep regen diffs clean.
+src/components/ui
+
+# Untracked auth module still in progress — leave WIP formatting alone.
+src/features/auth/Can.tsx
+src/features/auth/authorize.ts
+src/features/auth/authorize.test.ts
+src/features/auth/useCan.ts

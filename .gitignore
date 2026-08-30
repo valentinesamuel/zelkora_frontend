@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# SonarJS cleanup: transient re-run output (baseline is committed)
+.sonar-current.json
+
 # Local environment
 .env
 .env.*

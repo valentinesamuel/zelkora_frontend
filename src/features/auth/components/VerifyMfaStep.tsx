@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/input-otp';
 
 import { ApiError } from '../../../lib/apiClient';
+import { apiErrorMessage } from '@/lib/formErrors';
 import * as api from '../api';
 import { getDeviceLabel } from '../deviceLabel';
 import { verifyMfaSchema, type VerifyMfaValues } from '../schemas';
@@ -30,7 +31,10 @@ interface VerifyMfaStepProps {
   onExpired(notice: string): void;
 }
 
-export function VerifyMfaStep({ preAuthToken, onExpired }: Readonly<VerifyMfaStepProps>) {
+export function VerifyMfaStep({
+  preAuthToken,
+  onExpired,
+}: Readonly<VerifyMfaStepProps>) {
   const completeLogin = useAuthStore((s) => s.completeLogin);
   const navigate = useNavigate();
 
@@ -43,8 +47,6 @@ export function VerifyMfaStep({ preAuthToken, onExpired }: Readonly<VerifyMfaSte
 
   async function onSubmit({ passcode }: VerifyMfaValues) {
     try {
-      // The server sets the `refresh_token` cookie on THIS response.
-      // `deviceLabel` must be non-empty (backend binding:"required", INV-11).
       const { accessToken } = await api.verifyMfa({
         preAuthToken,
         passcode,
@@ -57,16 +59,20 @@ export function VerifyMfaStep({ preAuthToken, onExpired }: Readonly<VerifyMfaSte
         err instanceof ApiError &&
         err.apiMessage === 'invalid or expired token'
       ) {
-        onExpired('Your sign-in session expired. Please enter your password again.');
+        onExpired(
+          'Your sign-in session expired. Please enter your password again.',
+        );
         return;
       }
       form.setError('root', {
-        message:
-          err instanceof ApiError
-            ? err.apiMessage
-            : 'Verification failed. Please try again.',
+        message: apiErrorMessage(err, 'Verification failed. Please try again.'),
       });
     }
+  }
+
+  let submitLabel = 'Verify';
+  if (form.formState.isSubmitting) {
+    submitLabel = 'Verifying…';
   }
 
   return (
@@ -117,7 +123,7 @@ export function VerifyMfaStep({ preAuthToken, onExpired }: Readonly<VerifyMfaSte
         )}
 
         <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Verifying…' : 'Verify'}
+          {submitLabel}
         </Button>
       </form>
     </Form>

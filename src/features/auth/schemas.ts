@@ -22,7 +22,10 @@ import { z } from 'zod';
 const passcodeField = z.string().min(1, 'Enter the code.');
 
 export const credentialsSchema = z.object({
-  email: z.string().min(1, 'Email is required.').email('Enter a valid email address.'),
+  email: z
+    .string()
+    .min(1, 'Email is required.')
+    .email('Enter a valid email address.'),
   password: z.string().min(1, 'Password is required.'),
 });
 

@@ -3,10 +3,11 @@ import { create } from 'zustand';
 import { setOnAuthFailure } from '../../lib/apiClient';
 import * as api from './api';
 import { clearAccessToken, setAccessToken } from './tokenStore';
-import type { AuthStatus, LoginRequest, LoginResult, User } from './types';
+import { AuthStatusEnum } from './types';
+import type { LoginRequest, LoginResult, User } from './types';
 
 export interface AuthState {
-  status: AuthStatus;
+  status: AuthStatusEnum;
   user: User | null;
   loginWithCredentials(body: LoginRequest): Promise<LoginResult>;
   completeLogin(accessToken: string): Promise<void>;
@@ -17,7 +18,7 @@ export interface AuthState {
 let bootstrapped = false;
 
 export const useAuthStore = create<AuthState>((set) => ({
-  status: 'loading',
+  status: AuthStatusEnum.LOADING,
   user: null,
 
   loginWithCredentials: (body) => api.login(body),
@@ -26,20 +27,18 @@ export const useAuthStore = create<AuthState>((set) => ({
     setAccessToken(accessToken);
     try {
       const me = await api.getMe();
-      set({ user: me, status: 'authed' });
+      set({ user: me, status: AuthStatusEnum.AUTHED });
     } catch (err) {
       clearAccessToken();
-      set({ user: null, status: 'anon' });
+      set({ user: null, status: AuthStatusEnum.ANON });
       throw err;
     }
   },
 
   logout: async () => {
-    // The `.catch` is deliberate: a network failure or already-expired token
-    // must NEVER trap the user in a logged-in-looking UI. Local state wins.
-    await api.logout().catch(() => { });
+    await api.logout().catch(() => {});
     clearAccessToken();
-    set({ user: null, status: 'anon' });
+    set({ user: null, status: AuthStatusEnum.ANON });
   },
 
   bootstrap: async () => {
@@ -48,29 +47,25 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     bootstrapped = true;
 
-    // MUST NOT throw uncaught: an unhandled rejection here would leave `status`
-    // stuck on 'loading' and the app rendering a spinner forever. The `finally`
-    // below is the backstop — whatever happens, we leave the 'loading' state.
     try {
       const { accessToken } = await api.refresh();
       setAccessToken(accessToken);
       const me = await api.getMe();
-      set({ user: me, status: 'authed' });
+      set({ user: me, status: AuthStatusEnum.AUTHED });
     } catch {
       clearAccessToken();
-      set({ user: null, status: 'anon' });
+      set({ user: null, status: AuthStatusEnum.ANON });
     } finally {
-      // Defense-in-depth: guarantee the app never renders the bootstrap spinner
-      // forever. On the happy path 'authed' is already set, so this updater is a
-      // no-op; any early/uncaught exit lands on 'anon'.
-      set((s) => (s.status === 'loading' ? { status: 'anon' } : {}));
+      set((s) =>
+        s.status === AuthStatusEnum.LOADING
+          ? { status: AuthStatusEnum.ANON }
+          : {},
+      );
     }
   },
 }));
 
-// One-way dependency arrow authStore -> apiClient (INV-13). apiClient signals
-// auth failure by calling this callback; it never imports this file.
 setOnAuthFailure(() => {
   clearAccessToken();
-  useAuthStore.setState({ user: null, status: 'anon' });
+  useAuthStore.setState({ user: null, status: AuthStatusEnum.ANON });
 });

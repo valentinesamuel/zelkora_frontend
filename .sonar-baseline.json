@@ -1,0 +1,146 @@
+[
+  {
+    "file": "src/features/auth/components/AuthCarousel.tsx",
+    "line": 61,
+    "col": 16,
+    "rule": "sonarjs/no-inconsistent-returns",
+    "sev": "error",
+    "msg": "Refactor this function to use \"return\" consistently."
+  },
+  {
+    "file": "src/features/auth/components/AuthShell.tsx",
+    "line": 40,
+    "col": 19,
+    "rule": "sonarjs/todo-tag",
+    "sev": "warn",
+    "msg": "Complete the task associated to this \"TODO\" comment."
+  },
+  {
+    "file": "src/features/auth/components/AuthShell.tsx",
+    "line": 45,
+    "col": 19,
+    "rule": "sonarjs/todo-tag",
+    "sev": "warn",
+    "msg": "Complete the task associated to this \"TODO\" comment."
+  },
+  {
+    "file": "src/features/auth/components/CredentialsStep.tsx",
+    "line": 135,
+    "col": 19,
+    "rule": "sonarjs/todo-tag",
+    "sev": "warn",
+    "msg": "Complete the task associated to this \"TODO\" comment."
+  },
+  {
+    "file": "src/features/dashboard/components/DeltaBadge.tsx",
+    "line": 21,
+    "col": 44,
+    "rule": "sonarjs/no-nested-conditional",
+    "sev": "error",
+    "msg": "Extract this nested ternary operation into an independent statement."
+  },
+  {
+    "file": "src/features/dashboard/filters/dashboardFiltersStore.ts",
+    "line": 43,
+    "col": 11,
+    "rule": "no-empty",
+    "sev": "error",
+    "msg": "Empty block statement."
+  },
+  {
+    "file": "src/features/dashboard/filters/dateRange.ts",
+    "line": 95,
+    "col": 10,
+    "rule": "sonarjs/no-inconsistent-returns",
+    "sev": "error",
+    "msg": "Refactor this function to use \"return\" consistently."
+  },
+  {
+    "file": "src/features/patients/api/patientsRepository.ts",
+    "line": 10,
+    "col": 4,
+    "rule": "sonarjs/todo-tag",
+    "sev": "warn",
+    "msg": "Complete the task associated to this \"TODO\" comment."
+  },
+  {
+    "file": "src/features/patients/components/PatientForm.tsx",
+    "line": 287,
+    "col": 17,
+    "rule": "sonarjs/no-nested-conditional",
+    "sev": "error",
+    "msg": "Extract this nested ternary operation into an independent statement."
+  },
+  {
+    "file": "src/features/patients/components/PatientSearch.tsx",
+    "line": 45,
+    "col": 16,
+    "rule": "sonarjs/no-inconsistent-returns",
+    "sev": "error",
+    "msg": "Refactor this function to use \"return\" consistently."
+  },
+  {
+    "file": "src/features/patients/components/PatientSortableHeader.tsx",
+    "line": 41,
+    "col": 15,
+    "rule": "sonarjs/no-nested-conditional",
+    "sev": "error",
+    "msg": "Extract this nested ternary operation into an independent statement."
+  },
+  {
+    "file": "src/features/patients/components/PatientSortableHeader.tsx",
+    "line": 53,
+    "col": 11,
+    "rule": "sonarjs/no-nested-conditional",
+    "sev": "error",
+    "msg": "Extract this nested ternary operation into an independent statement."
+  },
+  {
+    "file": "src/features/patients/pages/PatientDetailPage.tsx",
+    "line": 100,
+    "col": 11,
+    "rule": "sonarjs/no-nested-conditional",
+    "sev": "error",
+    "msg": "Extract this nested ternary operation into an independent statement."
+  },
+  {
+    "file": "src/features/patients/pages/PatientDetailPage.tsx",
+    "line": 108,
+    "col": 17,
+    "rule": "sonarjs/no-nested-conditional",
+    "sev": "error",
+    "msg": "Extract this nested ternary operation into an independent statement."
+  },
+  {
+    "file": "src/features/patients/pages/PatientEditPage.tsx",
+    "line": 30,
+    "col": 11,
+    "rule": "sonarjs/no-nested-conditional",
+    "sev": "error",
+    "msg": "Extract this nested ternary operation into an independent statement."
+  },
+  {
+    "file": "src/features/patients/pages/PatientEditPage.tsx",
+    "line": 38,
+    "col": 17,
+    "rule": "sonarjs/no-nested-conditional",
+    "sev": "error",
+    "msg": "Extract this nested ternary operation into an independent statement."
+  },
+  {
+    "file": "src/features/patients/pages/PatientListPage.tsx",
+    "line": 52,
+    "col": 11,
+    "rule": "sonarjs/no-nested-conditional",
+    "sev": "error",
+    "msg": "Extract this nested ternary operation into an independent statement."
+  },
+  {
+    "file": "src/features/patients/pages/PatientListPage.tsx",
+    "line": 54,
+    "col": 11,
+    "rule": "sonarjs/no-nested-conditional",
+    "sev": "error",
+    "msg": "Extract this nested ternary operation into an independent statement."
+  }
+]

@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/input-otp';
 
 import { ApiError } from '../../../lib/apiClient';
+import { apiErrorMessage } from '@/lib/formErrors';
 import * as api from '../api';
 import { enrollVerifySchema, type EnrollVerifyValues } from '../schemas';
 
@@ -33,8 +34,7 @@ export function EnrollMfaStep({
   enrollmentToken,
   onEnrolled,
 }: Readonly<EnrollMfaStepProps>) {
-
-  const startedRef = useRef(false);
+  const startedRef = useRef<string | null>(null);
 
   const [secret, setSecret] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -48,10 +48,11 @@ export function EnrollMfaStep({
   });
 
   useEffect(() => {
-    if (startedRef.current) {
+    if (startedRef.current === enrollmentToken) {
       return;
     }
-    startedRef.current = true;
+
+    startedRef.current = enrollmentToken;
 
     void (async () => {
       try {
@@ -63,19 +64,18 @@ export function EnrollMfaStep({
         setQrDataUrl(dataUrl);
       } catch (err) {
         if (err instanceof ApiError && err.statusCode === 409) {
-
           onEnrolled();
           return;
         }
         setLoadError(
-          err instanceof ApiError
-            ? err.apiMessage
-            : 'Could not start MFA enrollment. Return to sign in and try again.',
+          apiErrorMessage(
+            err,
+            'Could not start MFA enrollment. Return to sign in and try again.',
+          ),
         );
       }
     })();
-
-  }, []);
+  }, [enrollmentToken, onEnrolled]);
 
   async function onVerify({ passcode }: EnrollVerifyValues) {
     try {
@@ -87,20 +87,22 @@ export function EnrollMfaStep({
         return;
       }
       form.setError('root', {
-        message:
-          err instanceof ApiError
-            ? err.apiMessage
-            : 'Verification failed. Please try again.',
+        message: apiErrorMessage(err, 'Verification failed. Please try again.'),
       });
     }
+  }
+
+  let submitLabel = 'Enable MFA';
+  if (form.formState.isSubmitting) {
+    submitLabel = 'Verifying…';
   }
 
   return (
     <div className="flex flex-col gap-6">
       <p className="text-sm leading-relaxed text-muted-foreground">
         Scan this QR code with an authenticator app (Google Authenticator,
-        1Password, Authy…). Enrolling does <strong>not</strong> sign you in — you
-        will enter your email and password again once MFA is enabled.
+        1Password, Authy…). Enrolling does <strong>not</strong> sign you in —
+        you will enter your email and password again once MFA is enabled.
       </p>
 
       {loadError && (
@@ -180,7 +182,7 @@ export function EnrollMfaStep({
             size="lg"
             disabled={form.formState.isSubmitting || !qrDataUrl}
           >
-            {form.formState.isSubmitting ? 'Verifying…' : 'Enable MFA'}
+            {submitLabel}
           </Button>
         </form>
       </Form>
