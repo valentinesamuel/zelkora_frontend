@@ -4,7 +4,7 @@ import { useEdFlow } from '@/features/dashboard/api/edFlow.api';
 import { useDischargeReadiness } from '@/features/dashboard/api/dischargeReadiness.api';
 import { useReducedMotion } from '@/features/dashboard/useReducedMotion';
 import { ChartCard } from '@/features/dashboard/components/ChartCard';
-import { DashboardFilterBar } from '@/features/dashboard/components/DashboardFilterBar';
+import { DateRangeControl } from '@/features/dashboard/filters/DateRangeControl';
 import { EmptyState } from '@/features/dashboard/components/EmptyState';
 import { ErrorBanner } from '@/features/dashboard/components/ErrorBanner';
 import { KpiCardRow } from '@/features/dashboard/components/KpiCardRow';
@@ -104,16 +104,17 @@ function DischargeReadinessCard() {
 export function CmoDashboardPage() {
   return (
     <div className="flex min-w-0 flex-col gap-6 p-6">
-      <header className="min-w-0">
-        <h1 className="font-display text-2xl font-semibold tracking-tight">
-          Operations Overview
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Monitor capacity, flow, and performance across the health system.
-        </p>
+      <header className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl font-semibold tracking-tight">
+            Operations Overview
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Monitor capacity, flow, and performance across the health system.
+          </p>
+        </div>
+        <DateRangeControl />
       </header>
-
-      <DashboardFilterBar />
 
       <KpiCardRow />
 
