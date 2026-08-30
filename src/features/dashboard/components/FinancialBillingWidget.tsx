@@ -37,11 +37,21 @@ export function FinancialBillingWidget() {
   const claims = useHmoClaims();
   const reduced = useReducedMotion();
 
-  const claimsSubtitle = claims.data
-    ? `${claims.data.summary.pendingCount} HMO claims pending adjudication`
-    : undefined;
+  let claimsSubtitle: string | undefined;
+  if (claims.data) {
+    claimsSubtitle = `${claims.data.summary.pendingCount} HMO claims pending adjudication`;
+  }
 
   const summary = revenue.data?.summary;
+
+  let collectionsRate = '—';
+  let outstandingAr = '—';
+  let daysInAr = '—';
+  if (summary) {
+    collectionsRate = formatPercent(summary.collectionsRatePct);
+    outstandingAr = formatNairaCompact(summary.outstandingArMinor);
+    daysInAr = formatNumber(summary.daysInAr);
+  }
 
   let denialRateContent: ReactNode;
 
@@ -77,9 +87,10 @@ export function FinancialBillingWidget() {
     );
   } else if (revenue.isSuccess) {
     const s = revenue.data.summary;
-    // Same quantity as `collectionsRatePct` — revenue booked against the period target.
-    const toTargetPct =
-      s.targetMinor > 0 ? (s.totalMinor / s.targetMinor) * 100 : 0;
+    let toTargetPct = 0;
+    if (s.targetMinor > 0) {
+      toTargetPct = (s.totalMinor / s.targetMinor) * 100;
+    }
     revenueContent = (
       <div className="flex min-w-0 flex-col gap-2">
         <p className="font-display text-3xl tabular-nums">
@@ -149,15 +160,9 @@ export function FinancialBillingWidget() {
 
       <WidgetCard title="Collections & AR" subtitle={claimsSubtitle}>
         <div className={TILE_GRID}>
-          <MetricTile label="Collections rate">
-            {summary ? formatPercent(summary.collectionsRatePct) : '—'}
-          </MetricTile>
-          <MetricTile label="Outstanding AR">
-            {summary ? formatNairaCompact(summary.outstandingArMinor) : '—'}
-          </MetricTile>
-          <MetricTile label="Days in AR">
-            {summary ? formatNumber(summary.daysInAr) : '—'}
-          </MetricTile>
+          <MetricTile label="Collections rate">{collectionsRate}</MetricTile>
+          <MetricTile label="Outstanding AR">{outstandingAr}</MetricTile>
+          <MetricTile label="Days in AR">{daysInAr}</MetricTile>
           <MetricTile label="Claims denial rate">
             {denialRateContent}
           </MetricTile>

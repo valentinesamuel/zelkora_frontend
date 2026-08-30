@@ -34,9 +34,6 @@ export function CredentialsStep({
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  // Non-functional: no backend support for persistent sessions. Visual-only,
-  // never included in the submitted payload — see the invariant comment in
-  // ../schemas.ts.
   const [remember, setRemember] = useState(false);
 
   async function onSubmit(values: CredentialsValues) {
@@ -46,6 +43,11 @@ export function CredentialsStep({
     } catch (err) {
       setRootSubmitError(form, err);
     }
+  }
+
+  let submitLabel = 'Login';
+  if (form.formState.isSubmitting) {
+    submitLabel = 'Signing in…';
   }
 
   return (
@@ -89,36 +91,43 @@ export function CredentialsStep({
           <FormField
             control={form.control}
             name="password"
-            render={({ field }) => (
-              <AuthField label="Password">
-                <div className="relative">
-                  <FormControl>
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      autoComplete="current-password"
-                      required
-                      className="h-14 rounded-[10px] px-3.5 text-base md:text-base"
-                      {...field}
-                    />
-                  </FormControl>
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    aria-label={
-                      showPassword ? 'Hide password' : 'Show password'
-                    }
-                    aria-pressed={showPassword}
-                    className="absolute top-1/2 right-3.5 -translate-y-1/2"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="size-5 text-muted-foreground" />
-                    ) : (
-                      <Eye className="size-5 text-muted-foreground" />
-                    )}
-                  </button>
-                </div>
-              </AuthField>
-            )}
+            render={({ field }) => {
+              let inputType: 'text' | 'password' = 'password';
+              let toggleLabel = 'Show password';
+              let toggleIcon = <Eye className="size-5 text-muted-foreground" />;
+              if (showPassword) {
+                inputType = 'text';
+                toggleLabel = 'Hide password';
+                toggleIcon = (
+                  <EyeOff className="size-5 text-muted-foreground" />
+                );
+              }
+
+              return (
+                <AuthField label="Password">
+                  <div className="relative">
+                    <FormControl>
+                      <Input
+                        type={inputType}
+                        autoComplete="current-password"
+                        required
+                        className="h-14 rounded-[10px] px-3.5 text-base md:text-base"
+                        {...field}
+                      />
+                    </FormControl>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={toggleLabel}
+                      aria-pressed={showPassword}
+                      className="absolute top-1/2 right-3.5 -translate-y-1/2"
+                    >
+                      {toggleIcon}
+                    </button>
+                  </div>
+                </AuthField>
+              );
+            }}
           />
 
           <div className="flex items-center justify-between">
@@ -142,7 +151,7 @@ export function CredentialsStep({
             size="lg"
             disabled={form.formState.isSubmitting}
           >
-            {form.formState.isSubmitting ? 'Signing in…' : 'Login'}
+            {submitLabel}
           </Button>
 
           <div className="flex items-center gap-4" aria-hidden="true">
@@ -181,12 +190,7 @@ export function CredentialsStep({
         Login with Google
       </Button>
 
-      {/* <p className="text-center text-sm">
-        Don&apos;t have an account?{' '}
-        <a href="#" className="text-auth-link font-medium">
-          Register Here
-        </a>
-      </p> */}
+
     </>
   );
 }

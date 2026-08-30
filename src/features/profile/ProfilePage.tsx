@@ -22,6 +22,11 @@ export function ProfilePage() {
     navigate('/login', { replace: true });
   }
 
+  let logoutLabel = 'Log out';
+  if (pending) {
+    logoutLabel = 'Logging out…';
+  }
+
   return (
     <div className="p-6">
       <Card className="w-full max-w-sm [--card-spacing:--spacing(6)]">
@@ -44,7 +49,7 @@ export function ProfilePage() {
           </dl>
 
           <Button type="button" onClick={handleLogout} disabled={pending}>
-            {pending ? 'Logging out…' : 'Log out'}
+            {logoutLabel}
           </Button>
         </CardContent>
       </Card>

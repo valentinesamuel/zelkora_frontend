@@ -1,22 +1,38 @@
-// Patient domain + presentation types.
+// Patient domain types.
 //
-// `PatientWire` mirrors the backend `PatientResponse` (zelkora_backend
+// `Patient` mirrors the backend `PatientResponse` (zelkora_backend
 // internal/patient/dto.go) exactly — snake/camel already matches, the Go layer
-// emits camelCase. `Patient` is the shape the table renders. `toPatient` is the
-// only bridge between them and is pure (inject `now` in tests).
-
-import { calculateAge } from '@/features/patients/format';
-import { initialsOf } from '@/lib/name';
+// emits camelCase. It is the single patient shape: the API returns it and the UI
+// renders it directly, deriving display values (full name, age, status, …) at
+// render time via `patientView.ts`.
 
 /** `"Adebayo Okonkwo"` -> `"AO"`, `"Chidi"` -> `"C"`, `""` -> `"?"`. */
 export { initialsOf as patientInitials } from '@/lib/name';
 
-export type PatientSex = 'male' | 'female' | 'other';
-export type PatientPaymentType = 'hmo' | 'cash' | 'corporate';
+export enum PatientSexEnum {
+  MALE = 'male',
+  FEMALE = 'female',
+  OTHER = 'other',
+}
 
-// Union kept open for a future backend `"deceased"` — today only the first two
+export enum PatientPaymentTypeEnum {
+  HMO = 'hmo',
+  CASH = 'cash',
+  CORPORATE = 'corporate',
+}
+
+// `DECEASED` is kept for a future backend value — today only ACTIVE / INACTIVE
 // are reachable (derived from `isActive`).
-export type PatientStatus = 'active' | 'inactive' | 'deceased';
+export enum PatientStatusEnum {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  DECEASED = 'deceased',
+}
+
+/** Aliases for annotations; identical to the enums above. */
+export type PatientSex = PatientSexEnum;
+export type PatientPaymentType = PatientPaymentTypeEnum;
+export type PatientStatus = PatientStatusEnum;
 
 export interface PatientNextOfKin {
   readonly name: string;
@@ -25,8 +41,8 @@ export interface PatientNextOfKin {
   readonly address: string;
 }
 
-/** Exact wire shape from `GET /api/v1/patients`. Optional fields use `?` + may be absent. */
-export interface PatientWire {
+/** Exact shape from `GET /api/v1/patients`. Optional fields use `?` + may be absent. */
+export interface Patient {
   readonly id: string;
   readonly zrn: string;
   readonly firstName: string;
@@ -54,8 +70,8 @@ export interface PatientWire {
  * `ListPatientsResponse` (zelkora_backend internal/patient/dto.go) — page-based
  * pagination, `total` is a real count.
  */
-export interface ListPatientsWire {
-  readonly patients: PatientWire[];
+export interface ListPatientsResponse {
+  readonly patients: Patient[];
   readonly page: number;
   readonly limit: number;
   readonly total: number;
@@ -109,54 +125,11 @@ export interface UpdatePatientBody {
   isActive?: boolean;
 }
 
-/** Presentation model — what `PatientTable` and its cells consume. */
-export interface Patient {
-  readonly id: string;
-  readonly zrn: string;
-  readonly fullName: string;
-  readonly initials: string;
-  readonly age: number | null;
-  readonly sex: PatientSex;
-  readonly phone: string | null;
-  readonly email: string | null;
-  readonly paymentType: PatientPaymentType;
-  readonly status: PatientStatus;
-  readonly registeredAt: string; // RFC3339, from `createdAt`
-  // No backend field yet — always `null`. Kept so the column + a real value
-  // can land without touching call sites.
-  readonly lastVisitAt: string | null;
-}
-
-function trimToNull(value: string | undefined): string | null {
-  if (value === undefined) return null;
-  const trimmed = value.trim();
-  return trimmed === '' ? null : trimmed;
-}
-
 export function fullNameOf(
-  wire: Pick<PatientWire, 'firstName' | 'middleName' | 'lastName'>,
+  patient: Pick<Patient, 'firstName' | 'middleName' | 'lastName'>,
 ): string {
-  return [wire.firstName, wire.middleName, wire.lastName]
+  return [patient.firstName, patient.middleName, patient.lastName]
     .map((part) => part?.trim() ?? '')
     .filter(Boolean)
     .join(' ');
-}
-
-/** Pure wire -> presentation mapper. `now` is injectable for deterministic tests. */
-export function toPatient(wire: PatientWire, now: Date = new Date()): Patient {
-  const fullName = fullNameOf(wire);
-  return {
-    id: wire.id,
-    zrn: wire.zrn,
-    fullName,
-    initials: initialsOf(fullName),
-    age: calculateAge(wire.dateOfBirth, now),
-    sex: wire.gender,
-    phone: trimToNull(wire.phoneNumber),
-    email: trimToNull(wire.email),
-    paymentType: wire.paymentType,
-    status: wire.isActive ? 'active' : 'inactive',
-    registeredAt: wire.createdAt,
-    lastVisitAt: null,
-  };
 }

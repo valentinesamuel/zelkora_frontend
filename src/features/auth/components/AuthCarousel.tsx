@@ -84,19 +84,42 @@ export function AuthCarousel() {
       onBlur={() => setPaused(false)}
     >
       <div className="relative aspect-6/5 w-full justify-between overflow-hidden rounded-xl bg-white/5">
-        {SLIDES.map((slide, slideIndex) => (
-          <img
-            key={slide.src + slideIndex}
-            src={slide.src}
-            alt=""
-            aria-hidden="true"
-            loading={slideIndex === 0 ? 'eager' : 'lazy'}
-            fetchPriority={slideIndex === 0 ? 'high' : undefined}
-            className={`absolute inset-0 h-full w-full object-cover ${
-              reduced ? '' : 'transition-opacity duration-500'
-            } ${slideIndex === index ? 'opacity-100' : 'opacity-0'}`}
-          />
-        ))}
+        {SLIDES.map((slide, slideIndex) => {
+          const isFirst = slideIndex === 0;
+          const isActive = slideIndex === index;
+
+          let loading: 'eager' | 'lazy' = 'lazy';
+          if (isFirst) {
+            loading = 'eager';
+          }
+
+          let fetchPriority: 'high' | undefined;
+          if (isFirst) {
+            fetchPriority = 'high';
+          }
+
+          let transitionClass = 'transition-opacity duration-500';
+          if (reduced) {
+            transitionClass = '';
+          }
+
+          let opacityClass = 'opacity-0';
+          if (isActive) {
+            opacityClass = 'opacity-100';
+          }
+
+          return (
+            <img
+              key={slide.src + slideIndex}
+              src={slide.src}
+              alt=""
+              aria-hidden="true"
+              loading={loading}
+              fetchPriority={fetchPriority}
+              className={`absolute inset-0 h-full w-full object-cover ${transitionClass} ${opacityClass}`}
+            />
+          );
+        })}
 
         <svg
           aria-hidden="true"
@@ -128,21 +151,24 @@ export function AuthCarousel() {
       </div>
 
       <div role="tablist" className="mt-auto flex items-center gap-2">
-        {SLIDES.map((slide, slideIndex) => (
-          <button
-            key={slide.src + slideIndex}
-            type="button"
-            role="tab"
-            aria-selected={slideIndex === index}
-            aria-label={`Slide ${slideIndex + 1} of ${SLIDES.length}`}
-            onClick={() => setIndex(slideIndex)}
-            className={`rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-auth-hero ${
-              slideIndex === index
-                ? 'h-1.5 w-6 bg-white'
-                : 'size-1.5 bg-white/40'
-            }`}
-          />
-        ))}
+        {SLIDES.map((slide, slideIndex) => {
+          let dotClass = 'size-1.5 bg-white/40';
+          if (slideIndex === index) {
+            dotClass = 'h-1.5 w-6 bg-white';
+          }
+
+          return (
+            <button
+              key={slide.src + slideIndex}
+              type="button"
+              role="tab"
+              aria-selected={slideIndex === index}
+              aria-label={`Slide ${slideIndex + 1} of ${SLIDES.length}`}
+              onClick={() => setIndex(slideIndex)}
+              className={`rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-auth-hero ${dotClass}`}
+            />
+          );
+        })}
       </div>
     </section>
   );

@@ -23,7 +23,7 @@ export function SystemAlertsWidget() {
       headerRight={<LiveIndicator />}
     >
       <p role="status" aria-live="polite" className="sr-only">
-        {data ? countLabel(data.alerts.length, 'alert') : ''}
+        {data && countLabel(data.alerts.length, 'alert')}
       </p>
 
       <WidgetState

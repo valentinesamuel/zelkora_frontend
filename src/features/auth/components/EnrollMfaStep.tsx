@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/input-otp';
 
 import { ApiError } from '../../../lib/apiClient';
+import { apiErrorMessage } from '@/lib/formErrors';
 import * as api from '../api';
 import { enrollVerifySchema, type EnrollVerifyValues } from '../schemas';
 
@@ -67,9 +68,10 @@ export function EnrollMfaStep({
           return;
         }
         setLoadError(
-          err instanceof ApiError
-            ? err.apiMessage
-            : 'Could not start MFA enrollment. Return to sign in and try again.',
+          apiErrorMessage(
+            err,
+            'Could not start MFA enrollment. Return to sign in and try again.',
+          ),
         );
       }
     })();
@@ -85,12 +87,14 @@ export function EnrollMfaStep({
         return;
       }
       form.setError('root', {
-        message:
-          err instanceof ApiError
-            ? err.apiMessage
-            : 'Verification failed. Please try again.',
+        message: apiErrorMessage(err, 'Verification failed. Please try again.'),
       });
     }
+  }
+
+  let submitLabel = 'Enable MFA';
+  if (form.formState.isSubmitting) {
+    submitLabel = 'Verifying…';
   }
 
   return (
@@ -178,7 +182,7 @@ export function EnrollMfaStep({
             size="lg"
             disabled={form.formState.isSubmitting || !qrDataUrl}
           >
-            {form.formState.isSubmitting ? 'Verifying…' : 'Enable MFA'}
+            {submitLabel}
           </Button>
         </form>
       </Form>

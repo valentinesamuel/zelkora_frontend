@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, type DefaultValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -39,16 +39,17 @@ import {
   patientFormSchema,
   type PatientFormValues,
 } from '@/features/patients/schemas/patientForm.schema';
-import type { PatientWire } from '@/features/patients/types/patient.types';
+import type { Patient } from '@/features/patients/types/patient.types';
 import { setRootSubmitError } from '@/lib/formErrors';
 
 type PatientFormProps =
   | { mode: 'create' }
-  | { mode: 'edit'; patientId: string; initialData: PatientWire };
+  | { mode: 'edit'; patientId: string; initialData: Patient };
 
 function submitLabel(isSubmitting: boolean, isEdit: boolean): string {
   if (isSubmitting) return 'Saving…';
-  return isEdit ? 'Save changes' : 'Register patient';
+  if (isEdit) return 'Save changes';
+  return 'Register patient';
 }
 
 export function PatientForm(props: Readonly<PatientFormProps>) {
@@ -56,17 +57,23 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
   const isEdit = props.mode === 'edit';
 
   const createPatient = useCreatePatient();
-  // Needs an id up front (hooks can't be conditional); only ever invoked from
-  // the edit branch, so '' in create mode is inert.
-  const updatePatient = useUpdatePatient(isEdit ? props.patientId : '');
+  let updateId = '';
+  if (isEdit) {
+    updateId = props.patientId;
+  }
+  const updatePatient = useUpdatePatient(updateId);
+
+  let defaultValues: DefaultValues<PatientFormValues> =
+    emptyPatientFormValues();
+  if (isEdit) {
+    defaultValues = toPatientFormValues(props.initialData);
+  }
 
   const form = useForm<PatientFormValues>({
     resolver: zodResolver(patientFormSchema),
     mode: 'onTouched',
     reValidateMode: 'onChange',
-    defaultValues: isEdit
-      ? toPatientFormValues(props.initialData)
-      : emptyPatientFormValues(),
+    defaultValues,
   });
 
   async function onSubmit(values: PatientFormValues) {
@@ -81,12 +88,11 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
         }
         await updatePatient.mutateAsync(body);
       }
-      // DEVIATION: the house convention is inline surfaces, not toasts (see
-      // PatientListError.tsx). A success toast on form submit is a deliberate,
-      // approved exception; submit *failures* stay inline in the Alert below.
-      toast.success(
-        props.mode === 'create' ? 'Patient registered.' : 'Patient updated.',
-      );
+      let successMessage = 'Patient updated.';
+      if (props.mode === 'create') {
+        successMessage = 'Patient registered.';
+      }
+      toast.success(successMessage);
       navigate('/patients');
     } catch (err) {
       setRootSubmitError(form, err);

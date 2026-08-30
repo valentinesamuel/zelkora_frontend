@@ -17,22 +17,27 @@ export default function DateRangeCalendar({
   selection,
   onCommit,
 }: Readonly<DateRangeCalendarProps>) {
-  // Two months (~560px) do not fit below the Tailwind `sm` breakpoint.
   const smUp = useMediaQuery('(min-width: 40rem)');
   const todayDate = parseISO(today);
 
-  const initialFrom =
-    selection.preset === 'custom' && selection.from
-      ? parseISO(selection.from)
-      : undefined;
-  const initialTo =
-    selection.preset === 'custom' && selection.to
-      ? parseISO(selection.to)
-      : undefined;
+  const isCustom = selection.preset === 'custom';
 
-  const [range, setRange] = useState<DateRange | undefined>(
-    initialFrom ? { from: initialFrom, to: initialTo } : undefined,
-  );
+  let initialFrom: Date | undefined;
+  if (isCustom && selection.from) {
+    initialFrom = parseISO(selection.from);
+  }
+
+  let initialTo: Date | undefined;
+  if (isCustom && selection.to) {
+    initialTo = parseISO(selection.to);
+  }
+
+  let initialRange: DateRange | undefined;
+  if (initialFrom) {
+    initialRange = { from: initialFrom, to: initialTo };
+  }
+
+  const [range, setRange] = useState<DateRange | undefined>(initialRange);
 
   function handleSelect(next: DateRange | undefined) {
     setRange(next);
@@ -41,11 +46,16 @@ export default function DateRangeCalendar({
     }
   }
 
+  let numberOfMonths = 1;
+  if (smUp) {
+    numberOfMonths = 2;
+  }
+
   return (
     <Calendar
       mode="range"
       autoFocus
-      numberOfMonths={smUp ? 2 : 1}
+      numberOfMonths={numberOfMonths}
       selected={range}
       onSelect={handleSelect}
       disabled={{ after: todayDate }}

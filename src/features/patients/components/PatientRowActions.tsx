@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PatientDeleteDialog } from '@/features/patients/components/PatientDeleteDialog';
+import { patientFullName } from '@/features/patients/patientView';
 import type { Patient } from '@/features/patients/types/patient.types';
 
 /**
@@ -71,6 +72,7 @@ interface PatientRowActionsProps {
 
 export function PatientRowActions({ patient }: PatientRowActionsProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const fullName = patientFullName(patient);
 
   return (
     <>
@@ -78,7 +80,7 @@ export function PatientRowActions({ patient }: PatientRowActionsProps) {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            aria-label={`Actions for ${patient.fullName || patient.zrn}`}
+            aria-label={`Actions for ${fullName || patient.zrn}`}
             className="flex size-8 items-center justify-center rounded-sm text-muted-foreground transition-colors motion-reduce:transition-none hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[state=open]:bg-muted data-[state=open]:text-foreground"
           >
             <MoreHorizontal className="size-4" aria-hidden="true" />
@@ -86,7 +88,7 @@ export function PatientRowActions({ patient }: PatientRowActionsProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-52">
           <DropdownMenuLabel className="truncate">
-            {patient.fullName || patient.zrn}
+            {fullName || patient.zrn}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {ACTIONS.map((action) => {
@@ -127,7 +129,7 @@ export function PatientRowActions({ patient }: PatientRowActionsProps) {
       </DropdownMenu>
 
       <PatientDeleteDialog
-        patient={patient}
+        patient={{ id: patient.id, fullName, zrn: patient.zrn }}
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
       />

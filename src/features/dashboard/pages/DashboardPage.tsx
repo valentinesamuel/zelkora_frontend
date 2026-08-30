@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/features/auth/authStore';
+import { RoleEnum } from '@/features/auth/types';
 
 import { CmoDashboardPage } from './CmoDashboardPage';
 
@@ -9,15 +10,13 @@ export function DashboardPage() {
     return null;
   }
 
-  switch (user.role) {
-    case 'cmo':
-    case 'admin':
-      return <CmoDashboardPage />;
-    default:
-      return (
-        <div className="p-6 text-muted-foreground">
-          No dashboard for your role yet.
-        </div>
-      );
+  if (user.role === RoleEnum.ADMIN) {
+    return <CmoDashboardPage />;
   }
+
+  return (
+    <div className="p-6 text-muted-foreground">
+      No dashboard for your role yet.
+    </div>
+  );
 }

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 import { Check, ChevronsUpDown } from 'lucide-react';
 
@@ -32,16 +32,7 @@ interface PatientComboboxFieldProps<T extends FieldValues> {
   className?: string;
 }
 
-/**
- * RHF-bound searchable single-select. Same prop shape as `PatientSelectField`,
- * so it drops into `PatientFormSection` unchanged, but backed by a filterable
- * list instead of a native-style `<Select>` — used for long option sets
- * (nationality, ~190 entries) where `cmdk` is not a dependency.
- *
- * An `field.value` that is non-empty but absent from `options` still renders as
- * the current selection, so off-list values loaded from an existing record
- * survive an edit that doesn't touch this field.
- */
+
 export function PatientComboboxField<T extends FieldValues>({
   control,
   name,
@@ -50,11 +41,12 @@ export function PatientComboboxField<T extends FieldValues>({
   placeholder,
   required = false,
   className,
-}: PatientComboboxFieldProps<T>) {
+}: Readonly<PatientComboboxFieldProps<T>>) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
-  const listRef = useRef<HTMLDivElement>(null);
+  const listboxId = useId();
+  const listRef = useRef<HTMLUListElement | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -67,9 +59,12 @@ export function PatientComboboxField<T extends FieldValues>({
       control={control}
       name={name}
       render={({ field }) => {
+        let rawValueLabel = '';
+        if (field.value) {
+          rawValueLabel = String(field.value);
+        }
         const selectedLabel =
-          options.find((o) => o.value === field.value)?.label ??
-          (field.value ? String(field.value) : '');
+          options.find((o) => o.value === field.value)?.label ?? rawValueLabel;
 
         function commit(value: string) {
           field.onChange(value);
@@ -90,6 +85,48 @@ export function PatientComboboxField<T extends FieldValues>({
             const choice = filtered[activeIndex];
             if (choice) commit(choice.value);
           }
+        }
+
+        let list: React.ReactNode = (
+          <p className="px-2 py-6 text-center text-sm text-muted-foreground">
+            No match.
+          </p>
+        );
+        if (filtered.length > 0) {
+          list = filtered.map((option, index) => {
+            const isSelected = option.value === field.value;
+            const isActive = index === activeIndex;
+
+            let checkOpacity = 'opacity-0';
+            if (isSelected) {
+              checkOpacity = 'opacity-100';
+            }
+
+            return (
+              <option
+                key={option.value}
+                value={option.value}
+                aria-selected={isSelected}
+                tabIndex={isActive ? 0 : -1}
+                onFocus={() => setActiveIndex(index)}
+                onMouseEnter={() => setActiveIndex(index)}
+                onClick={() => commit(option.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    commit(option.value);
+                  }
+                }}
+                className={cn(
+                  'flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm outline-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                  isActive && 'bg-accent text-accent-foreground',
+                )}
+              >
+                <Check className={cn('size-4 shrink-0', checkOpacity)} />
+                {option.label}
+              </option>
+            );
+          });
         }
 
         return (
@@ -118,7 +155,9 @@ export function PatientComboboxField<T extends FieldValues>({
                   <button
                     type="button"
                     role="combobox"
+                    aria-controls={listboxId}
                     aria-expanded={open}
+                    aria-haspopup="listbox"
                     className={cn(
                       'flex h-8 w-full items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20',
                       !selectedLabel && 'text-muted-foreground',
@@ -148,44 +187,13 @@ export function PatientComboboxField<T extends FieldValues>({
                     className="h-8"
                   />
                 </div>
-                <div
+                <ul
                   ref={listRef}
-                  role="listbox"
+                  aria-label={`${label} options`}
                   className="max-h-60 overflow-y-auto p-1"
                 >
-                  {filtered.length === 0 ? (
-                    <p className="px-2 py-6 text-center text-sm text-muted-foreground">
-                      No match.
-                    </p>
-                  ) : (
-                    filtered.map((option, index) => {
-                      const isSelected = option.value === field.value;
-                      const isActive = index === activeIndex;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          role="option"
-                          aria-selected={isSelected}
-                          onMouseEnter={() => setActiveIndex(index)}
-                          onClick={() => commit(option.value)}
-                          className={cn(
-                            'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm outline-hidden',
-                            isActive && 'bg-accent text-accent-foreground',
-                          )}
-                        >
-                          <Check
-                            className={cn(
-                              'size-4 shrink-0',
-                              isSelected ? 'opacity-100' : 'opacity-0',
-                            )}
-                          />
-                          {option.label}
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
+                  {list}
+                </ul>
               </PopoverContent>
             </Popover>
             <FormMessage />

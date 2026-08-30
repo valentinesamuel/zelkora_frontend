@@ -1,22 +1,25 @@
-// The query the list page issues, and the result it gets back.
-//
-// Pagination is CURSOR-based end to end (product decision): the URL carries an
-// opaque `cursor` + `limit`; navigation is Prev / Next only. `patientListParams`
-// owns the URL <-> query serde; `patientsRepository` owns cursor <-> result.
-
-import type {
-  Patient,
-  PatientSex,
-  PatientStatus,
-} from '@/features/patients/types/patient.types';
+import type { Patient } from '@/features/patients/types/patient.types';
 
 export type PatientSortField = 'name' | 'age' | 'registeredAt';
 export type SortDir = 'asc' | 'desc';
 
-export type PatientStatusFilter = PatientStatus | 'all';
-export type PatientSexFilter = PatientSex | 'all';
+export enum PatientStatusFilterEnum {
+  ALL = 'all',
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  DECEASED = 'deceased',
+}
 
-/** Fully-resolved list state. Every field has a concrete default (see `patientListParams`). */
+export enum PatientSexFilterEnum {
+  ALL = 'all',
+  MALE = 'male',
+  FEMALE = 'female',
+  OTHER = 'other',
+}
+
+export type PatientStatusFilter = PatientStatusFilterEnum;
+export type PatientSexFilter = PatientSexFilterEnum;
+
 export interface PatientListQuery {
   readonly search: string;
   readonly status: PatientStatusFilter;
@@ -41,6 +44,5 @@ export interface PatientPageInfo {
 export interface PatientListResult {
   readonly patients: Patient[];
   readonly pageInfo: PatientPageInfo;
-  // Optional: a real cursor API may not return a stable total.
   readonly total: number | null;
 }

@@ -23,19 +23,20 @@ import { PatientDeleteDialog } from '@/features/patients/components/PatientDelet
 import { PatientLoadError } from '@/features/patients/components/PatientLoadError';
 import { PatientStatusBadge } from '@/features/patients/components/PatientStatusBadge';
 import {
-  calculateAge,
   formatAge,
   formatOptionalText,
   formatPatientPhone,
   formatRegisteredDate,
   formatSex,
 } from '@/features/patients/format';
-import { PAYMENT_TYPE_OPTIONS } from '@/features/patients/patientOptions';
 import {
-  fullNameOf,
-  patientInitials,
-} from '@/features/patients/types/patient.types';
-import type { PatientWire } from '@/features/patients/types/patient.types';
+  patientAge,
+  patientDisplayStatus,
+  patientFullName,
+  patientInitialsOf,
+} from '@/features/patients/patientView';
+import { PAYMENT_TYPE_OPTIONS } from '@/features/patients/patientOptions';
+import type { Patient } from '@/features/patients/types/patient.types';
 import { ApiError } from '@/lib/apiClient';
 
 /**
@@ -123,7 +124,7 @@ export function PatientDetailPage() {
         <PatientDeleteDialog
           patient={{
             id: data.id,
-            fullName: fullNameOf(data),
+            fullName: patientFullName(data),
             zrn: data.zrn,
           }}
           open={deleteOpen}
@@ -136,7 +137,7 @@ export function PatientDetailPage() {
 }
 
 interface PatientDetailContentProps {
-  patient: PatientWire;
+  patient: Patient;
   onEditPath: string;
   onDelete: () => void;
 }
@@ -145,10 +146,10 @@ function PatientDetailContent({
   patient,
   onEditPath,
   onDelete,
-}: PatientDetailContentProps) {
-  const fullName = fullNameOf(patient);
-  const status = patient.isActive ? 'active' : 'inactive';
-  const age = calculateAge(patient.dateOfBirth);
+}: Readonly<PatientDetailContentProps>) {
+  const fullName = patientFullName(patient);
+  const status = patientDisplayStatus(patient);
+  const age = patientAge(patient);
 
   return (
     <>
@@ -159,7 +160,7 @@ function PatientDetailContent({
             aria-hidden="true"
             className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-muted text-lg font-medium text-foreground"
           >
-            {patientInitials(fullName)}
+            {patientInitialsOf(patient)}
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">

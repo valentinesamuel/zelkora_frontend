@@ -22,8 +22,6 @@ const DateRangeCalendar = lazy(
   () => import('@/features/dashboard/filters/DateRangeCalendar'),
 );
 
-// A fallback sized close to the loaded calendar so the popover does not resize
-// under the cursor when the chunk arrives (F4-g).
 const CALENDAR_FALLBACK = (
   <div
     className="h-64 w-64 animate-pulse rounded-sm bg-muted"
@@ -66,26 +64,68 @@ export function DateRangeControl() {
     setOpen(false);
   }
 
-  function handlePresetKeyDown(
-    event: React.KeyboardEvent<HTMLFieldSetElement>,
-  ) {
-    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
-      return;
-    }
-    event.preventDefault();
-    const buttons = Array.from(
-      event.currentTarget.querySelectorAll<HTMLButtonElement>(
-        'button[data-preset]',
-      ),
-    );
-    const current = buttons.indexOf(
-      document.activeElement as HTMLButtonElement,
-    );
-    const next =
-      event.key === 'ArrowDown'
-        ? (current + 1) % buttons.length
-        : (current - 1 + buttons.length) % buttons.length;
-    buttons[next]?.focus();
+  const presetsPanel = (
+    <fieldset
+      ref={presetsRef}
+      aria-label="Date range presets"
+      className="flex flex-col border-0 p-0"
+    >
+      {PRESETS.map((preset) => {
+        const isCurrent = selection.preset === preset;
+
+        let ariaCurrent: 'true' | undefined;
+        if (isCurrent) {
+          ariaCurrent = 'true';
+        }
+
+        let checkOpacity = 'opacity-0';
+        if (isCurrent) {
+          checkOpacity = 'opacity-100';
+        }
+
+        return (
+          <button
+            key={preset}
+            type="button"
+            data-preset={preset}
+            aria-current={ariaCurrent}
+            onClick={() => choosePreset(preset)}
+            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors motion-reduce:transition-none hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2"
+          >
+            <Check
+              className={cn('size-4 shrink-0', checkOpacity)}
+              aria-hidden="true"
+            />
+            <span className="flex-1">{PRESET_LABELS[preset]}</span>
+          </button>
+        );
+      })}
+    </fieldset>
+  );
+
+  const calendarPanel = (
+    <div className="flex flex-col gap-1">
+      <button
+        type="button"
+        onClick={() => setView('presets')}
+        className="flex items-center gap-1 rounded-sm px-2 py-1.5 text-left text-sm text-muted-foreground transition-colors motion-reduce:transition-none hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2"
+      >
+        <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
+        Presets
+      </button>
+      <Suspense fallback={CALENDAR_FALLBACK}>
+        <DateRangeCalendar
+          today={today}
+          selection={selection}
+          onCommit={commitCustom}
+        />
+      </Suspense>
+    </div>
+  );
+
+  let panel = calendarPanel;
+  if (view === 'presets') {
+    panel = presetsPanel;
   }
 
   return (
@@ -118,55 +158,7 @@ export function DateRangeControl() {
         </PopoverTrigger>
 
         <PopoverContent align="end" className="w-auto min-w-56 p-1">
-          {view === 'presets' ? (
-            <fieldset
-              ref={presetsRef}
-              aria-label="Date range presets"
-              className="flex flex-col border-0 p-0"
-              onKeyDown={handlePresetKeyDown}
-            >
-              {PRESETS.map((preset) => {
-                const isCurrent = selection.preset === preset;
-                return (
-                  <button
-                    key={preset}
-                    type="button"
-                    data-preset={preset}
-                    aria-current={isCurrent ? 'true' : undefined}
-                    onClick={() => choosePreset(preset)}
-                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors motion-reduce:transition-none hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2"
-                  >
-                    <Check
-                      className={cn(
-                        'size-4 shrink-0',
-                        isCurrent ? 'opacity-100' : 'opacity-0',
-                      )}
-                      aria-hidden="true"
-                    />
-                    <span className="flex-1">{PRESET_LABELS[preset]}</span>
-                  </button>
-                );
-              })}
-            </fieldset>
-          ) : (
-            <div className="flex flex-col gap-1">
-              <button
-                type="button"
-                onClick={() => setView('presets')}
-                className="flex items-center gap-1 rounded-sm px-2 py-1.5 text-left text-sm text-muted-foreground transition-colors motion-reduce:transition-none hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2"
-              >
-                <ChevronLeft className="size-4 shrink-0" aria-hidden="true" />
-                Presets
-              </button>
-              <Suspense fallback={CALENDAR_FALLBACK}>
-                <DateRangeCalendar
-                  today={today}
-                  selection={selection}
-                  onCommit={commitCustom}
-                />
-              </Suspense>
-            </div>
-          )}
+          {panel}
         </PopoverContent>
       </Popover>
 

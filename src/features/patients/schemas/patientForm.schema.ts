@@ -21,8 +21,10 @@
  */
 import { z } from 'zod';
 
-export const GENDER_VALUES = ['male', 'female', 'other'] as const;
-export const PAYMENT_TYPE_VALUES = ['hmo', 'cash', 'corporate'] as const;
+import {
+  PatientPaymentTypeEnum,
+  PatientSexEnum,
+} from '@/features/patients/types/patient.types';
 
 const requiredText = (label: string) =>
   z.string().trim().min(1, `${label} is required.`);
@@ -48,8 +50,8 @@ export const patientFormSchema = z.object({
   dateOfBirth: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Enter the date of birth (YYYY-MM-DD).'),
-  gender: z.enum(GENDER_VALUES, { message: 'Select a gender.' }),
-  paymentType: z.enum(PAYMENT_TYPE_VALUES, {
+  gender: z.nativeEnum(PatientSexEnum, { message: 'Select a gender.' }),
+  paymentType: z.nativeEnum(PatientPaymentTypeEnum, {
     message: 'Select a payment type.',
   }),
   bloodGroup: optionalText,

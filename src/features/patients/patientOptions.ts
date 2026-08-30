@@ -1,12 +1,8 @@
-// Dropdown option lists for the patient create / edit form. Pure data, no React.
-//
-// `gender` and `paymentType` are real backend enums (mirrored in
-// `schemas/patientForm.schema.ts`). `bloodGroup`, `maritalStatus` and
-// `nationality` are unconstrained `*string` on the wire — these lists shape the
-// UI only, and an off-list value on an existing record is preserved on load and
-// submit (see PatientSelectField / PatientComboboxField).
-
 import { NATIONALITIES } from '@/features/patients/data/nationalities';
+import {
+  PatientPaymentTypeEnum,
+  PatientSexEnum,
+} from '@/features/patients/types/patient.types';
 
 export interface SelectOption {
   readonly value: string;
@@ -14,15 +10,15 @@ export interface SelectOption {
 }
 
 export const GENDER_OPTIONS: readonly SelectOption[] = [
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
-  { value: 'other', label: 'Other' },
+  { value: PatientSexEnum.MALE, label: 'Male' },
+  { value: PatientSexEnum.FEMALE, label: 'Female' },
+  { value: PatientSexEnum.OTHER, label: 'Other' },
 ];
 
 export const PAYMENT_TYPE_OPTIONS: readonly SelectOption[] = [
-  { value: 'hmo', label: 'HMO' },
-  { value: 'cash', label: 'Cash' },
-  { value: 'corporate', label: 'Corporate' },
+  { value: PatientPaymentTypeEnum.HMO, label: 'HMO' },
+  { value: PatientPaymentTypeEnum.CASH, label: 'Cash' },
+  { value: PatientPaymentTypeEnum.CORPORATE, label: 'Corporate' },
 ];
 
 export const BLOOD_GROUP_OPTIONS: readonly SelectOption[] = [

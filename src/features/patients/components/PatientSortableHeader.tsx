@@ -46,10 +46,16 @@ export function PatientSortableHeader({
 }: PatientSortableHeaderProps) {
   const active = meta.sortField === sortKey;
   const dir = meta.sortDir;
-  const currentOrder = dir === 'asc' ? 'ascending' : 'descending';
-  const ariaLabel = active
-    ? `Sort by ${label.toLowerCase()}, currently ${currentOrder}`
-    : `Sort by ${label.toLowerCase()}`;
+
+  let currentOrder = 'descending';
+  if (dir === 'asc') {
+    currentOrder = 'ascending';
+  }
+
+  let ariaLabel = `Sort by ${label.toLowerCase()}`;
+  if (active) {
+    ariaLabel = `Sort by ${label.toLowerCase()}, currently ${currentOrder}`;
+  }
 
   return (
     <button

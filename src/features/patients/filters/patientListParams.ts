@@ -4,29 +4,24 @@
 // dashboard: read + heal, and write only what differs from the default so a
 // pristine list is just `/patients`.
 
+import {
+  PatientSexFilterEnum,
+  PatientStatusFilterEnum,
+} from '@/features/patients/types/patientListQuery.types';
 import type {
   PatientListQuery,
-  PatientSexFilter,
   PatientSortField,
-  PatientStatusFilter,
   SortDir,
 } from '@/features/patients/types/patientListQuery.types';
 
 export const DEFAULT_LIMIT = 25;
 export const LIMIT_OPTIONS = [10, 25, 50, 100] as const;
 
-const STATUS_VALUES: readonly PatientStatusFilter[] = [
-  'all',
-  'active',
-  'inactive',
-  'deceased',
-];
-const SEX_VALUES: readonly PatientSexFilter[] = [
-  'all',
-  'male',
-  'female',
-  'other',
-];
+const STATUS_VALUES: readonly PatientStatusFilterEnum[] = Object.values(
+  PatientStatusFilterEnum,
+);
+const SEX_VALUES: readonly PatientSexFilterEnum[] =
+  Object.values(PatientSexFilterEnum);
 const SORT_FIELDS: readonly PatientSortField[] = [
   'name',
   'age',
@@ -36,8 +31,8 @@ const SORT_DIRS: readonly SortDir[] = ['asc', 'desc'];
 
 export const DEFAULT_PATIENT_LIST_QUERY: PatientListQuery = {
   search: '',
-  status: 'all',
-  sex: 'all',
+  status: PatientStatusFilterEnum.ALL,
+  sex: PatientSexFilterEnum.ALL,
   ageMin: null,
   ageMax: null,
   registeredFrom: null,
@@ -73,6 +68,24 @@ function oneOf<T extends string>(
   return raw !== null && (allowed as readonly string[]).includes(raw)
     ? (raw as T)
     : fallback;
+}
+
+/**
+ * Narrow an arbitrary `<Select>` value to a filter enum, falling back to the
+ * current value when it is off-list. Shares the whitelist the URL parser uses.
+ */
+export function coerceStatusFilter(
+  raw: string,
+  fallback: PatientStatusFilterEnum,
+): PatientStatusFilterEnum {
+  return oneOf(raw, STATUS_VALUES, fallback);
+}
+
+export function coerceSexFilter(
+  raw: string,
+  fallback: PatientSexFilterEnum,
+): PatientSexFilterEnum {
+  return oneOf(raw, SEX_VALUES, fallback);
 }
 
 function toAge(raw: string | null): number | null {
@@ -115,8 +128,12 @@ export function parsePatientListParams(sp: URLSearchParams): PatientListQuery {
 
   return {
     search: sp.get(KEY.search)?.trim() ?? '',
-    status: oneOf(sp.get(KEY.status), STATUS_VALUES, 'all'),
-    sex: oneOf(sp.get(KEY.sex), SEX_VALUES, 'all'),
+    status: oneOf(
+      sp.get(KEY.status),
+      STATUS_VALUES,
+      PatientStatusFilterEnum.ALL,
+    ),
+    sex: oneOf(sp.get(KEY.sex), SEX_VALUES, PatientSexFilterEnum.ALL),
     ageMin,
     ageMax,
     registeredFrom,
@@ -158,8 +175,8 @@ export function serializePatientListParams(
  */
 export function countActiveFilters(query: PatientListQuery): number {
   let n = 0;
-  if (query.status !== 'all') n += 1;
-  if (query.sex !== 'all') n += 1;
+  if (query.status !== PatientStatusFilterEnum.ALL) n += 1;
+  if (query.sex !== PatientSexFilterEnum.ALL) n += 1;
   if (query.ageMin !== null || query.ageMax !== null) n += 1;
   if (query.registeredFrom !== null || query.registeredTo !== null) n += 1;
   return n;
@@ -179,8 +196,8 @@ export function resetCursor(query: PatientListQuery): PatientListQuery {
 export function clearFilters(query: PatientListQuery): PatientListQuery {
   return {
     ...query,
-    status: 'all',
-    sex: 'all',
+    status: PatientStatusFilterEnum.ALL,
+    sex: PatientSexFilterEnum.ALL,
     ageMin: null,
     ageMax: null,
     registeredFrom: null,

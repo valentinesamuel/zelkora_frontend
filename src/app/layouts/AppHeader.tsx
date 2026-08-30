@@ -29,8 +29,16 @@ export function AppHeader() {
   const user = useAuthStore((s) => s.user);
 
   const greeting = greetingFor(new Date().getHours());
-  const lastName = user === null ? '' : lastNameOf(user.fullName);
-  const heading = lastName === '' ? greeting : `${greeting}, Dr. ${lastName}`;
+
+  let lastName = '';
+  if (user !== null) {
+    lastName = lastNameOf(user.fullName);
+  }
+
+  let heading = greeting;
+  if (lastName !== '') {
+    heading = `${greeting}, Dr. ${lastName}`;
+  }
 
   return (
     <header className="grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b bg-card px-4">

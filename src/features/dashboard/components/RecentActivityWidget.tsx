@@ -10,7 +10,7 @@ export function RecentActivityWidget() {
   return (
     <WidgetCard title="Recent activity" count={data?.entries.length}>
       <p role="status" aria-live="polite" className="sr-only">
-        {data ? countLabel(data.entries.length, 'recent update') : ''}
+        {data && countLabel(data.entries.length, 'recent update')}
       </p>
 
       <WidgetState

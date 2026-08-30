@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { SearchX, UserPlus, Users } from 'lucide-react';
 
@@ -8,17 +9,33 @@ interface PatientListEmptyProps {
   readonly onClearFilters: () => void;
 }
 
-/**
- * Two genuinely different situations, two different messages:
- *  - `no-data`     — the hospital has no registered patients yet.
- *  - `no-results`  — patients exist, but none match the search / filters.
- */
 export function PatientListEmpty({
   variant,
   onClearFilters,
 }: PatientListEmptyProps) {
   const isNoData = variant === 'no-data';
-  const Icon = isNoData ? Users : SearchX;
+
+  let Icon = SearchX;
+  let heading = 'No patients found';
+  let detail = 'Try adjusting your search or filters.';
+  let action: ReactNode = (
+    <Button variant="outline" onClick={onClearFilters}>
+      Clear filters
+    </Button>
+  );
+  if (isNoData) {
+    Icon = Users;
+    heading = 'No patients registered';
+    detail = 'Register your first patient to see them listed here.';
+    action = (
+      <Button asChild>
+        <Link to="/patients/new">
+          <UserPlus aria-hidden="true" />
+          Register patient
+        </Link>
+      </Button>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-6 py-16 text-center">
@@ -26,27 +43,10 @@ export function PatientListEmpty({
         <Icon className="size-5" aria-hidden="true" />
       </span>
       <div className="flex flex-col gap-1">
-        <p className="text-sm font-medium text-foreground">
-          {isNoData ? 'No patients registered' : 'No patients found'}
-        </p>
-        <p className="text-sm text-muted-foreground">
-          {isNoData
-            ? 'Register your first patient to see them listed here.'
-            : 'Try adjusting your search or filters.'}
-        </p>
+        <p className="text-sm font-medium text-foreground">{heading}</p>
+        <p className="text-sm text-muted-foreground">{detail}</p>
       </div>
-      {isNoData ? (
-        <Button asChild>
-          <Link to="/patients/new">
-            <UserPlus aria-hidden="true" />
-            Register patient
-          </Link>
-        </Button>
-      ) : (
-        <Button variant="outline" onClick={onClearFilters}>
-          Clear filters
-        </Button>
-      )}
+      {action}
     </div>
   );
 }

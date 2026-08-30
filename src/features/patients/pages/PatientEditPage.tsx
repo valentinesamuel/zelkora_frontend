@@ -30,15 +30,18 @@ export function PatientEditPage() {
     body = <PatientForm mode="edit" patientId={id} initialData={data} />;
   }
 
+  let subtitle = 'Update an existing patient record.';
+  if (data) {
+    subtitle = fullNameOf(data);
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-6">
       <header>
         <h1 className="font-display text-2xl font-semibold tracking-tight">
           Edit patient
         </h1>
-        <p className="text-sm text-muted-foreground">
-          {data ? fullNameOf(data) : 'Update an existing patient record.'}
-        </p>
+        <p className="text-sm text-muted-foreground">{subtitle}</p>
       </header>
 
       {body}

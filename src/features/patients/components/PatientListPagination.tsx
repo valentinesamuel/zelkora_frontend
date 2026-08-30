@@ -23,11 +23,6 @@ interface PatientListPaginationProps {
   readonly onNext: () => void;
 }
 
-/**
- * Cursor pagination — Previous / Next only, no page numbers (the dataset can be
- * millions of rows; jump-to-page is not meaningful). Shows how many rows are on
- * screen and, when the API provides it, the total.
- */
 export function PatientListPagination({
   pageCount,
   total,
@@ -37,12 +32,15 @@ export function PatientListPagination({
   onPrev,
   onNext,
 }: PatientListPaginationProps) {
+  let summary = `Showing ${countFormatter.format(pageCount)} patients`;
+  if (total !== null) {
+    summary = `Showing ${countFormatter.format(pageCount)} of ${countFormatter.format(total)} patients`;
+  }
+
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-muted-foreground" aria-live="polite">
-        {total !== null
-          ? `Showing ${countFormatter.format(pageCount)} of ${countFormatter.format(total)} patients`
-          : `Showing ${countFormatter.format(pageCount)} patients`}
+        {summary}
       </p>
 
       <div className="flex items-center gap-4">

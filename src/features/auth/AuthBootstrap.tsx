@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 import { useAuthStore } from './authStore';
-import type { Role } from './types';
+import { AuthStatusEnum, RoleEnum, type Role } from './types';
 
 // Runs the silent bootstrap refresh once on app load. Renders nothing. Kept as a
 // component (rather than a bare effect in App) so App.tsx stays pure routing.
@@ -12,12 +12,11 @@ import type { Role } from './types';
 // dead-code-eliminated from the prod bundle. It never touches the token store
 // and sets no access token — impossible to mistake for a real session.
 const DEV_AUTH_ROLES: readonly Role[] = [
-  'cmo',
-  'admin',
-  'doctor',
-  'nurse',
-  'receptionist',
-  'pharmacist',
+  RoleEnum.ADMIN,
+  RoleEnum.DOCTOR,
+  RoleEnum.NURSE,
+  RoleEnum.RECEPTIONIST,
+  RoleEnum.PHARMACIST,
 ];
 
 function isDevAuthRole(value: string | null): value is Role {
@@ -33,16 +32,15 @@ export function AuthBootstrap() {
         'devAuth',
       );
       if (isDevAuthRole(requested)) {
-        const role: Role = requested === 'admin' ? 'cmo' : requested;
         useAuthStore.setState({
           user: {
             id: 'dev-cmo',
             email: 'dev.cmo@zelkora.local',
             fullName: 'Adebayo Okonkwo',
-            role,
+            role: requested,
             branchId: 'dev-branch',
           },
-          status: 'authed',
+          status: AuthStatusEnum.AUTHED,
         });
         return;
       }

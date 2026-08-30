@@ -17,6 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  coerceSexFilter,
+  coerceStatusFilter,
+} from '@/features/patients/filters/patientListParams';
 import type { PatientListFilterPatch } from '@/features/patients/filters/usePatientListParams';
 import type {
   PatientListQuery,
@@ -40,12 +44,22 @@ interface FilterDraft {
   registeredTo: string;
 }
 
+function ageToInput(age: number | null): string {
+  if (age === null) return '';
+  return String(age);
+}
+
+function blankToNull(value: string): string | null {
+  if (value === '') return null;
+  return value;
+}
+
 function toDraft(query: PatientListQuery): FilterDraft {
   return {
     status: query.status,
     sex: query.sex,
-    ageMin: query.ageMin === null ? '' : String(query.ageMin),
-    ageMax: query.ageMax === null ? '' : String(query.ageMax),
+    ageMin: ageToInput(query.ageMin),
+    ageMax: ageToInput(query.ageMax),
     registeredFrom: query.registeredFrom ?? '',
     registeredTo: query.registeredTo ?? '',
   };
@@ -59,12 +73,6 @@ function parseAge(raw: string): number | null {
   return n;
 }
 
-/**
- * Advanced filters behind a single "Filters" affordance so the toolbar stays
- * calm. The popover is a draft form — Status / Sex / Age / Registered date are
- * staged, then committed together on "Apply". The count badge reflects what is
- * actually applied, not the draft.
- */
 export function PatientFilters({
   query,
   activeCount,
@@ -73,9 +81,6 @@ export function PatientFilters({
 }: PatientFiltersProps) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<FilterDraft>(() => toDraft(query));
-
-  // Re-seed the draft from the currently-applied query every time the popover
-  // opens. Done in the open handler (an event), not an effect.
   function handleOpenChange(next: boolean) {
     if (next) setDraft(toDraft(query));
     setOpen(next);
@@ -87,8 +92,8 @@ export function PatientFilters({
       sex: draft.sex,
       ageMin: parseAge(draft.ageMin),
       ageMax: parseAge(draft.ageMax),
-      registeredFrom: draft.registeredFrom === '' ? null : draft.registeredFrom,
-      registeredTo: draft.registeredTo === '' ? null : draft.registeredTo,
+      registeredFrom: blankToNull(draft.registeredFrom),
+      registeredTo: blankToNull(draft.registeredTo),
     });
     setOpen(false);
   }
@@ -119,7 +124,10 @@ export function PatientFilters({
           <Select
             value={draft.status}
             onValueChange={(value) =>
-              setDraft((d) => ({ ...d, status: value as PatientStatusFilter }))
+              setDraft((d) => ({
+                ...d,
+                status: coerceStatusFilter(value, d.status),
+              }))
             }
           >
             <SelectTrigger id="patient-filter-status" className="w-full">
@@ -139,7 +147,7 @@ export function PatientFilters({
           <Select
             value={draft.sex}
             onValueChange={(value) =>
-              setDraft((d) => ({ ...d, sex: value as PatientSexFilter }))
+              setDraft((d) => ({ ...d, sex: coerceSexFilter(value, d.sex) }))
             }
           >
             <SelectTrigger id="patient-filter-sex" className="w-full">

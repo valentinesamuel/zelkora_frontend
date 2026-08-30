@@ -39,11 +39,12 @@ export function PatientListPage() {
   } else if (isError) {
     results = <PatientListError onRetry={() => void refetch()} />;
   } else if (data.patients.length === 0) {
+    let emptyVariant: 'no-results' | 'no-data' = 'no-data';
+    if (filtersOrSearchActive) {
+      emptyVariant = 'no-results';
+    }
     results = (
-      <PatientListEmpty
-        variant={filtersOrSearchActive ? 'no-results' : 'no-data'}
-        onClearFilters={clearFilters}
-      />
+      <PatientListEmpty variant={emptyVariant} onClearFilters={clearFilters} />
     );
   } else {
     results = (

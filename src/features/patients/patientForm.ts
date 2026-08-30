@@ -1,21 +1,9 @@
-// Pure, React-free bridge between the patient form and the wire types:
-//   - `emptyPatientFormValues` / `toPatientFormValues` produce RHF `defaultValues`
-//   - `buildCreatePatientBody` / `buildUpdatePatientBody` produce request payloads
-//
-// Payload rules (backend uses `*string` pointers + `omitempty` on email only):
-//   CREATE — omit an optional key entirely when its trimmed value is ''.
-//   UPDATE — send only dirty fields. An optional field cleared by the user is
-//            sent as '' (NOT null: the handler skips a null pointer, keeping the
-//            old value; '' is the only way to blank a field). `nextOfKin`, if any
-//            of its four sub-fields is dirty, is sent whole (all four required).
-//   Neither builder ever sends `lgaId` or `branchId`.
-
-import type { FieldNamesMarkedBoolean } from 'react-hook-form';
+import type { DefaultValues, FieldNamesMarkedBoolean } from 'react-hook-form';
 
 import type { PatientFormValues } from '@/features/patients/schemas/patientForm.schema';
 import type {
   CreatePatientBody,
-  PatientWire,
+  Patient,
   UpdatePatientBody,
 } from '@/features/patients/types/patient.types';
 
@@ -32,7 +20,7 @@ const OPTIONAL_TEXT_FIELDS = [
   'occupation',
 ] as const;
 
-export function emptyPatientFormValues(): PatientFormValues {
+export function emptyPatientFormValues(): DefaultValues<PatientFormValues> {
   return {
     firstName: '',
     lastName: '',
@@ -40,10 +28,8 @@ export function emptyPatientFormValues(): PatientFormValues {
     email: '',
     phoneNumber: '',
     dateOfBirth: '',
-    // Empty sentinel so the <Select> shows its placeholder; the schema rejects
-    // '' on submit with "Select a …".
-    gender: '' as unknown as PatientFormValues['gender'],
-    paymentType: '' as unknown as PatientFormValues['paymentType'],
+    gender: undefined,
+    paymentType: undefined,
     bloodGroup: '',
     maritalStatus: '',
     address: '',
@@ -54,7 +40,7 @@ export function emptyPatientFormValues(): PatientFormValues {
   };
 }
 
-export function toPatientFormValues(wire: PatientWire): PatientFormValues {
+export function toPatientFormValues(wire: Patient): PatientFormValues {
   return {
     firstName: wire.firstName,
     lastName: wire.lastName,

@@ -1,9 +1,3 @@
-/* eslint-disable react-hooks/incompatible-library */
-// `useReactTable` returns non-memoizable functions, so the React Compiler skips
-// memoizing this component. That is fine here: manual mode keeps no client row
-// models and no derived state, nothing downstream depends on the memoization,
-// and the rule cannot be silenced with an inline directive. File-top disable,
-// matching the project's precedent (`ui/badge.tsx`, `ui/button.tsx`).
 import {
   flexRender,
   getCoreRowModel,
@@ -29,27 +23,17 @@ interface PatientTableProps {
   readonly onToggleSort: (field: 'name' | 'age') => void;
 }
 
-/**
- * `aria-sort` belongs on the `<th>` and only on sortable columns. Non-sortable
- * heads (no `meta.sortKey`) get no attribute at all — returning `undefined`, not
- * `'none'`, so screen readers do not announce them as sortable.
- */
+
 function ariaSortFor(
   meta: ColumnMeta<Patient, unknown> | undefined,
   sort: PatientListQuery,
 ): 'ascending' | 'descending' | 'none' | undefined {
   if (!meta?.sortKey) return undefined;
   if (sort.sortField !== meta.sortKey) return 'none';
-  return sort.sortDir === 'asc' ? 'ascending' : 'descending';
+  if (sort.sortDir === 'asc') return 'ascending';
+  return 'descending';
 }
 
-/**
- * The patients list, rendered through TanStack Table in MANUAL mode:
- * `manualSorting`/`manualPagination`/`manualFiltering` are all `true`, there is
- * no `state.sorting`/`onSortingChange` and no row model beyond `getCoreRowModel`.
- * `data` is the already-server-sorted, already-paginated page. Sorting is driven
- * entirely by the column-header buttons, which call `onToggleSort` (a URL write).
- */
 export function PatientTable({
   patients,
   sort,
@@ -82,12 +66,11 @@ export function PatientTable({
                   className={header.column.columnDef.meta?.headerClassName}
                   aria-sort={ariaSortFor(header.column.columnDef.meta, sort)}
                 >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
+                  {!header.isPlaceholder &&
+                    flexRender(
+                      header.column.columnDef.header,
+                      header.getContext(),
+                    )}
                 </TableHead>
               ))}
             </TableRow>

@@ -22,7 +22,6 @@ const SLICES = [
   { key: 'notReady', label: 'Not ready', color: 'var(--chart-4)' },
 ] as const;
 
-// Lazy-loaded — recharts must never enter the entry bundle.
 export default function DischargeReadinessChart({
   data,
   animate = true,
@@ -33,10 +32,10 @@ export default function DischargeReadinessChart({
     color: s.color,
   }));
   const total = rows.reduce((sum, r) => sum + r.value, 0);
-  const summary =
-    total === 0
-      ? 'No discharge-readiness data available.'
-      : `${data.readyNow} ready now, ${data.readySoon} ready within 24 hours, ${data.notReady} not ready, of ${total} inpatients.`;
+  let summary = 'No discharge-readiness data available.';
+  if (total !== 0) {
+    summary = `${data.readyNow} ready now, ${data.readySoon} ready within 24 hours, ${data.notReady} not ready, of ${total} inpatients.`;
+  }
 
   return (
     <ChartFigure summary={summary}>
@@ -56,7 +55,7 @@ export default function DischargeReadinessChart({
             ))}
           </Pie>
           <Legend
-            verticalAlign="bottom"
+            // verticalAlign="bottom"
             height={24}
             iconType="circle"
             wrapperStyle={{ fontSize: 12 }}

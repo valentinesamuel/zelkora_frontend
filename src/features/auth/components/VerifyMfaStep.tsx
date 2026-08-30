@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/input-otp';
 
 import { ApiError } from '../../../lib/apiClient';
+import { apiErrorMessage } from '@/lib/formErrors';
 import * as api from '../api';
 import { getDeviceLabel } from '../deviceLabel';
 import { verifyMfaSchema, type VerifyMfaValues } from '../schemas';
@@ -46,8 +47,6 @@ export function VerifyMfaStep({
 
   async function onSubmit({ passcode }: VerifyMfaValues) {
     try {
-      // The server sets the `refresh_token` cookie on THIS response.
-      // `deviceLabel` must be non-empty (backend binding:"required", INV-11).
       const { accessToken } = await api.verifyMfa({
         preAuthToken,
         passcode,
@@ -66,12 +65,14 @@ export function VerifyMfaStep({
         return;
       }
       form.setError('root', {
-        message:
-          err instanceof ApiError
-            ? err.apiMessage
-            : 'Verification failed. Please try again.',
+        message: apiErrorMessage(err, 'Verification failed. Please try again.'),
       });
     }
+  }
+
+  let submitLabel = 'Verify';
+  if (form.formState.isSubmitting) {
+    submitLabel = 'Verifying…';
   }
 
   return (
@@ -122,7 +123,7 @@ export function VerifyMfaStep({
         )}
 
         <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Verifying…' : 'Verify'}
+          {submitLabel}
         </Button>
       </form>
     </Form>

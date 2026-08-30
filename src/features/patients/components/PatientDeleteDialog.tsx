@@ -13,28 +13,28 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { useDeletePatient } from '@/features/patients/api/patientMutations.api';
-import type { Patient } from '@/features/patients/types/patient.types';
-import { ApiError } from '@/lib/apiClient';
+import { apiErrorMessage } from '@/lib/formErrors';
+
+interface PatientDeleteTarget {
+  readonly id: string;
+  readonly fullName: string;
+  readonly zrn: string;
+}
 
 interface PatientDeleteDialogProps {
-  patient: Pick<Patient, 'id' | 'fullName' | 'zrn'>;
+  patient: PatientDeleteTarget;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Called after a successful delete (e.g. navigate away from a detail page). */
   onDeleted?: () => void;
 }
 
-/**
- * Confirmation dialog that owns the delete mutation. On failure it stays open
- * with an inline error — this is where a 403 for non-admin staff surfaces
- * (the action is shown to everyone; the backend is the gate).
- */
+
 export function PatientDeleteDialog({
   patient,
   open,
   onOpenChange,
   onDeleted,
-}: PatientDeleteDialogProps) {
+}: Readonly<PatientDeleteDialogProps>) {
   const deletePatient = useDeletePatient(patient.id);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -47,22 +47,31 @@ export function PatientDeleteDialog({
       onDeleted?.();
     } catch (err) {
       setErrorMessage(
-        err instanceof ApiError
-          ? err.apiMessage
-          : 'Could not delete this patient. Please try again.',
+        apiErrorMessage(
+          err,
+          'Could not delete this patient. Please try again.',
+        ),
       );
     }
   }
 
   const name = patient.fullName || 'this patient';
 
+  let deleteLabel = 'Delete patient';
+  if (deletePatient.isPending) {
+    deleteLabel = 'Deleting…';
+  }
+
+  let zrnSuffix = '';
+  if (patient.zrn) {
+    zrnSuffix = ` (${patient.zrn})`;
+  }
+
   return (
     <AlertDialog
       open={open}
       onOpenChange={(next) => {
-        // Block closing mid-request so the mutation can't be orphaned.
         if (deletePatient.isPending) return;
-        // Drop any stale error as the dialog closes, so a later reopen is clean.
         if (!next) setErrorMessage(null);
         onOpenChange(next);
       }}
@@ -73,8 +82,8 @@ export function PatientDeleteDialog({
           <AlertDialogDescription>
             This removes{' '}
             <span className="font-medium text-foreground">{name}</span>
-            {patient.zrn ? ` (${patient.zrn})` : ''} from the active patient
-            register. This can&rsquo;t be undone here.
+            {zrnSuffix} from the active patient register. This can&rsquo;t be
+            undone here.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -94,7 +103,7 @@ export function PatientDeleteDialog({
             onClick={onConfirm}
             disabled={deletePatient.isPending}
           >
-            {deletePatient.isPending ? 'Deleting…' : 'Delete patient'}
+            {deleteLabel}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

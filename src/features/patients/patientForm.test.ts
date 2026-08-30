@@ -7,7 +7,11 @@ import {
   toPatientFormValues,
 } from '@/features/patients/patientForm';
 import type { PatientFormValues } from '@/features/patients/schemas/patientForm.schema';
-import type { PatientWire } from '@/features/patients/types/patient.types';
+import {
+  PatientPaymentTypeEnum,
+  PatientSexEnum,
+  type Patient,
+} from '@/features/patients/types/patient.types';
 
 function filledValues(
   overrides: Partial<PatientFormValues> = {},
@@ -19,8 +23,8 @@ function filledValues(
     email: '',
     phoneNumber: '08030000000',
     dateOfBirth: '1990-05-01',
-    gender: 'female',
-    paymentType: 'cash',
+    gender: PatientSexEnum.FEMALE,
+    paymentType: PatientPaymentTypeEnum.CASH,
     bloodGroup: '',
     maritalStatus: '',
     address: '',
@@ -37,15 +41,15 @@ function filledValues(
   };
 }
 
-const wire: PatientWire = {
+const wire: Patient = {
   id: 'p1',
   zrn: 'ZRN-LAG-000001',
   firstName: 'Ada',
   lastName: 'Okoro',
   phoneNumber: '08030000000',
   dateOfBirth: '1990-05-01',
-  gender: 'female',
-  paymentType: 'cash',
+  gender: PatientSexEnum.FEMALE,
+  paymentType: PatientPaymentTypeEnum.CASH,
   nextOfKin: {
     name: 'Ben Okoro',
     phone: '08030000001',
@@ -62,8 +66,8 @@ describe('emptyPatientFormValues', () => {
   it('starts every text field empty, enums unselected, isActive true', () => {
     const v = emptyPatientFormValues();
     expect(v.firstName).toBe('');
-    expect(v.gender).toBe('');
-    expect(v.paymentType).toBe('');
+    expect(v.gender).toBeUndefined();
+    expect(v.paymentType).toBeUndefined();
     expect(v.nextOfKin).toEqual({
       name: '',
       phone: '',

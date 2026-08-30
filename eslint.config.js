@@ -66,6 +66,16 @@ export default defineConfig([
     },
   },
   {
+    // House rule: no ternaries in components — they hurt readability inside JSX.
+    // Use `if` / early return, an extracted helper, or `&&`. Scoped to `.tsx`
+    // (plain `.ts` may still use ternaries); shadcn primitives are exempt.
+    files: ['src/**/*.tsx'],
+    ignores: ['src/components/ui/**'],
+    rules: {
+      'no-ternary': 'error',
+    },
+  },
+  {
     // SonarJS scope carve-out: shadcn-generated primitives, tests, fixtures,
     // ambient declarations, and the untracked auth module still in progress.
     files: [

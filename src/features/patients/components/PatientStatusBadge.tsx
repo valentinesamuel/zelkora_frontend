@@ -2,21 +2,33 @@ import { Ban, CircleDot, CircleDashed } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
-import type { PatientStatus } from '@/features/patients/types/patient.types';
+import { PatientStatusEnum } from '@/features/patients/types/patient.types';
 
 type BadgeVariant = 'neutral' | 'success' | 'danger';
 
 const CONFIG: Record<
-  PatientStatus,
+  PatientStatusEnum,
   { label: string; variant: BadgeVariant; icon: LucideIcon }
 > = {
-  active: { label: 'Active', variant: 'success', icon: CircleDot },
-  inactive: { label: 'Inactive', variant: 'neutral', icon: CircleDashed },
-  deceased: { label: 'Deceased', variant: 'danger', icon: Ban },
+  [PatientStatusEnum.ACTIVE]: {
+    label: 'Active',
+    variant: 'success',
+    icon: CircleDot,
+  },
+  [PatientStatusEnum.INACTIVE]: {
+    label: 'Inactive',
+    variant: 'neutral',
+    icon: CircleDashed,
+  },
+  [PatientStatusEnum.DECEASED]: {
+    label: 'Deceased',
+    variant: 'danger',
+    icon: Ban,
+  },
 };
 
 interface PatientStatusBadgeProps {
-  readonly status: PatientStatus;
+  readonly status: PatientStatusEnum;
 }
 
 /**

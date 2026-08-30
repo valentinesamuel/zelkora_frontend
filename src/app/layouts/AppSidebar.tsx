@@ -45,10 +45,11 @@ const ROW_BASE =
 
 function rowLayout(collapsed: boolean, depth: number): string {
   if (collapsed) return 'justify-center px-0';
-  return depth > 0 ? 'pr-3 pl-10' : 'px-3';
+  if (depth > 0) return 'pr-3 pl-10';
+  return 'px-3';
 }
 
-function RowIcon({ icon: Icon }: { icon: LucideIcon }) {
+function RowIcon({ icon: Icon }: Readonly<{ icon: LucideIcon }>) {
   return <Icon className="size-4 shrink-0" aria-hidden="true" />;
 }
 
@@ -60,11 +61,11 @@ function CollapsedTooltip({
   show,
   content,
   children,
-}: {
+}: Readonly<{
   show: boolean;
   content: string;
   children: ReactElement;
-}) {
+}>) {
   if (!show) return children;
   return (
     <Tooltip>
@@ -78,16 +79,21 @@ function EnabledRow({
   item,
   collapsed,
   depth,
-}: {
+}: Readonly<{
   item: NavItem & { to: string };
   collapsed: boolean;
   depth: number;
-}) {
+}>) {
+  let ariaLabel: string | undefined;
+  if (collapsed) {
+    ariaLabel = item.label;
+  }
+
   return (
     <CollapsedTooltip show={collapsed} content={item.label}>
       <NavLink
         to={item.to}
-        aria-label={collapsed ? item.label : undefined}
+        aria-label={ariaLabel}
         className={({ isActive }) =>
           cn(
             ROW_BASE,
@@ -116,33 +122,45 @@ function DisabledRow({
   item,
   collapsed,
   depth,
-}: {
+}: Readonly<{
   item: NavItem;
   collapsed: boolean;
   depth: number;
-}) {
+}>) {
+  let tooltipContent = 'Coming soon';
+  if (collapsed) {
+    tooltipContent = `${item.label} · Coming soon`;
+  }
+
+  let ariaLabel: string | undefined;
+  if (collapsed) {
+    ariaLabel = item.label;
+  }
+
+  let stateClass =
+    'cursor-default border-l-2 border-transparent text-muted-foreground';
+  if (collapsed) {
+    stateClass = 'cursor-default text-muted-foreground';
+  }
+
   return (
-    <CollapsedTooltip
-      show
-      content={collapsed ? `${item.label} · Coming soon` : 'Coming soon'}
-    >
-      <a
-        role="link"
+    <CollapsedTooltip show content={tooltipContent}>
+      <button
+        type="button"
         aria-disabled="true"
         tabIndex={0}
-        aria-label={collapsed ? item.label : undefined}
+        aria-label={ariaLabel}
         onClick={(event) => event.preventDefault()}
-        className={cn(
-          ROW_BASE,
-          rowLayout(collapsed, depth),
-          collapsed
-            ? 'cursor-default text-muted-foreground'
-            : 'cursor-default border-l-2 border-transparent text-muted-foreground',
-        )}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+            event.preventDefault();
+          }
+        }}
+        className={cn(ROW_BASE, rowLayout(collapsed, depth), stateClass)}
       >
         <RowIcon icon={item.icon} />
         {!collapsed && <span className="truncate">{item.label}</span>}
-      </a>
+      </button>
     </CollapsedTooltip>
   );
 }
@@ -151,24 +169,23 @@ function NavRow({
   item,
   collapsed,
   depth,
-}: {
+}: Readonly<{
   item: NavItem;
   collapsed: boolean;
   depth: number;
-}) {
-  return (
-    <li>
-      {item.enabled && item.to !== undefined ? (
-        <EnabledRow
-          item={{ ...item, to: item.to }}
-          collapsed={collapsed}
-          depth={depth}
-        />
-      ) : (
-        <DisabledRow item={item} collapsed={collapsed} depth={depth} />
-      )}
-    </li>
-  );
+}>) {
+  let row = <DisabledRow item={item} collapsed={collapsed} depth={depth} />;
+  if (item.enabled && item.to !== undefined) {
+    row = (
+      <EnabledRow
+        item={{ ...item, to: item.to }}
+        collapsed={collapsed}
+        depth={depth}
+      />
+    );
+  }
+
+  return <li>{row}</li>;
 }
 
 export function AppSidebar() {
@@ -191,21 +208,49 @@ export function AppSidebar() {
     navigate('/login', { replace: true });
   }
 
-  const initials = user === null ? '?' : initialsOf(user.fullName);
+  let initials = '?';
+  if (user !== null) {
+    initials = initialsOf(user.fullName);
+  }
+
+  let asideWidth = 'w-55';
+  if (collapsed) {
+    asideWidth = 'w-16';
+  }
+
+  let brandRowClass = 'justify-between px-4';
+  if (collapsed) {
+    brandRowClass = 'justify-center px-0';
+  }
+
+  let identityRowClass = 'px-3';
+  if (collapsed) {
+    identityRowClass = 'flex-col px-0';
+  }
+
+  let toggleLabel = 'Collapse sidebar';
+  if (collapsed) {
+    toggleLabel = 'Expand sidebar';
+  }
+
+  let toggleIcon = <PanelLeftClose className="size-4" aria-hidden="true" />;
+  if (collapsed) {
+    toggleIcon = <PanelLeft className="size-4" aria-hidden="true" />;
+  }
 
   return (
     <TooltipProvider>
       <aside
         className={cn(
           'flex shrink-0 flex-col self-stretch border-r bg-card transition-[width] duration-220 motion-reduce:transition-none',
-          collapsed ? 'w-16' : 'w-55',
+          asideWidth,
         )}
       >
         {/* Brand + collapse toggle */}
         <div
           className={cn(
             'flex h-14 shrink-0 items-center border-b',
-            collapsed ? 'justify-center px-0' : 'justify-between px-4',
+            brandRowClass,
           )}
         >
           {!collapsed && (
@@ -215,15 +260,11 @@ export function AppSidebar() {
           )}
           <button
             type="button"
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={toggleLabel}
             onClick={toggleCollapsed}
             className="flex size-8 items-center justify-center rounded-sm text-muted-foreground transition-colors motion-reduce:transition-none hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
           >
-            {collapsed ? (
-              <PanelLeft className="size-4" aria-hidden="true" />
-            ) : (
-              <PanelLeftClose className="size-4" aria-hidden="true" />
-            )}
+            {toggleIcon}
           </button>
         </div>
 
@@ -257,7 +298,7 @@ export function AppSidebar() {
         <div
           className={cn(
             'flex shrink-0 items-center gap-2 border-t py-3',
-            collapsed ? 'flex-col px-0' : 'px-3',
+            identityRowClass,
           )}
         >
           <span

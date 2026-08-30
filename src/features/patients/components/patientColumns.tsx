@@ -10,17 +10,13 @@ import {
   formatPatientPhone,
   formatSex,
 } from '@/features/patients/format';
+import {
+  patientAge,
+  patientDisplayStatus,
+  patientLastVisitAt,
+} from '@/features/patients/patientView';
 import type { Patient } from '@/features/patients/types/patient.types';
 
-/**
- * Column model for the patients table. Every column is a DISPLAY column — `id` +
- * `header` + `cell`, no `accessorKey` — because sorting/filtering/pagination are
- * all server-side and the table never reads values itself. `enableSorting` is
- * `false` everywhere so TanStack never attaches its own sort handlers. Width and
- * alignment classes live entirely in `meta.headerClassName` / `meta.cellClassName`
- * so the render loop in PatientTable stays generic. `meta.sortKey` marks the two
- * sortable columns and is what drives `aria-sort` on the `<th>`.
- */
 export const patientColumns: ColumnDef<Patient>[] = [
   {
     id: 'patient',
@@ -56,7 +52,7 @@ export const patientColumns: ColumnDef<Patient>[] = [
         meta={table.options.meta!}
       />
     ),
-    cell: ({ row }) => formatAge(row.original.age),
+    cell: ({ row }) => formatAge(patientAge(row.original)),
     meta: {
       headerClassName: 'w-20 text-right',
       cellClassName: 'tabular-nums text-right',
@@ -67,14 +63,14 @@ export const patientColumns: ColumnDef<Patient>[] = [
     id: 'sex',
     enableSorting: false,
     header: 'Sex',
-    cell: ({ row }) => formatSex(row.original.sex),
+    cell: ({ row }) => formatSex(row.original.gender),
     meta: { headerClassName: 'w-20' },
   },
   {
     id: 'phone',
     enableSorting: false,
     header: 'Phone',
-    cell: ({ row }) => formatPatientPhone(row.original.phone),
+    cell: ({ row }) => formatPatientPhone(row.original.phoneNumber || null),
     meta: {
       headerClassName: 'w-36',
       cellClassName: 'font-mono text-xs tabular-nums',
@@ -88,7 +84,7 @@ export const patientColumns: ColumnDef<Patient>[] = [
         Last visit
       </abbr>
     ),
-    cell: ({ row }) => formatLastVisit(row.original.lastVisitAt),
+    cell: () => formatLastVisit(patientLastVisitAt()),
     meta: {
       headerClassName: 'w-28',
       cellClassName: 'text-muted-foreground tabular-nums',
@@ -98,7 +94,9 @@ export const patientColumns: ColumnDef<Patient>[] = [
     id: 'status',
     enableSorting: false,
     header: 'Status',
-    cell: ({ row }) => <PatientStatusBadge status={row.original.status} />,
+    cell: ({ row }) => (
+      <PatientStatusBadge status={patientDisplayStatus(row.original)} />
+    ),
     meta: { headerClassName: 'w-28' },
   },
   {
