@@ -51,10 +51,7 @@ export function calculateAge(
   const nowDay = now.getUTCDate();
 
   let age = nowYear - birthYear;
-  if (
-    nowMonth < birthMonth ||
-    (nowMonth === birthMonth && nowDay < birthDay)
-  ) {
+  if (nowMonth < birthMonth || (nowMonth === birthMonth && nowDay < birthDay)) {
     age -= 1;
   }
 

@@ -110,7 +110,9 @@ function EnabledRow({
           cn(
             ROW_BASE,
             rowLayout(collapsed, depth),
-            collapsed && isActive && 'bg-accent-muted font-medium text-foreground',
+            collapsed &&
+              isActive &&
+              'bg-accent-muted font-medium text-foreground',
             collapsed && !isActive && 'text-foreground hover:bg-muted',
             !collapsed &&
               isActive &&
@@ -225,7 +227,9 @@ export function AppSidebar() {
           )}
         >
           {!collapsed && (
-            <span className="truncate text-sm font-semibold text-foreground">Zelkora</span>
+            <span className="truncate text-sm font-semibold text-foreground">
+              Zelkora
+            </span>
           )}
           <button
             type="button"
@@ -242,7 +246,10 @@ export function AppSidebar() {
         </div>
 
         {/* Navigation */}
-        <nav aria-label="Primary" className="min-h-0 flex-1 overflow-y-auto py-2">
+        <nav
+          aria-label="Primary"
+          className="min-h-0 flex-1 overflow-y-auto py-2"
+        >
           {NAV_GROUPS.map((group) => (
             <div key={group.label} className="mb-2">
               {!collapsed && (

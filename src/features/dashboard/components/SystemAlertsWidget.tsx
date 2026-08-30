@@ -53,7 +53,9 @@ export function SystemAlertsWidget() {
                       {alert.title}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{alert.detail}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {alert.detail}
+                  </p>
                 </li>
               ))}
             </ul>

@@ -73,7 +73,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function toApiError(parsed: unknown, fallbackStatus: number): ApiError {
   if (isRecord(parsed) && parsed.success === false) {
     const statusCode =
-      typeof parsed.statusCode === 'number' ? parsed.statusCode : fallbackStatus;
+      typeof parsed.statusCode === 'number'
+        ? parsed.statusCode
+        : fallbackStatus;
     const apiMessage =
       typeof parsed.message === 'string' ? parsed.message : 'Request failed';
     const errors = Array.isArray(parsed.errors)
@@ -150,7 +152,8 @@ async function sendRequest<T>(
     headers['Content-Type'] = 'application/json';
   }
 
-  const authToken = token ?? (skipAuth ? undefined : getAccessToken() ?? undefined);
+  const authToken =
+    token ?? (skipAuth ? undefined : (getAccessToken() ?? undefined));
   if (authToken) {
     headers.Authorization = `Bearer ${authToken}`;
   }

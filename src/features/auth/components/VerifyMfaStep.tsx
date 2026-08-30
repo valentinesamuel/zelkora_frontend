@@ -30,7 +30,10 @@ interface VerifyMfaStepProps {
   onExpired(notice: string): void;
 }
 
-export function VerifyMfaStep({ preAuthToken, onExpired }: Readonly<VerifyMfaStepProps>) {
+export function VerifyMfaStep({
+  preAuthToken,
+  onExpired,
+}: Readonly<VerifyMfaStepProps>) {
   const completeLogin = useAuthStore((s) => s.completeLogin);
   const navigate = useNavigate();
 
@@ -57,7 +60,9 @@ export function VerifyMfaStep({ preAuthToken, onExpired }: Readonly<VerifyMfaSte
         err instanceof ApiError &&
         err.apiMessage === 'invalid or expired token'
       ) {
-        onExpired('Your sign-in session expired. Please enter your password again.');
+        onExpired(
+          'Your sign-in session expired. Please enter your password again.',
+        );
         return;
       }
       form.setError('root', {

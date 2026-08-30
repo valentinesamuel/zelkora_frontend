@@ -13,8 +13,7 @@ export function PatientDetailField({
   value,
   className,
 }: Readonly<PatientDetailFieldProps>) {
-  const isEmpty =
-    value == null || value === '' || value === '—';
+  const isEmpty = value == null || value === '' || value === '—';
   return (
     <div className={className}>
       <dt className="text-xs font-medium text-muted-foreground">{label}</dt>

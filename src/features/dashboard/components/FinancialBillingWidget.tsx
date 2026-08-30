@@ -16,7 +16,10 @@ const PayerMixDonut = lazy(
   () => import('@/features/dashboard/components/PayerMixDonut'),
 );
 
-function MetricTile({ label, children }: Readonly<{ label: string; children: ReactNode }>) {
+function MetricTile({
+  label,
+  children,
+}: Readonly<{ label: string; children: ReactNode }>) {
   return (
     <div className="flex min-w-0 flex-col gap-1 rounded-md border bg-muted/30 p-3">
       <p className="truncate text-xs text-muted-foreground">{label}</p>
@@ -75,7 +78,8 @@ export function FinancialBillingWidget() {
   } else if (revenue.isSuccess) {
     const s = revenue.data.summary;
     // Same quantity as `collectionsRatePct` — revenue booked against the period target.
-    const toTargetPct = s.targetMinor > 0 ? (s.totalMinor / s.targetMinor) * 100 : 0;
+    const toTargetPct =
+      s.targetMinor > 0 ? (s.totalMinor / s.targetMinor) * 100 : 0;
     revenueContent = (
       <div className="flex min-w-0 flex-col gap-2">
         <p className="font-display text-3xl tabular-nums">
@@ -115,7 +119,9 @@ export function FinancialBillingWidget() {
     payerMixContent = (
       <div className="size-40">
         <Suspense
-          fallback={<div className="size-full animate-pulse rounded-full bg-muted" />}
+          fallback={
+            <div className="size-full animate-pulse rounded-full bg-muted" />
+          }
         >
           <PayerMixDonut
             cashMinor={s.cashMinor}
@@ -152,12 +158,16 @@ export function FinancialBillingWidget() {
           <MetricTile label="Days in AR">
             {summary ? formatNumber(summary.daysInAr) : '—'}
           </MetricTile>
-          <MetricTile label="Claims denial rate">{denialRateContent}</MetricTile>
+          <MetricTile label="Claims denial rate">
+            {denialRateContent}
+          </MetricTile>
         </div>
       </WidgetCard>
 
       <WidgetCard title="Payer mix" subtitle="Cash against HMO">
-        <div className="flex items-center justify-center py-1">{payerMixContent}</div>
+        <div className="flex items-center justify-center py-1">
+          {payerMixContent}
+        </div>
       </WidgetCard>
     </div>
   );

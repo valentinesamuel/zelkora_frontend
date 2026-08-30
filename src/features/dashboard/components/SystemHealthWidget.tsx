@@ -5,7 +5,10 @@ import { WidgetState } from '@/features/dashboard/components/WidgetState';
 import { SkeletonList } from '@/features/dashboard/components/SkeletonList';
 import { StatusChip } from '@/features/dashboard/components/StatusChip';
 
-const CHIP_VARIANT: Record<SystemHealthStatus, 'success' | 'warning' | 'danger'> = {
+const CHIP_VARIANT: Record<
+  SystemHealthStatus,
+  'success' | 'warning' | 'danger'
+> = {
   ok: 'success',
   degraded: 'warning',
   down: 'danger',

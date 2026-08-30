@@ -10,7 +10,11 @@ interface ChartFigureProps {
   readonly children: ReactNode;
 }
 
-export function ChartFigure({ summary, className, children }: ChartFigureProps) {
+export function ChartFigure({
+  summary,
+  className,
+  children,
+}: ChartFigureProps) {
   return (
     <figure className={cn('h-full w-full min-w-0', className)}>
       <figcaption className="sr-only">{summary}</figcaption>

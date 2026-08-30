@@ -37,7 +37,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     // The `.catch` is deliberate: a network failure or already-expired token
     // must NEVER trap the user in a logged-in-looking UI. Local state wins.
-    await api.logout().catch(() => { });
+    await api.logout().catch(() => {});
     clearAccessToken();
     set({ user: null, status: 'anon' });
   },

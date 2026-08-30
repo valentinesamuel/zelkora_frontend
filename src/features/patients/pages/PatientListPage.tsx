@@ -61,7 +61,9 @@ export function PatientListPage() {
           <div
             className={cn(
               'transition-opacity motion-reduce:transition-none',
-              isFetching && isPlaceholderData && 'pointer-events-none opacity-60',
+              isFetching &&
+                isPlaceholderData &&
+                'pointer-events-none opacity-60',
             )}
             aria-busy={isFetching && isPlaceholderData}
           >

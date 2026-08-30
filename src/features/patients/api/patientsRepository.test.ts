@@ -92,7 +92,9 @@ describe('patientsRepository.list', () => {
     await patientsRepository.list(
       query({ limit: 25, cursor: first.pageInfo.nextCursor }),
     );
-    expect(apiRequestMock).toHaveBeenLastCalledWith('/patients?page=2&limit=25');
+    expect(apiRequestMock).toHaveBeenLastCalledWith(
+      '/patients?page=2&limit=25',
+    );
   });
 
   it('has no next page when page * limit === total', async () => {

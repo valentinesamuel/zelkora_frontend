@@ -21,7 +21,8 @@ export function PatientListError({ onRetry }: PatientListErrorProps) {
       <div className="flex flex-col gap-1">
         <p className="text-sm font-medium">Couldn't load patients</p>
         <p className="text-sm">
-          Something went wrong while fetching the patient list. Please try again.
+          Something went wrong while fetching the patient list. Please try
+          again.
         </p>
       </div>
       <Button variant="outline" onClick={onRetry}>

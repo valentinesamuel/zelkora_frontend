@@ -158,7 +158,9 @@ describe('apiRequest', () => {
     const { apiRequest } = await import('./apiClient');
     fetchMock.mockResolvedValueOnce(successResponse(null, 'patient deleted'));
 
-    const result = await apiRequest<null>('/patients/abc', { method: 'DELETE' });
+    const result = await apiRequest<null>('/patients/abc', {
+      method: 'DELETE',
+    });
 
     expect(result).toBeNull();
     const [url, init] = fetchMock.mock.calls[0];

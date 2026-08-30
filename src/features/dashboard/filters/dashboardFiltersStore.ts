@@ -1,21 +1,21 @@
-import { useMemo } from "react";
-import { format } from "date-fns";
-import { create } from "zustand";
+import { useMemo } from 'react';
+import { format } from 'date-fns';
+import { create } from 'zustand';
 
 import {
   normalizeSelection,
   resolveRange,
   type RangeSelection,
-} from "@/features/dashboard/filters/dateRange";
+} from '@/features/dashboard/filters/dateRange';
 import {
   decodeFilters,
   encodeFilters,
   FILTERS_STORAGE_KEY,
-} from "@/features/dashboard/filters/filtersPersistence";
-import { isKnownBranchId } from "@/features/branch/branches";
+} from '@/features/dashboard/filters/filtersPersistence';
+import { isKnownBranchId } from '@/features/branch/branches';
 
 export function todayIso(): string {
-  return format(new Date(), "yyyy-MM-dd");
+  return format(new Date(), 'yyyy-MM-dd');
 }
 
 interface DashboardFiltersState {

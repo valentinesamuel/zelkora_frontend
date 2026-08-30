@@ -35,7 +35,9 @@ export function AppHeader() {
   return (
     <header className="grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b bg-card px-4">
       {/* Chrome, not the document title — the routed page owns the page <h1>. */}
-      <p className="min-w-0 truncate text-sm font-medium text-foreground">{heading}</p>
+      <p className="min-w-0 truncate text-sm font-medium text-foreground">
+        {heading}
+      </p>
 
       <button
         type="button"

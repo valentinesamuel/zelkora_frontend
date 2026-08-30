@@ -142,10 +142,9 @@ describe('buildCreatePatientBody', () => {
 
 describe('buildUpdatePatientBody', () => {
   it('sends only the dirty fields', () => {
-    const body = buildUpdatePatientBody(
-      filledValues({ firstName: 'Adaeze' }),
-      { firstName: true },
-    );
+    const body = buildUpdatePatientBody(filledValues({ firstName: 'Adaeze' }), {
+      firstName: true,
+    });
     expect(body).toEqual({ firstName: 'Adaeze' });
   });
 
@@ -154,10 +153,9 @@ describe('buildUpdatePatientBody', () => {
   });
 
   it('sends "" (not null) when an optional field is cleared', () => {
-    const body = buildUpdatePatientBody(
-      filledValues({ occupation: '' }),
-      { occupation: true },
-    );
+    const body = buildUpdatePatientBody(filledValues({ occupation: '' }), {
+      occupation: true,
+    });
     expect(body).toEqual({ occupation: '' });
     expect(body.occupation).not.toBeNull();
   });

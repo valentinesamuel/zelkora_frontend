@@ -1,8 +1,17 @@
 dist
 node_modules
 coverage
-src/components/ui
 *.md
+
+# Skill-pack tooling — not application code.
+.claude
+
+# SonarJS cleanup artifacts (data dumps, not source).
+.sonar-baseline.json
+.sonar-current.json
+
+# shadcn-generated primitives — keep regen diffs clean.
+src/components/ui
 
 # Untracked auth module still in progress — leave WIP formatting alone.
 src/features/auth/Can.tsx

@@ -76,4 +76,5 @@ class HttpPatientsRepository implements PatientsRepository {
   }
 }
 
-export const patientsRepository: PatientsRepository = new HttpPatientsRepository();
+export const patientsRepository: PatientsRepository =
+  new HttpPatientsRepository();

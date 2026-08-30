@@ -1,17 +1,17 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import sonarjs from 'eslint-plugin-sonarjs'
-import tseslint from 'typescript-eslint'
-import eslintConfigPrettier from 'eslint-config-prettier'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import sonarjs from 'eslint-plugin-sonarjs';
+import tseslint from 'typescript-eslint';
+import eslintConfigPrettier from 'eslint-config-prettier';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
 // Every `sonarjs/*` rule set to "off". Applied to generated, test, fixture,
 // ambient, and in-progress code that is out of scope for the SonarJS cleanup.
 const SONARJS_OFF = Object.fromEntries(
   Object.keys(sonarjs.rules).map((name) => [`sonarjs/${name}`, 'off']),
-)
+);
 
 export default defineConfig([
   globalIgnores(['dist']),
@@ -51,12 +51,18 @@ export default defineConfig([
     // domain-agnostic and must never import from features/**. See INV-L2.
     files: ['src/components/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', {
-        patterns: [{
-          group: ['**/features/*', '**/features/**'],
-          message: 'components/** is domain-agnostic: it must never import from features/**. Move the domain logic into features/, or lift the generic part into components/.',
-        }],
-      }],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/features/*', '**/features/**'],
+              message:
+                'components/** is domain-agnostic: it must never import from features/**. Move the domain logic into features/, or lift the generic part into components/.',
+            },
+          ],
+        },
+      ],
     },
   },
   {
@@ -74,4 +80,4 @@ export default defineConfig([
     ],
     rules: SONARJS_OFF,
   },
-])
+]);

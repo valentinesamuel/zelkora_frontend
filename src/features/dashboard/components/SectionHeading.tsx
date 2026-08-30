@@ -9,9 +9,7 @@ export function SectionHeading({ title, subtitle }: SectionHeadingProps) {
       <h2 className="font-display text-lg font-semibold tracking-tight">
         {title}
       </h2>
-      {subtitle && (
-        <p className="text-sm text-muted-foreground">{subtitle}</p>
-      )}
+      {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
     </div>
   );
 }

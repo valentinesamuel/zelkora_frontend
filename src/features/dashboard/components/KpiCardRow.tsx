@@ -3,7 +3,10 @@ import type { LucideIcon } from 'lucide-react';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDashboardKpis } from '@/features/dashboard/api/dashboardKpis.api';
-import { KpiCard, KPI_CARD_SURFACE } from '@/features/dashboard/components/KpiCard';
+import {
+  KpiCard,
+  KPI_CARD_SURFACE,
+} from '@/features/dashboard/components/KpiCard';
 import { WidgetState } from '@/features/dashboard/components/WidgetState';
 
 type KpiTone = 'accent' | 'success' | 'warning' | 'danger';

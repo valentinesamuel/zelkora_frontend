@@ -6,7 +6,6 @@ import { EnrollMfaStep } from './components/EnrollMfaStep';
 import { VerifyMfaStep } from './components/VerifyMfaStep';
 import type { LoginResult } from './types';
 
-
 type Step =
   | { name: 'credentials'; notice?: string }
   | { name: 'enroll'; enrollmentToken: string }
@@ -14,7 +13,6 @@ type Step =
 
 export function LoginPage() {
   const [step, setStep] = useState<Step>({ name: 'credentials' });
-
 
   function handleCredentialsResult(result: LoginResult) {
     if (result.requiresEnrollment) {
@@ -26,7 +24,6 @@ export function LoginPage() {
       setStep({ name: 'verify', preAuthToken: result.preAuthToken ?? '' });
     }
   }
-
 
   function handleEnrolled() {
     setStep({ name: 'credentials', notice: 'MFA enabled — sign in again.' });
@@ -50,7 +47,10 @@ export function LoginPage() {
   };
 
   return (
-    <AuthShell title={titleByStep[step.name]} subtitle={subtitleByStep[step.name]}>
+    <AuthShell
+      title={titleByStep[step.name]}
+      subtitle={subtitleByStep[step.name]}
+    >
       {step.name === 'credentials' && (
         <CredentialsStep
           notice={step.notice}

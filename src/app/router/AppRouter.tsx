@@ -38,15 +38,30 @@ export function AppRouter() {
         <Route path="patients/:patientId" element={<PatientDetailPage />} />
         <Route
           path="billing"
-          element={<StubPage title="Billing" note="Billing overview lands in a later phase." />}
+          element={
+            <StubPage
+              title="Billing"
+              note="Billing overview lands in a later phase."
+            />
+          }
         />
         <Route
           path="billing/claims"
-          element={<StubPage title="HMO claims" note="Claims management lands in a later phase." />}
+          element={
+            <StubPage
+              title="HMO claims"
+              note="Claims management lands in a later phase."
+            />
+          }
         />
         <Route
           path="queue"
-          element={<StubPage title="Queue & appointments" note="Queue view lands in a later phase." />}
+          element={
+            <StubPage
+              title="Queue & appointments"
+              note="Queue view lands in a later phase."
+            />
+          }
         />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

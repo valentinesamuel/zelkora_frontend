@@ -97,25 +97,36 @@ describe('resolveRange — YTD boundaries', () => {
 
 describe('resolveRange — month / year boundary crossings', () => {
   it('last7 crossing a year boundary (today = 2026-01-03)', () => {
-    expect(resolveRange({ preset: 'last7' }, '2026-01-03').from).toBe('2025-12-28');
+    expect(resolveRange({ preset: 'last7' }, '2026-01-03').from).toBe(
+      '2025-12-28',
+    );
   });
 
   it('last30 crossing a month + year boundary', () => {
-    expect(resolveRange({ preset: 'last30' }, '2026-01-03').from).toBe('2025-12-05');
+    expect(resolveRange({ preset: 'last30' }, '2026-01-03').from).toBe(
+      '2025-12-05',
+    );
   });
 
   it('last90 crossing a year boundary', () => {
-    expect(resolveRange({ preset: 'last90' }, '2026-01-03').from).toBe('2025-10-06');
+    expect(resolveRange({ preset: 'last90' }, '2026-01-03').from).toBe(
+      '2025-10-06',
+    );
   });
 
   it('last7 across a leap-year February (today = 2028-03-01)', () => {
-    expect(resolveRange({ preset: 'last7' }, '2028-03-01').from).toBe('2028-02-24');
+    expect(resolveRange({ preset: 'last7' }, '2028-03-01').from).toBe(
+      '2028-02-24',
+    );
   });
 });
 
 describe('resolveRange — custom', () => {
   it('happy path — bounds pass through, label uses an en-dash, no year in today’s year', () => {
-    const r = resolveRange({ preset: 'custom', from: '2026-03-03', to: '2026-03-09' }, TODAY);
+    const r = resolveRange(
+      { preset: 'custom', from: '2026-03-03', to: '2026-03-09' },
+      TODAY,
+    );
     expect(r).toEqual({
       from: '2026-03-03',
       to: '2026-03-09',
@@ -125,17 +136,26 @@ describe('resolveRange — custom', () => {
   });
 
   it('single-day custom renders one date, not "Mar 3 – Mar 3"', () => {
-    const r = resolveRange({ preset: 'custom', from: '2026-03-03', to: '2026-03-03' }, TODAY);
+    const r = resolveRange(
+      { preset: 'custom', from: '2026-03-03', to: '2026-03-03' },
+      TODAY,
+    );
     expect(r.label).toBe('Mar 3');
   });
 
   it('custom outside today’s year appends the year', () => {
-    const r = resolveRange({ preset: 'custom', from: '2025-11-20', to: '2025-12-05' }, TODAY);
+    const r = resolveRange(
+      { preset: 'custom', from: '2025-11-20', to: '2025-12-05' },
+      TODAY,
+    );
     expect(r.label).toBe('Nov 20 – Dec 5 2025');
   });
 
   it('malformed custom bounds degrade to today rather than throwing', () => {
-    const r = resolveRange({ preset: 'custom', from: 'nope', to: '2026-03-09' }, TODAY);
+    const r = resolveRange(
+      { preset: 'custom', from: 'nope', to: '2026-03-09' },
+      TODAY,
+    );
     expect(r.from).toBe('2026-08-30');
     expect(r.to).toBe('2026-08-30');
   });
@@ -151,40 +171,59 @@ describe('normalizeSelection — self-heal ladder', () => {
   });
 
   it('parsed "{}" junk → { preset: "today" }', () => {
-    expect(normalizeSelection(JSON.parse('{}'), TODAY)).toEqual({ preset: 'today' });
+    expect(normalizeSelection(JSON.parse('{}'), TODAY)).toEqual({
+      preset: 'today',
+    });
   });
 
   it('unknown preset → { preset: "today" }', () => {
-    expect(normalizeSelection({ preset: 'weekly' }, TODAY)).toEqual({ preset: 'today' });
+    expect(normalizeSelection({ preset: 'weekly' }, TODAY)).toEqual({
+      preset: 'today',
+    });
   });
 
   it('non-custom preset drops stray from/to', () => {
     expect(
-      normalizeSelection({ preset: 'last7', from: '2026-01-01', to: '2026-02-01' }, TODAY),
+      normalizeSelection(
+        { preset: 'last7', from: '2026-01-01', to: '2026-02-01' },
+        TODAY,
+      ),
     ).toEqual({ preset: 'last7' });
   });
 
   it('custom with a garbage bound → { preset: "today" }', () => {
     expect(
-      normalizeSelection({ preset: 'custom', from: 'garbage', to: '2026-03-09' }, TODAY),
+      normalizeSelection(
+        { preset: 'custom', from: 'garbage', to: '2026-03-09' },
+        TODAY,
+      ),
     ).toEqual({ preset: 'today' });
   });
 
   it('custom reversed → swapped, still custom', () => {
     expect(
-      normalizeSelection({ preset: 'custom', from: '2026-03-09', to: '2026-03-03' }, TODAY),
+      normalizeSelection(
+        { preset: 'custom', from: '2026-03-09', to: '2026-03-03' },
+        TODAY,
+      ),
     ).toEqual({ preset: 'custom', from: '2026-03-03', to: '2026-03-09' });
   });
 
   it('custom entirely in the future → clamped to today', () => {
     expect(
-      normalizeSelection({ preset: 'custom', from: '2026-12-01', to: '2026-12-31' }, TODAY),
+      normalizeSelection(
+        { preset: 'custom', from: '2026-12-01', to: '2026-12-31' },
+        TODAY,
+      ),
     ).toEqual({ preset: 'custom', from: '2026-08-30', to: '2026-08-30' });
   });
 
   it('custom with only `to` in the future → `to` clamped, `from` kept', () => {
     expect(
-      normalizeSelection({ preset: 'custom', from: '2026-08-01', to: '2026-12-31' }, TODAY),
+      normalizeSelection(
+        { preset: 'custom', from: '2026-08-01', to: '2026-12-31' },
+        TODAY,
+      ),
     ).toEqual({ preset: 'custom', from: '2026-08-01', to: '2026-08-30' });
   });
 
@@ -193,7 +232,11 @@ describe('normalizeSelection — self-heal ladder', () => {
       { preset: 'custom', from: '2020-01-01', to: '2026-08-30' },
       TODAY,
     );
-    expect(n).toEqual({ preset: 'custom', from: '2025-08-30', to: '2026-08-30' });
+    expect(n).toEqual({
+      preset: 'custom',
+      from: '2025-08-30',
+      to: '2026-08-30',
+    });
   });
 
   it('is idempotent — n(n(x)) === n(x)', () => {
@@ -221,7 +264,11 @@ describe('MAX_RANGE_DAYS (F1-i) — the clamp never truncates a legitimate prese
     expect(r.from).toBe('2028-01-01');
     expect(r.to).toBe('2028-12-31');
     // normalizing the resolved window as a custom range must leave it untouched
-    const asCustom: RangeSelection = { preset: 'custom', from: r.from, to: r.to };
+    const asCustom: RangeSelection = {
+      preset: 'custom',
+      from: r.from,
+      to: r.to,
+    };
     expect(normalizeSelection(asCustom, '2028-12-31')).toEqual(asCustom);
   });
 

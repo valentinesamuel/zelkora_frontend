@@ -32,7 +32,13 @@ describe('revenueBilling fixture', () => {
   const s = revenueBillingFixture.summary;
 
   it('money fields are integer minor units', () => {
-    for (const v of [s.totalMinor, s.cashMinor, s.hmoMinor, s.targetMinor, s.outstandingArMinor]) {
+    for (const v of [
+      s.totalMinor,
+      s.cashMinor,
+      s.hmoMinor,
+      s.targetMinor,
+      s.outstandingArMinor,
+    ]) {
       expect(Number.isInteger(v)).toBe(true);
     }
   });
@@ -43,7 +49,10 @@ describe('revenueBilling fixture', () => {
 
   it('collections rate is a 0–100 percentage roughly equal to total / target', () => {
     expect(isFinitePct(s.collectionsRatePct)).toBe(true);
-    expect(s.collectionsRatePct).toBeCloseTo((s.totalMinor / s.targetMinor) * 100, 0);
+    expect(s.collectionsRatePct).toBeCloseTo(
+      (s.totalMinor / s.targetMinor) * 100,
+      0,
+    );
   });
 
   it('trend has >= 2 points and ends at total in major units', () => {

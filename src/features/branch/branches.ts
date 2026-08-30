@@ -19,7 +19,11 @@ export interface Branch {
 export const BRANCHES: readonly Branch[] = [
   { id: 'dev-branch', name: 'Zelkora Central Hospital', shortName: 'Central' },
   { id: 'branch-ikeja', name: 'Zelkora Ikeja Clinic', shortName: 'Ikeja' },
-  { id: 'branch-lekki', name: 'Zelkora Lekki Medical Centre', shortName: 'Lekki' },
+  {
+    id: 'branch-lekki',
+    name: 'Zelkora Lekki Medical Centre',
+    shortName: 'Lekki',
+  },
   { id: 'branch-abuja', name: 'Zelkora Abuja Hospital', shortName: 'Abuja' },
 ] as const;
 

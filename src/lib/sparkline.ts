@@ -21,7 +21,7 @@ export function sparkPoints(
   w: number,
   h: number,
 ): string {
-  if (values.length === 0) return "";
+  if (values.length === 0) return '';
   if (values.length === 1) return `${round(w / 2)},${round(h / 2)}`;
 
   const min = Math.min(...values);
@@ -35,5 +35,5 @@ export function sparkPoints(
       const y = range === 0 ? h / 2 : h - ((v - min) / range) * h;
       return `${round(x)},${round(y)}`;
     })
-    .join(" ");
+    .join(' ');
 }

@@ -21,7 +21,10 @@ interface CredentialsStepProps {
   onResult(result: LoginResult): void;
 }
 
-export function CredentialsStep({ notice, onResult }: Readonly<CredentialsStepProps>) {
+export function CredentialsStep({
+  notice,
+  onResult,
+}: Readonly<CredentialsStepProps>) {
   const loginWithCredentials = useAuthStore((s) => s.loginWithCredentials);
   const form = useForm<CredentialsValues>({
     resolver: zodResolver(credentialsSchema),
@@ -106,7 +109,9 @@ export function CredentialsStep({ notice, onResult }: Readonly<CredentialsStepPr
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={
+                      showPassword ? 'Hide password' : 'Show password'
+                    }
                     aria-pressed={showPassword}
                     className="absolute top-1/2 right-3.5 -translate-y-1/2"
                   >
@@ -137,7 +142,11 @@ export function CredentialsStep({ notice, onResult }: Readonly<CredentialsStepPr
             </a>
           </div>
 
-          <Button type="submit" size="lg" disabled={form.formState.isSubmitting}>
+          <Button
+            type="submit"
+            size="lg"
+            disabled={form.formState.isSubmitting}
+          >
             {form.formState.isSubmitting ? 'Signing in…' : 'Login'}
           </Button>
 
@@ -156,11 +165,7 @@ export function CredentialsStep({ notice, onResult }: Readonly<CredentialsStepPr
         disabled
         title="Google sign-in isn't available yet"
       >
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          className="size-5"
-        >
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5">
           <path
             fill="#4285F4"
             d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47a5.53 5.53 0 0 1-2.4 3.63v3.01h3.88c2.27-2.09 3.57-5.17 3.57-8.83z"

@@ -20,7 +20,7 @@ export function StatusChip({ label, variant = 'neutral' }: StatusChipProps) {
     <span
       className={cn(
         'inline-flex items-center rounded-sm border px-1.5 py-0.5 text-xs font-medium',
-        variantClassName[variant]
+        variantClassName[variant],
       )}
     >
       {label}

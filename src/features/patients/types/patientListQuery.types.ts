@@ -4,7 +4,11 @@
 // opaque `cursor` + `limit`; navigation is Prev / Next only. `patientListParams`
 // owns the URL <-> query serde; `patientsRepository` owns cursor <-> result.
 
-import type { Patient, PatientSex, PatientStatus } from '@/features/patients/types/patient.types';
+import type {
+  Patient,
+  PatientSex,
+  PatientStatus,
+} from '@/features/patients/types/patient.types';
 
 export type PatientSortField = 'name' | 'age' | 'registeredAt';
 export type SortDir = 'asc' | 'desc';

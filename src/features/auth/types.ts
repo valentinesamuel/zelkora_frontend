@@ -4,7 +4,8 @@
 // `admin` is retained as a render-layer alias of `cmo` (not renamed, not
 // removed — the backend still issues it). `hospital_admin` / `clinical_lead`
 // follow when their dashboards exist.
-export type Role = 'admin' | 'cmo' | 'doctor' | 'nurse' | 'receptionist' | 'pharmacist';
+export type Role =
+  'admin' | 'cmo' | 'doctor' | 'nurse' | 'receptionist' | 'pharmacist';
 
 export interface User {
   id: string;
@@ -46,6 +47,5 @@ export interface VerifyMfaResult {
 export interface RefreshResult {
   accessToken: string;
 }
-
 
 export type AuthStatus = 'loading' | 'authed' | 'anon';

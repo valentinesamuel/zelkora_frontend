@@ -52,7 +52,11 @@ export function PatientListPagination({
             value={String(limit)}
             onValueChange={(value) => onLimitChange(Number(value))}
           >
-            <SelectTrigger size="sm" aria-label="Patients per page" className="w-16">
+            <SelectTrigger
+              size="sm"
+              aria-label="Patients per page"
+              className="w-16"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

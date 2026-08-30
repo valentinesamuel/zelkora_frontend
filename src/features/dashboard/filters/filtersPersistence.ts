@@ -3,7 +3,10 @@
 // this file only turns a raw string into a validated shape and back.
 
 import { DEFAULT_BRANCH_ID, isKnownBranchId } from '@/features/branch/branches';
-import { normalizeSelection, type RangeSelection } from '@/features/dashboard/filters/dateRange';
+import {
+  normalizeSelection,
+  type RangeSelection,
+} from '@/features/dashboard/filters/dateRange';
 
 export const FILTERS_STORAGE_KEY = 'zelkora.dashboard.filters';
 
@@ -28,7 +31,9 @@ export interface DecodedFilters {
   healed: boolean;
 }
 
-function defaults(today: string): Pick<DecodedFilters, 'branchId' | 'selection'> {
+function defaults(
+  today: string,
+): Pick<DecodedFilters, 'branchId' | 'selection'> {
   return {
     branchId: DEFAULT_BRANCH_ID,
     selection: normalizeSelection(undefined, today),
@@ -37,7 +42,10 @@ function defaults(today: string): Pick<DecodedFilters, 'branchId' | 'selection'>
 
 // `JSON.parse` must stay inside this try/catch — a malformed string throws, and
 // an unguarded parse white-screens the app on every boot (F1-d).
-export function decodeFilters(raw: string | null, today: string): DecodedFilters {
+export function decodeFilters(
+  raw: string | null,
+  today: string,
+): DecodedFilters {
   if (raw === null) {
     return { ...defaults(today), present: false, healed: false };
   }
@@ -61,7 +69,9 @@ export function decodeFilters(raw: string | null, today: string): DecodedFilters
   }
 
   const rawBranchId = typeof blob.branchId === 'string' ? blob.branchId : '';
-  const branchId = isKnownBranchId(rawBranchId) ? rawBranchId : DEFAULT_BRANCH_ID;
+  const branchId = isKnownBranchId(rawBranchId)
+    ? rawBranchId
+    : DEFAULT_BRANCH_ID;
 
   const storedFrom = typeof blob.from === 'string' ? blob.from : undefined;
   const storedTo = typeof blob.to === 'string' ? blob.to : undefined;
@@ -81,7 +91,10 @@ export function decodeFilters(raw: string | null, today: string): DecodedFilters
 }
 
 /** Serialise the current selection to the on-disk string. */
-export function encodeFilters(branchId: string, selection: RangeSelection): string {
+export function encodeFilters(
+  branchId: string,
+  selection: RangeSelection,
+): string {
   const blob: PersistedFilters = {
     v: 1,
     branchId,

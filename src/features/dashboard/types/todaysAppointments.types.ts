@@ -1,11 +1,7 @@
 // Today's appointments list payload. Backend: GET /dashboard/appointments/today.
 
 export type AppointmentStatus =
-  | 'scheduled'
-  | 'checked-in'
-  | 'in-progress'
-  | 'completed'
-  | 'cancelled';
+  'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled';
 
 export interface Appointment {
   id: string;

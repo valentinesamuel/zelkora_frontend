@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
-import { AuthCarousel } from "./AuthCarousel";
+import { AuthCarousel } from './AuthCarousel';
 
 interface AuthShellProps {
   title: string;
@@ -8,7 +8,11 @@ interface AuthShellProps {
   children: ReactNode;
 }
 
-export function AuthShell({ title, subtitle, children }: Readonly<AuthShellProps>) {
+export function AuthShell({
+  title,
+  subtitle,
+  children,
+}: Readonly<AuthShellProps>) {
   return (
     <main className="min-h-dvh lg:grid lg:grid-cols-[49fr_51fr]">
       <div className="flex min-h-[svh] flex-col bg-auth-hero p-4 text-auth-hero-foreground lg:sticky lg:top-0 lg:h-dvh lg:min-h-0 lg:p-7">

@@ -21,13 +21,17 @@ const DEV_AUTH_ROLES: readonly Role[] = [
 ];
 
 function isDevAuthRole(value: string | null): value is Role {
-  return value !== null && (DEV_AUTH_ROLES as readonly string[]).includes(value);
+  return (
+    value !== null && (DEV_AUTH_ROLES as readonly string[]).includes(value)
+  );
 }
 
 export function AuthBootstrap() {
   useEffect(() => {
     if (import.meta.env.DEV) {
-      const requested = new URLSearchParams(window.location.search).get('devAuth');
+      const requested = new URLSearchParams(window.location.search).get(
+        'devAuth',
+      );
       if (isDevAuthRole(requested)) {
         const role: Role = requested === 'admin' ? 'cmo' : requested;
         useAuthStore.setState({

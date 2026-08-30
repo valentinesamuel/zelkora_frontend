@@ -33,7 +33,6 @@ export function EnrollMfaStep({
   enrollmentToken,
   onEnrolled,
 }: Readonly<EnrollMfaStepProps>) {
-
   const startedRef = useRef<string | null>(null);
 
   const [secret, setSecret] = useState<string | null>(null);
@@ -98,8 +97,8 @@ export function EnrollMfaStep({
     <div className="flex flex-col gap-6">
       <p className="text-sm leading-relaxed text-muted-foreground">
         Scan this QR code with an authenticator app (Google Authenticator,
-        1Password, Authy…). Enrolling does <strong>not</strong> sign you in — you
-        will enter your email and password again once MFA is enabled.
+        1Password, Authy…). Enrolling does <strong>not</strong> sign you in —
+        you will enter your email and password again once MFA is enabled.
       </p>
 
       {loadError && (

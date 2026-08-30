@@ -12,6 +12,9 @@ export const revenueBillingFixture: RevenueBillingResponse = {
     collectionsRatePct: 91.9,
     outstandingArMinor: 840_000_000,
     daysInAr: 38,
-    trend: [2_610_000, 2_540_000, 2_735_000, 2_820_000, 2_905_000, 2_860_000, 2_940_500],
+    trend: [
+      2_610_000, 2_540_000, 2_735_000, 2_820_000, 2_905_000, 2_860_000,
+      2_940_500,
+    ],
   },
 };

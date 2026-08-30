@@ -49,19 +49,31 @@ describe('patientInitials', () => {
 describe('fullNameOf', () => {
   it('joins first + middle + last', () => {
     expect(
-      fullNameOf({ firstName: 'Ada', middleName: 'Grace', lastName: 'Okonkwo' }),
+      fullNameOf({
+        firstName: 'Ada',
+        middleName: 'Grace',
+        lastName: 'Okonkwo',
+      }),
     ).toBe('Ada Grace Okonkwo');
   });
 
   it('omits an absent middle name', () => {
     expect(
-      fullNameOf({ firstName: 'Ada', middleName: undefined, lastName: 'Okonkwo' }),
+      fullNameOf({
+        firstName: 'Ada',
+        middleName: undefined,
+        lastName: 'Okonkwo',
+      }),
     ).toBe('Ada Okonkwo');
   });
 
   it('collapses surrounding whitespace on parts', () => {
     expect(
-      fullNameOf({ firstName: ' Ada ', middleName: '  ', lastName: ' Okonkwo ' }),
+      fullNameOf({
+        firstName: ' Ada ',
+        middleName: '  ',
+        lastName: ' Okonkwo ',
+      }),
     ).toBe('Ada Okonkwo');
   });
 });

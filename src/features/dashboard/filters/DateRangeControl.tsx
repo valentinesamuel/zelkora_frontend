@@ -1,7 +1,11 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { CalendarDays, Check, ChevronDown, ChevronLeft } from 'lucide-react';
 
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import {
   PRESET_LABELS,
@@ -21,7 +25,10 @@ const DateRangeCalendar = lazy(
 // A fallback sized close to the loaded calendar so the popover does not resize
 // under the cursor when the chunk arrives (F4-g).
 const CALENDAR_FALLBACK = (
-  <div className="h-64 w-64 animate-pulse rounded-sm bg-muted" aria-hidden="true" />
+  <div
+    className="h-64 w-64 animate-pulse rounded-sm bg-muted"
+    aria-hidden="true"
+  />
 );
 
 type View = 'presets' | 'calendar';
@@ -59,15 +66,21 @@ export function DateRangeControl() {
     setOpen(false);
   }
 
-  function handlePresetKeyDown(event: React.KeyboardEvent<HTMLFieldSetElement>) {
+  function handlePresetKeyDown(
+    event: React.KeyboardEvent<HTMLFieldSetElement>,
+  ) {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
       return;
     }
     event.preventDefault();
     const buttons = Array.from(
-      event.currentTarget.querySelectorAll<HTMLButtonElement>('button[data-preset]'),
+      event.currentTarget.querySelectorAll<HTMLButtonElement>(
+        'button[data-preset]',
+      ),
     );
-    const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    const current = buttons.indexOf(
+      document.activeElement as HTMLButtonElement,
+    );
     const next =
       event.key === 'ArrowDown'
         ? (current + 1) % buttons.length

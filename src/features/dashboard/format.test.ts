@@ -119,6 +119,8 @@ describe('countLabel', () => {
 
 describe('formatClockTime', () => {
   it('renders an hour:minute clock time', () => {
-    expect(formatClockTime('2026-08-29T09:05:00.000Z')).toMatch(/\d{1,2}:\d{2}/);
+    expect(formatClockTime('2026-08-29T09:05:00.000Z')).toMatch(
+      /\d{1,2}:\d{2}/,
+    );
   });
 });

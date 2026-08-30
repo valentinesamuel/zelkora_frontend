@@ -32,8 +32,11 @@ export function RecentActivityWidget() {
                   className="flex min-w-0 items-center gap-3 border-b py-2 last:border-b-0"
                 >
                   <span className="min-w-0 flex-1 truncate text-sm">
-                    <span className="font-medium">{entry.actorName}</span> {entry.action}{' '}
-                    <span className="text-muted-foreground">{entry.targetLabel}</span>
+                    <span className="font-medium">{entry.actorName}</span>{' '}
+                    {entry.action}{' '}
+                    <span className="text-muted-foreground">
+                      {entry.targetLabel}
+                    </span>
                   </span>
                   <span className="shrink-0 font-mono text-xs text-muted-foreground">
                     {formatRelativeTime(entry.occurredAt)}

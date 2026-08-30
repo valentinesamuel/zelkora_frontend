@@ -48,7 +48,10 @@ export default function EdVolumeWaitChart({
   return (
     <ChartFigure summary={trendSummary(data)}>
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: 4 }}>
+        <ComposedChart
+          data={data}
+          margin={{ top: 8, right: 4, bottom: 0, left: 4 }}
+        >
           <CartesianGrid vertical={false} stroke="var(--border)" />
           <XAxis
             dataKey="day"

@@ -34,7 +34,10 @@ const DAY_MS = 24 * HOUR_MS;
 const WEEK_MS = 7 * DAY_MS;
 
 // `now` is injectable so callers and tests stay deterministic.
-export function formatRelativeTime(iso: string, now: Date = new Date()): string {
+export function formatRelativeTime(
+  iso: string,
+  now: Date = new Date(),
+): string {
   const then = new Date(iso);
   const diffMs = now.getTime() - then.getTime();
 
@@ -75,7 +78,8 @@ export function formatNairaCompact(amountMinor: number): string {
 
   if (abs < 100_000) return `${sign}₦${formatNumber(major)}`;
   if (abs < 100_000_000) return `${sign}₦${formatNumber(major / 1_000)}K`;
-  if (abs < 100_000_000_000) return `${sign}₦${(major / 1_000_000).toFixed(1)}M`;
+  if (abs < 100_000_000_000)
+    return `${sign}₦${(major / 1_000_000).toFixed(1)}M`;
   return `${sign}₦${(major / 1_000_000_000).toFixed(1)}B`;
 }
 

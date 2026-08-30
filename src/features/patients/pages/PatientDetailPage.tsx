@@ -201,7 +201,10 @@ function PatientDetailContent({
         <div className="flex min-w-0 flex-col gap-6">
           <PatientDetailSection title="Personal details">
             <dl className="grid gap-4 sm:grid-cols-2">
-              <PatientDetailField label="First name" value={patient.firstName} />
+              <PatientDetailField
+                label="First name"
+                value={patient.firstName}
+              />
               <PatientDetailField label="Last name" value={patient.lastName} />
               <PatientDetailField
                 label="Middle name"
@@ -304,7 +307,10 @@ function PatientDetailContent({
           <Card className="[--card-spacing:--spacing(5)] h-fit lg:sticky lg:top-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="size-4 text-muted-foreground" aria-hidden="true" />
+                <FileText
+                  className="size-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 Quick facts
               </CardTitle>
             </CardHeader>

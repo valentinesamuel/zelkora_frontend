@@ -1,5 +1,3 @@
- 
-
 import { useState } from 'react';
 import type { DateRange } from 'react-day-picker';
 import { format, parseISO } from 'date-fns';

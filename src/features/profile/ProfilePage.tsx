@@ -2,15 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { useAuthStore } from '../auth/authStore';
-
 
 export function ProfilePage() {
   const user = useAuthStore((s) => s.user);
@@ -19,12 +13,10 @@ export function ProfilePage() {
   const [pending, setPending] = useState(false);
 
   if (user === null) {
-
     throw new Error('ProfilePage rendered without an authenticated user');
   }
 
   async function handleLogout() {
-
     setPending(true);
     await logout();
     navigate('/login', { replace: true });

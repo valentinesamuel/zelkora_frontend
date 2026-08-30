@@ -9,7 +9,12 @@ interface ChartCardProps {
 
 // The body is a fixed height (`--chart-card-h`) and `w-full min-w-0` so a
 // recharts `ResponsiveContainer` inside it can never resolve to `height: 0`.
-export function ChartCard({ title, subtitle, action, children }: ChartCardProps) {
+export function ChartCard({
+  title,
+  subtitle,
+  action,
+  children,
+}: ChartCardProps) {
   return (
     <section className="rounded-lg border bg-card p-5 shadow-card min-w-0">
       <header className="mb-3 flex min-h-8 items-start justify-between gap-3">

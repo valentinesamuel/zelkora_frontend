@@ -25,7 +25,9 @@ export function useBranchHydration(): void {
   const persistedOnInit = useDashboardFiltersStore((s) => s.persistedOnInit);
   const userSeedApplied = useDashboardFiltersStore((s) => s.userSeedApplied);
   const setBranchId = useDashboardFiltersStore((s) => s.setBranchId);
-  const markUserSeedApplied = useDashboardFiltersStore((s) => s.markUserSeedApplied);
+  const markUserSeedApplied = useDashboardFiltersStore(
+    (s) => s.markUserSeedApplied,
+  );
 
   useEffect(() => {
     if (!userSeedApplied && user !== null) {
@@ -40,9 +42,17 @@ export function useBranchHydration(): void {
       // `true` on the hundredth render after auth resolves (F3-a).
       if (!persistedOnInit) {
         setBranchId(
-          isKnownBranchId(user.branchId ?? '') ? user.branchId! : DEFAULT_BRANCH_ID,
+          isKnownBranchId(user.branchId ?? '')
+            ? user.branchId!
+            : DEFAULT_BRANCH_ID,
         );
       }
     }
-  }, [user, userSeedApplied, persistedOnInit, setBranchId, markUserSeedApplied]);
+  }, [
+    user,
+    userSeedApplied,
+    persistedOnInit,
+    setBranchId,
+    markUserSeedApplied,
+  ]);
 }

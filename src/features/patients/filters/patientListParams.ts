@@ -21,8 +21,17 @@ const STATUS_VALUES: readonly PatientStatusFilter[] = [
   'inactive',
   'deceased',
 ];
-const SEX_VALUES: readonly PatientSexFilter[] = ['all', 'male', 'female', 'other'];
-const SORT_FIELDS: readonly PatientSortField[] = ['name', 'age', 'registeredAt'];
+const SEX_VALUES: readonly PatientSexFilter[] = [
+  'all',
+  'male',
+  'female',
+  'other',
+];
+const SORT_FIELDS: readonly PatientSortField[] = [
+  'name',
+  'age',
+  'registeredAt',
+];
 const SORT_DIRS: readonly SortDir[] = ['asc', 'desc'];
 
 export const DEFAULT_PATIENT_LIST_QUERY: PatientListQuery = {
@@ -89,7 +98,11 @@ export function parsePatientListParams(sp: URLSearchParams): PatientListQuery {
 
   let registeredFrom = toIsoDate(sp.get(KEY.registeredFrom));
   let registeredTo = toIsoDate(sp.get(KEY.registeredTo));
-  if (registeredFrom !== null && registeredTo !== null && registeredFrom > registeredTo) {
+  if (
+    registeredFrom !== null &&
+    registeredTo !== null &&
+    registeredFrom > registeredTo
+  ) {
     [registeredFrom, registeredTo] = [registeredTo, registeredFrom];
   }
 
@@ -127,7 +140,8 @@ export function serializePatientListParams(
   if (query.sex !== d.sex) out[KEY.sex] = query.sex;
   if (query.ageMin !== null) out[KEY.ageMin] = String(query.ageMin);
   if (query.ageMax !== null) out[KEY.ageMax] = String(query.ageMax);
-  if (query.registeredFrom !== null) out[KEY.registeredFrom] = query.registeredFrom;
+  if (query.registeredFrom !== null)
+    out[KEY.registeredFrom] = query.registeredFrom;
   if (query.registeredTo !== null) out[KEY.registeredTo] = query.registeredTo;
   if (query.sortField !== d.sortField) out[KEY.sortField] = query.sortField;
   if (query.sortDir !== d.sortDir) out[KEY.sortDir] = query.sortDir;

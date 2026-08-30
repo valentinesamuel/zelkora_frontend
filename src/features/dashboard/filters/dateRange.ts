@@ -64,7 +64,11 @@ export const MAX_RANGE_DAYS = 366;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 function isIsoDate(value: unknown): value is string {
-  return typeof value === 'string' && ISO_DATE.test(value) && isValid(parseISO(value));
+  return (
+    typeof value === 'string' &&
+    ISO_DATE.test(value) &&
+    isValid(parseISO(value))
+  );
 }
 
 function toIso(date: Date): string {
@@ -80,19 +84,27 @@ function customLabel(from: string, to: string, today: string): string {
   const fromDate = parseISO(from);
   const toDate = parseISO(to);
   const todayYear = parseISO(today).getFullYear();
-  const needYear = fromDate.getFullYear() !== todayYear || toDate.getFullYear() !== todayYear;
+  const needYear =
+    fromDate.getFullYear() !== todayYear || toDate.getFullYear() !== todayYear;
 
   if (from === to) {
-    return needYear ? format(fromDate, 'MMM d, yyyy') : format(fromDate, 'MMM d');
+    return needYear
+      ? format(fromDate, 'MMM d, yyyy')
+      : format(fromDate, 'MMM d');
   }
   const left = format(fromDate, 'MMM d');
   const right = format(toDate, 'MMM d');
   // en-dash separator; a trailing year is appended when the window is not wholly
   // inside `today`'s year (which also covers a range that crosses a year boundary).
-  return needYear ? `${left} – ${right} ${toDate.getFullYear()}` : `${left} – ${right}`;
+  return needYear
+    ? `${left} – ${right} ${toDate.getFullYear()}`
+    : `${left} – ${right}`;
 }
 
-function resolvePresetWindow(preset: Exclude<PresetKey, 'custom'>, today: string): {
+function resolvePresetWindow(
+  preset: Exclude<PresetKey, 'custom'>,
+  today: string,
+): {
   from: string;
   to: string;
 } {
@@ -118,7 +130,10 @@ function resolvePresetWindow(preset: Exclude<PresetKey, 'custom'>, today: string
  * carry valid `YYYY-MM-DD` bounds (guaranteed by `normalizeSelection`); a
  * malformed `custom` degrades to `today` rather than throwing.
  */
-export function resolveRange(sel: RangeSelection, today: string): ResolvedRange {
+export function resolveRange(
+  sel: RangeSelection,
+  today: string,
+): ResolvedRange {
   let from: string;
   let to: string;
   let label: string;
@@ -144,7 +159,10 @@ export function resolveRange(sel: RangeSelection, today: string): ResolvedRange 
 
 // Coerce arbitrary parsed JSON into a valid `RangeSelection`. Each self-heal
 // rule below has a test; the function is idempotent — `n(n(x)) === n(x)`.
-export function normalizeSelection(raw: unknown, today: string): RangeSelection {
+export function normalizeSelection(
+  raw: unknown,
+  today: string,
+): RangeSelection {
   if (typeof raw !== 'object' || raw === null) {
     return { preset: 'today' };
   }
