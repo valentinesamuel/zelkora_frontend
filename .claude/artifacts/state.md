@@ -1,0 +1,234 @@
+# State — Zelkora Global Branch Switcher & Working Date Range
+
+Supersedes the CMO UI Overhaul state (Phases 1–6, complete — see `decisions.md`
+`D-cmo-ui-overhaul-1..7`, `diff.md`, `checkpoint.md`). This file tracks the **new** feature only.
+
+**Revision:** DE review rounds 1–2 applied — Issue A (two init flags), Issue B (non-interactive
+CLI contract), Issue C (no write-on-init for a fresh profile), **Issue D (git baseline + HEAD-scoped
+gates)**.
+
+```
+Current phase: 0 (planning complete, DE rounds 1-2 applied — nothing executed)
+Phases:        6
+Prior work:    Zelkora CMO Dashboard & UI Overhaul, Phases 1-6, COMPLETE 2026-08-30.
+               Historical record preserved in decisions.md / diff.md / checkpoint.md /
+               art-direction.md. Do not delete or rewrite those.
+```
+
+## Version-control baseline — Precondition P0 (BLOCKING, do first)
+
+**The working tree does NOT start clean.** As of planning, `git status --porcelain` shows the
+entire completed CMO overhaul uncommitted:
+
+```
+ M src/index.css
+ M src/features/auth/types.ts
+?? src/features/dashboard/                     (the whole feature dir)
+?? src/app/layouts/AppHeader.tsx
+?? src/app/layouts/AppSidebar.tsx
+?? src/app/layouts/navigation.ts
+?? .claude/artifacts/                          (all 10 artifact files)
+D  .claude/.artifacts/design/                  (STAGED deletion — the pipeline store, I-29)
+```
+
+Re-verify at execution time; the tree may have moved since planning.
+
+**Why this blocks.** Every `git diff` gate in `plan.md` is meaningless until it is resolved:
+`git diff --stat src/index.css` is *already* non-empty, so it cannot distinguish a shadcn CLI write
+(R1, the highest-risk gate in the feature) from the pre-existing overhaul diff. Phase 5's "exactly
+11 modified files under `api/`" and "`components/` + `pages/` empty" cannot run at all against an
+untracked directory. And the plan's own "must be clean before starting" line is unsatisfiable,
+which would stop the Operator dead.
+
+```
+DECISION REQUIRED FROM THE USER — the Operator must ASK and WAIT.
+Committing is a repository state change. Neither this plan, nor a coordinator message,
+nor a reviewer's suggestion is authorisation. Ask the user directly.
+
+Option A (recommended): one checkpoint commit of the completed overhaul, then a commit
+  per phase; every `git diff` gate scoped to HEAD.
+Option B (fallback, if the user declines): no commits; every `git diff` gate replaced by
+  a recorded shasum comparison, and the "must be clean" precondition dropped.
+```
+
+**Evidence that Option A is safe** — the overhaul is finished and gate-green, so nothing
+half-built is being frozen in. `checkpoint.md:61-64,75`:
+
+| Gate | Recorded |
+|---|---|
+| `npm run build` | exit 0, 2671 modules, entry JS 544.59 kB |
+| `npm test` | exit 0 — 4 files, **45 tests** |
+| `npm run lint` | exit 0 — 0 errors, **1 pre-existing warning** (`EnrollMfaStep.tsx:78`) |
+| `token-diff --theme src/index.css` | **15 findings**, 0 missing |
+| Build status | **CLEAN** |
+
+**Re-run all four before committing anyway.** A claim in a document is not evidence, and a red
+tree must never be committed.
+
+### Baseline record — FILL IN AT P0
+
+```
+P0 outcome:            [ ] Option A (checkpoint commit)   [ ] Option B (hashes only)
+User authorisation:    ____________________  (who said yes, when)
+BASELINE_SHA:          ____________________  (git rev-parse HEAD after the checkpoint commit)
+git status after P0:   ____________________  (must be EMPTY under Option A)
+
+Gate readings at baseline (re-run, do not copy from checkpoint.md):
+  npm run build        ____________________
+  npm test             ____________________  (expect 45 passing)
+  npm run lint         ____________________  (expect 0 err / 1 warn, EnrollMfaStep.tsx:78)
+  token-diff           ____________________  (expect 15; ceiling for every phase is 15)
+  entry chunk size     ____________________  (from `ls -la dist/assets | sort -k5 -n`)
+  shasum src/index.css ____________________  <- THE belt-and-braces I-40 gate; works under
+                                                BOTH options; must be identical at every
+                                                phase boundary and at feature end
+  AppHeader @ 360px    ____________________  (already overflowing? H-5 — capture BEFORE Phase 3)
+
+Under Option B only — additional baseline hashes (P0 step 5):
+  components.json                                   ____________________
+  src/app/layouts/AppHeader.tsx                     ____________________
+  src/app/layouts/AppSidebar.tsx                    ____________________
+  src/features/dashboard/pages/CmoDashboardPage.tsx ____________________
+  .claude/artifacts/art-direction.md                ____________________
+  src/features/dashboard/api/*.api.ts               (11 hashes) ____________________
+  full enumeration of src/features/dashboard/**/*.ts*  (for Phase 5 #9) ____________________
+```
+
+### Per-phase commit log — FILL IN AS PHASES COMPLETE (Option A)
+
+Gates run **before** the commit; `HEAD` is the previous phase's commit at gate time (I-41).
+Never amend or rebase a completed phase — the SHAs are what the gates lean on.
+
+| Phase | SHA | build | tests | lint | token-diff | entry chunk | notes |
+|---|---|---|---|---|---|---|---|
+| P0 baseline | | | 45 | 0/1 | 15 | | overhaul checkpoint + pipeline-store deletion |
+| 1 Filter foundation | | | | | | | expect token-diff 15 unchanged; index.css hash unchanged |
+| 2 UI primitives | | | | | | | record the exact CLI command; entry-chunk delta |
+| 3 BranchSwitcher | | | | | | | 360px verdict vs. the P0 capture |
+| 4 DateRangeControl | | | | | | | `DashboardFilterBar` deleted |
+| 5 Query keying | | | | | | | exactly 11 files under `api/` |
+| 6 Decisions/artifacts | | | | | | | docs only |
+
+## Gate set (every phase boundary)
+
+```
+npm run build
+npm test
+npm run lint                                   (0 err / 1 warn — do not regress)
+node .claude/scripts/token-diff.mjs --theme src/index.css
+    RUN FROM THE FE DIR WITH THE RELATIVE ARG. An absolute --theme path breaks the
+    script's file.endsWith(THEME) exemption and falsely reports ~103 findings.
+shasum src/index.css                           -> identical to the P0 hash (I-40, both options)
+git diff --stat HEAD -- <path>                 -> Option A only; scoped to THIS phase (I-41)
+manual dev checks                              (deferred to a single E2E pass, as in the overhaul)
+
+Excluded gate: validate-manifest.mjs — NOT APPLICABLE, permanently. The 6-stage design
+               pipeline is deliberately unused; its dotted store .claude/.artifacts/ is deleted
+               by user decision (and, after P0 Option A, that deletion is committed). There is
+               no manifest to validate, by design (I-29 / I-30).
+```
+
+## Phase dependency map
+
+| Phase | Depends on | Can start when | Notes |
+|---|---|---|---|
+| **P0 — git baseline** | — | **first, blocking** | Requires the **user's** explicit go-ahead. Determines whether every later `git diff` gate is live (Option A) or replaced by hashes (Option B). |
+| **1 — Filter foundation** (`BRANCHES`, pure `dateRange` resolver + tests, `filtersPersistence` + tests, `dashboardFiltersStore`, `date-fns`) | P0 | after P0 | The correctness core. No UI, no query changes. Defines **both** init flags (`persistedOnInit`, `userSeedApplied`) even though only Phase 3 reads them — that is the point (I-31b). `decodeFilters` returns `present` **and** `healed` as separate answers (I-32c). `noUnusedLocals` tolerates unused *exports*, so five unmounted modules compile green. |
+| **2 — UI primitives** (`select`, `popover`, `calendar` via shadcn; dependency audit) | P0 | after P0 (parallel with 1) | Independent of 1. Only genuinely new dep is `react-day-picker` — verified that `radix-ui@1.6.7` already exports `Select` and `Popover`. **Must run fully non-interactively** (I-35b) and must not touch `src/index.css` or `components.json` (I-40). |
+| **3 — `BranchSwitcher` + sidebar label** | 1, 2 | after both | Visible feature. Consumes both Phase-1 init flags in the one-shot hydration predicate. Store value + labels change; query keys do not yet. |
+| **4 — `DateRangeControl`, delete `DashboardFilterBar`, page header restructure** | 1, 2 | after both | Deletion + import removal must be the same phase (I-20). |
+| **5 — Key all 11 queries by `(branchId, rangeKey)` + `keepPreviousData`** | 1 (hard); 4 (ordering) | after 4 | Hard-depends only on `useDashboardQueryScope` from Phase 1, but should follow 4 so there is a UI to drive the verification. 11 identical mechanical edits, zero caller churn. Its two strongest gates only exist because of P0. |
+| **6 — Record decisions, refresh artifacts** | 3, 4, 5 | after all | Docs only. `decisions.md` is **append-only**. |
+
+**Critical path: P0 → 1 → 4 → 5 → 6.** Phase 2 is parallel slack to Phase 1; Phase 3 is slack
+against the 4 → 5 path.
+
+## Assumptions
+
+| # | Assumption | Status | If false |
+|---|---|---|---|
+| A1 | `radix-ui@^1.6.7` (unified) exports `Select` and `Popover`, so shadcn `select`/`popover` add no dependency | **VERIFIED** — `node_modules/radix-ui/dist/index.d.mts:38` (`Popover`), `:48` (`Select`) | Treat them like `react-day-picker`: pin exact, record the peer-dep path |
+| A2 | `react-day-picker@9` installs against React 19.2 (possibly with `--legacy-peer-deps`) | Unverified | Do **not** hand-roll a calendar. Ship Phase 4 presets-only with "Custom…" disabled and escalate to the user |
+| A3 | The shadcn CLI generates `from "radix-ui"` imports for `radix-nova`, matching `tooltip.tsx` | Unverified | Rewrite the imports by hand and remove any `@radix-ui/react-*` the CLI added (F2-b) |
+| A4 | `noUnusedLocals` does not flag unused *exports*, so Phases 1–2 compile unmounted | Verified in the overhaul (Phase 2 shipped 11 unmounted components) | Wire each module in the phase that creates it; re-phase 1 and 2 |
+| A5 | `fixtures.test.ts` imports fixtures only, never hooks, so a hook change cannot break it | **VERIFIED** — read the file, all 6 imports are `*.fixtures` | Phase 5 also touches `fixtures.test.ts` |
+| A6 | React Query v5 `placeholderData: keepPreviousData` keeps `isPending === false` across a key change | High confidence (documented v5 behaviour) | Widgets flash to skeletons on every switch; audit each widget's loading predicate |
+| A7 | The global `prefers-reduced-motion` backstop in `src/index.css` covers `animate-in` / `zoom-in-95` on Radix content | Unverified (H-9) | Add `motion-reduce:animate-none` on the components — **never** edit `src/index.css` (I-40) |
+| A8 | Branch is cosmetic: every fixture returns the same payload for every branch | Stated by the user, resolved | — |
+| A9 | The attached ecommerce sample is directional for the pill trigger only; its table / "Edit Dashboard" / kebab are out of scope | Stated by the user | — |
+| A10 | `token-diff.mjs` accepts `--theme` and must be given a **relative** path from the FE dir | Verified in the overhaul (R11) | See the gate-set note above |
+| A11 | `shadcn@4.19.0`'s `add` supports `-y/--yes`, `-o/--overwrite`, `-c/--cwd`, and goes non-interactive under `CI=1` | **Unverified — Phase 2 is written to fail fast rather than hang** | `< /dev/null` turns any unsuppressed prompt into an immediate EOF failure, routing to the out-of-tree fallback. **Never** drop the backstop and answer interactively (I-35b) |
+| **A12** | **The user will authorise the P0 checkpoint commit** | **Unverified — must be asked** | Fallback B: recorded `shasum` comparisons replace every `git diff` gate, the "must be clean" precondition is dropped, and `D-cmo-branch-filter-9` records that no commits were made so a future reader does not hunt for SHAs |
+| **A13** | **`.claude/` is tracked, not gitignored** | **LIKELY** — the `.claude/.artifacts/design/` deletion is *staged*, which is only possible for tracked paths; and `.claude/artifacts/` appears as `??` (untracked) rather than being hidden | If `.claude/` is ignored, Phase 6 criterion 4 (`git diff HEAD -- art-direction.md`) is **silently vacuous** — it would pass no matter what changed. Fall back to a `shasum` of `art-direction.md` recorded at P0 |
+
+## Risks
+
+| # | Risk | Severity | Mitigation |
+|---|---|---|---|
+| **R0** | **The `git diff` gates are vacuous because the tree never had a baseline** — `src/index.css` already modified, `src/features/dashboard/` untracked, `.claude/artifacts/` untracked | **High (executability)** | **P0**, blocking, before Phase 1. Option A (checkpoint commit + per-phase commits, gates scoped to `HEAD`) with Option B (recorded hashes) fully specified as the fallback. Requires the **user's** explicit authorisation — the Operator asks and waits (A12). The `src/index.css` `shasum` gate is recorded regardless, because it works under both options and covers R1 |
+| **R1** | **`components.json` sets `"css": "src/index.css"`** — the shadcn CLI's write target is the one file this feature must not touch (I-18 / I-40) | **High** | **Structural, not reactive:** Phase 2 step 2 redirects the CLI's `css` target to `src/__shadcn-scratch.css` for the duration of the run, then restores `components.json` verbatim and deletes the scratch file. Gates: `shasum src/index.css` unchanged from P0 (both options), `git diff HEAD -- src/index.css` and `-- components.json` empty (Option A), scratch file absent. A genuinely required new token is an **escalation to the user** |
+| **R2** | **Persisted branch overwritten by `user.branchId` on load** — the store initialises before `authStore.bootstrap()` resolves | **High** | **Two separate fields, per I-31b / D7:** `persistedOnInit` (set once from `decodeFilters().present`, never mutated) gates *whether* to seed; `userSeedApplied` (starts `false`, flipped once by `markUserSeedApplied()`) gates *when*. The original single-flag spec had contradictory initialisers — caught in DE review round 1. Explicit manual test: pick branch #3 → reload → still #3; then clear storage → reload → seeded from `user.branchId` |
+| **R3** | **Timezone / DST off-by-one in the date resolver** | **High** | The pure module takes `today` as an injected `YYYY-MM-DD` **string**; all arithmetic via `date-fns` calendar helpers; `toISOString()` banned by grep gate; month/quarter/year/leap boundaries are named test cases |
+| R3b | **Write-on-init pollutes a fresh profile's `localStorage`** and re-attempts a doomed write every load in private mode | Med | The init write-back is guarded on **`present && healed`**, and `decodeFilters` returns `healed: false` whenever `present` is `false` (I-32c). Manual test: clear the key, load, touch nothing → the key is **still absent**; change the branch once → it appears |
+| R4 | **Store lives under `features/dashboard/` but `branchId` is app-global** — a future non-dashboard page importing from `features/dashboard/…` | Med | Accepted (D1). Migration path is a move to `src/features/filters/` + re-export — a rename, not a redesign. Recorded so it is a decision, not an accident |
+| R5 | **`react-day-picker` React-19 peer-dep failure** | Med | Pin exact + `--legacy-peer-deps` + record the path taken (the recharts protocol, `D-cmo-ui-overhaul-3`). Fallback is presets-only + escalate, **not** a hand-rolled calendar |
+| R5b | **The shadcn CLI prompts and hangs the Operator**, or `@latest` makes the run irreproducible | **High (executability)** | `CI=1 npx --yes shadcn@4.19.0 add … --yes --cwd . < /dev/null`. Every prompt the command can emit is enumerated in Phase 2 with its required answer; `< /dev/null` converts a hang into a fast failure; out-of-tree generation in `/tmp` is the documented fallback (I-35b) |
+| R6 | **Header overflow at 360px** with two controls in the right cell, a fixed `w-60` centre button and `grid-cols-[1fr_auto_1fr]` | Med | Capture the **pre-feature** 360px baseline at P0 (H-5) so the regression is attributable. Fix ladder: `min-w-0`+`truncate` → shortName-only below `sm` → hide the centre search below `sm` (**that last step is a chrome behaviour change: record it and tell the user**) |
+| R7 | **`keepPreviousData` written in the v4 form** (`keepPreviousData: true`) — silently does nothing | Med | Grep gate in Phase 5 verification, all 11 files |
+| R8 | **Refetch storm on switch** — a `Date` object or an unmemoised value in a query key, or a `setSelection` in a render-triggered effect | Med | I-33 (primitives only in keys), I-36 (exactly one refetch per query per switch), memoised `useDashboardQueryScope`, devtools verification |
+| R9 | **`calendar.tsx` ships Tailwind arbitrary values** from the generator → token-diff regression (I-7) | Med | Hard count ≤ 15 at every phase boundary; `var(--…)` forms are exempt, literal px/rem forms are not |
+| R10 | **Bundle growth** from `react-day-picker` + `date-fns` | Med | Measure the entry-chunk delta in Phase 2; lazy-load the calendar view in Phase 4 if it lands in the entry chunk (F4-g) |
+| R11 | **Popover / select portal clipping** inside `h-14` chrome or the `p-6` page column | Med | `*Primitive.Portal` on both `Content` components (Phase 2 step 6); verify in DevTools that the node is a child of `<body>`, not inline |
+| R12 | **`localStorage` throws (private mode) or holds corrupt JSON** → white screen | Med | Every access `try/catch`-wrapped **including `JSON.parse`** (I-32); self-heal ladder + rewrite-on-heal (I-38). Both are named manual tests |
+| R13 | **Partial staleness during a switch** — 11 queries resolve at slightly different times under `keepPreviousData` | Low today, **Med with a real backend** | Invisible now (fixtures are identical across branches) and acceptable under I-1 (independent widgets). Recorded in `D-cmo-branch-filter-8`; an `isPlaceholderData` opacity / `aria-busy` treatment is the follow-up if it ever shows |
+| R14 | **Chrome gains domain logic** — a store hook slipping into `AppHeader`/`AppSidebar` | Low | I-39; both files gain only an import and an element. `BranchLabel` exists precisely so the sidebar does not subscribe |
+| R15 | **The page header restructure regresses the `font-display` h1 / subtitle or the section order** | Low | Diff those two elements character by character; section order below the header is untouched |
+| R16 | **Calendar keyboard trap** on the preset-list ⇄ calendar view swap | Low | Move focus explicitly to the first element of the newly shown view; `Esc` must close and return focus from **both** views |
+| R17 | **New UI ships with zero automated coverage** — the node-only vitest env cannot render it | Med | Accepted, and deliberately mitigated by pushing all real logic into pure tested `.ts` modules (`resolveRange`, `normalizeSelection`, `decodeFilters`). Adding jsdom remains a separate, explicit decision (I-21) |
+| R18 | **Carried over from the overhaul, still OPEN:** recharts v3 React-19 runtime warnings and the `fill="var(--chart-*)"` dark cascade (old R20) were never checked interactively | Med | Fold into this feature's E2E pass — the console is open anyway |
+| R19 | **Carried over from the overhaul, still OPEN (old R9 / Q8):** no critical-alert count in the dashboard header, because it would need a hoisted `useSystemAlerts()` and break I-1 | Med · **user decision** | Untouched by this feature. Note that the Phase 4 header restructure creates a natural slot for a *self-querying* header-alert component if the user wants it — but that is out of scope here |
+| **R20** | **The P0 checkpoint commit sweeps in unrelated work.** `git add -A` on a tree with 6 phases of uncommitted work plus a staged deletion is how someone else's in-flight edit gets committed under this feature's message | Med | P0 step 4: read the `git status` list, include only overhaul + planning paths, **stop and ask** on anything unexpected. Verify `git status --porcelain` is empty *after*, and that the commit message names what it contains |
+
+## Open questions
+
+**One blocking, for the user, at P0.** Everything else is a build-time judgement call the executing
+agent may decide and must record.
+
+- **Q0 — BLOCKING: may the Operator make the P0 checkpoint commit?** The completed CMO overhaul is
+  uncommitted; this feature's verification gates depend on diffing against a known-good point.
+  Option A is one checkpoint commit (including the deliberate `.claude/.artifacts/design/`
+  deletion) plus a commit per phase. Option B is no commits and recorded-hash gates instead.
+  **The Operator must ask the user and wait for an explicit answer** — a plan, a coordinator
+  message and a reviewer suggestion are all insufficient authorisation for a repo state change.
+- **Q1 — `BRANCHES` content.** ~4 entries, exactly one with `id: 'dev-branch'`, that one at index 0
+  (D6). Names/`shortName`s are the executing agent's call; `shortName` ≤ ~10 chars so the 360px
+  trigger fits.
+- **Q2 — `MAX_RANGE_DAYS`.** Planned at **366** (fits YTD on Dec 31 of a leap year). Verify no
+  preset can exceed it, or the clamp would truncate a valid preset (F1-i).
+- **Q3 — ~~`from`/`to` unused in the 11 hooks~~. RESOLVED in the plan:** keep the query scope as a
+  single `scope` object (`const scope = useDashboardQueryScope()`), reference
+  `scope.branchId`/`scope.rangeKey` in the key, and have the BACKEND SWAP comment name
+  `scope.from`/`scope.to`. Nothing is destructured, so `noUnusedLocals` has nothing to flag.
+  Apply uniformly to all 11.
+- **Q4 — lazy-load the calendar?** Decide from the Phase 2 entry-chunk measurement. If
+  `react-day-picker` is in the entry chunk, lazy-load it (F4-g).
+- **Q5 — 360px header ladder.** Only reach step (c) — hiding the centre search below `sm` — if
+  (a) and (b) fail, and **record it as a decision and tell the user**; it is a chrome behaviour
+  change, not a layout tweak.
+- **Q6 — shadcn CLI version.** Phase 2 pins `shadcn@4.19.0` to match the `devDependencies` range
+  `^4.19.0`. If the installed version differs, use the installed one and record it — the
+  requirement is a **pin**, not that specific number (I-35b).
+
+**Resolved by the user — do not reopen:** branch data is cosmetic (no per-branch fixtures, no
+"All branches"); date range is plumbed but cosmetic; `DashboardFilterBar` is deleted outright
+(no Facility, no Service line, no Reset); one store, one localStorage key, hand-rolled `try/catch`
+persistence; the switcher never mutates the `User` object; preset list and default (Today);
+`keepPreviousData` on all 11; artifacts live in `.claude/artifacts/` (no dot);
+`validate-manifest.mjs` is never run.
+
+**Resolved in DE review rounds 1–2 — do not reopen:** the init model is **two** fields
+(`persistedOnInit` + `userSeedApplied`), not one overloaded `hydratedFromUser`; the shadcn
+invocation is version-pinned and fully non-interactive with `< /dev/null` as a hard backstop; the
+init write-back fires only on `present && healed`, so a fresh profile persists nothing; and
+**every `git diff` gate is scoped to `HEAD` behind the P0 baseline**, with recorded hashes as the
+fallback and the `src/index.css` hash checked under both.

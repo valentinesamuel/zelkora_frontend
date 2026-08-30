@@ -1,7 +1,10 @@
 // Auth feature contract types. Mirrors the backend HTTP contract exactly; see
 // plan.md PHASE F3 "Rehydration context" for the endpoint reference.
 
-export type Role = 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'pharmacist';
+// `admin` is retained as a render-layer alias of `cmo` (not renamed, not
+// removed — the backend still issues it). `hospital_admin` / `clinical_lead`
+// follow when their dashboards exist.
+export type Role = 'admin' | 'cmo' | 'doctor' | 'nurse' | 'receptionist' | 'pharmacist';
 
 export interface User {
   id: string;

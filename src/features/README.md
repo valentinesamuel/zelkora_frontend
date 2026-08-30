@@ -103,3 +103,13 @@ Two rules survive that divergence:
 There are no `index.ts` barrels in `src/`, deliberately. Use explicit path imports
 (`@/features/auth/authStore`). Barrels hide the dependency graph, defeat the INV-L2 lint rule's
 path-pattern matching, and hurt tree-shaking.
+
+## Layouts
+
+`src/app/layouts/` now holds authenticated-app **chrome**: `AppLayout` (a flex shell rendering
+`<Outlet />`) plus minimal placeholders `AppSidebar` / `AppHeader` (Phase 3 fills them with real
+navigation). Chrome only — layouts do not fetch domain data or hold domain state.
+
+Dependency direction still holds: layouts (in `app/`, the top of the graph) **may import
+features**; a feature importing a layout is a design smell; `src/components/**` may **never**
+import `features/**` (INV-L2, ESLint error). No barrels here either — explicit imports only.

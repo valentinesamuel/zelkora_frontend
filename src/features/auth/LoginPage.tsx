@@ -43,7 +43,7 @@ export function LoginPage() {
   };
 
   const subtitleByStep: Record<Step['name'], string> = {
-    credentials: "Let's log in to your Zelkora account first",
+    credentials: "Now that you're here, let's log in to your Zelkora account",
     enroll:
       'Scan the code with your authenticator app to finish securing your account',
     verify: 'Enter the code from your authenticator app',

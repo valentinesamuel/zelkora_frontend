@@ -31,7 +31,7 @@ export function ProfilePage() {
   }
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-muted p-6">
+    <div className="p-6">
       <Card className="w-full max-w-sm [--card-spacing:--spacing(6)]">
         <CardHeader>
           <CardTitle>
@@ -56,6 +56,6 @@ export function ProfilePage() {
           </Button>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }
