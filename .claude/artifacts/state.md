@@ -8,9 +8,9 @@ CLI contract), Issue C (no write-on-init for a fresh profile), **Issue D (git ba
 gates)**.
 
 ```
-Current phase: Phase 3 COMPLETE (2026-08-30) — Phase 4 next. P0 + Phases 1-3 committed (BASELINE_SHA 1dfb27b).
-               Operator run "/operator execute phases 3,4" — in progress. 360px header verdict + all
-               manual/DevTools checks for Phase 3 deferred to the E2E pass (no interactive browser this run).
+Current phase: Phase 4 COMPLETE (2026-08-30) — Phase 5 next. P0 + Phases 1-4 committed (BASELINE_SHA 1dfb27b).
+               Operator run "/operator execute phases 3,4" — DONE. 360px header verdict + all manual/DevTools
+               checks for Phases 3-4 deferred to the E2E pass (no interactive browser this run).
 Phases:        6
 Prior work:    Zelkora CMO Dashboard & UI Overhaul, Phases 1-6, COMPLETE 2026-08-30.
                Historical record preserved in decisions.md / diff.md / checkpoint.md /
@@ -101,7 +101,7 @@ Never amend or rebase a completed phase — the SHAs are what the gates lean on.
 | 1 Filter foundation | `c2803df` | exit 0 | 89 | 0/1 | 15 | 544596 B | date-fns@4.4.0 exact, no --legacy-peer-deps; index.css sha ad8fbd93 unchanged; +44 tests, 5 new modules unmounted |
 | 2 UI primitives | `9e15733` | exit 0 | 89 | 0/1 | 15 | 544596 B | select/popover in-tree; calendar via out-of-tree fallback (button.tsx overwrite prompt); react-day-picker@10.0.1 exact, no --legacy-peer-deps; entry-chunk delta 0 B (rdp unmounted) — Phase 4 must lazy-load calendar; CSS bundle 51.6→61.8 kB |
 | 3 BranchSwitcher | `d1e64d4` | exit 0 | 89 | 0/1 | 15 | 616254 B | Radix Select now in the entry chunk (+71,658 B) — global chrome, not lazy-loadable; rdp NOT in entry (calendar still unmounted). index.css sha ad8fbd93 unchanged. 5 files: 3 new `features/branch/`, 2 modified chrome. 360px verdict deferred to E2E |
-| 4 DateRangeControl | | | | | | | `DashboardFilterBar` deleted |
+| 4 DateRangeControl | `dfc35aa` | exit 0 | 89 | 0/1 | 15 | 625000 B | `DashboardFilterBar` deleted (grep clean). `DateRangeCalendar` is a 53.5 kB LAZY chunk — rdp NOT in entry (F4-g done). Entry +8,746 B (DateRangeControl + Popover, shares Phase 3 Radix deps). index.css sha ad8fbd93 unchanged. 4 files: 2 new `filters/`, 1 M page, 1 D filter bar |
 | 5 Query keying | | | | | | | exactly 11 files under `api/` |
 | 6 Decisions/artifacts | | | | | | | docs only |
 

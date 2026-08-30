@@ -581,3 +581,32 @@ Entry-chunk delta is **0 bytes** *only because the calendar is still unmounted*.
 
 ### Deferred to the E2E pass (no interactive browser this run)
 360px header overflow attribution (F3-d — the P0 360px baseline was never captured), keyboard traversal + focus ring, screen-reader announcement, `SelectContent` portalled to `<body>`, light/dark, `prefers-reduced-motion`, storage resilience (corrupt value / `not json` / private mode), and the returning-user vs first-time-user vs fresh-profile behavioural checks. Same posture as the overhaul and P0/1/2.
+
+---
+
+# Global Branch Switcher & Working Date Range — Phase 4: DateRangeControl
+
+**Executed:** 2026-08-30 · Operator · plan.md Phase 4 · HEAD at gate time = `b3a074e` (Phase 3 SHA `d1e64d4`)
+
+### Added
+- `src/features/dashboard/filters/DateRangeControl.tsx` — the pill trigger + popover. Reads `selection` / `setSelection` from the store directly (I-1). Trigger `<button>` in `PopoverTrigger asChild`: `h-9 items-center gap-2 rounded-sm border bg-card px-3 text-sm` + house focus ring; `CalendarDays` icon + `{label}` + `ChevronDown`; `aria-label="Change date range"`. `label = resolveRange(selection, todayIso()).label` every render (F4-j). `PopoverContent align="end" className="w-auto min-w-56 p-1"` — no `max-w-[calc()]` (F4-d). One popover, `view` state `'presets' | 'calendar'` (no nested popover). Preset list: 7 `<button data-preset>` (six presets + "Custom…"), current marked by a `Check` glyph + `aria-current` (I-14). `ArrowUp`/`ArrowDown` roving `onKeyDown`; `useEffect([view])` focuses the first preset on swap-back (F4-h). `onOpenChange` resets `view` on close. `sr-only aria-live="polite"` label echo (F4-l). Exports the component only (I-22).
+- `src/features/dashboard/filters/DateRangeCalendar.tsx` — **default export**, `lazy()`-imported by `DateRangeControl` behind `Suspense` (fallback `h-64 w-64` animate-pulse). `Calendar mode="range" autoFocus numberOfMonths={smUp ? 2 : 1}`, `disabled={{ after: parseISO(today) }}` (F4-e), `defaultMonth` from the current custom `from`. `smUp` = module-local `matchMedia('(min-width: 40rem)')` hook (mirrors `useReducedMotion`; not exported — I-22). Commits both bounds via `format(d, 'yyyy-MM-dd')` (F1-a). Type-only `import type { DateRange } from 'react-day-picker'`.
+
+### Modified
+- `src/features/dashboard/pages/CmoDashboardPage.tsx` — line 7 `import { DashboardFilterBar } from '.../components/DashboardFilterBar'` → `import { DateRangeControl } from '.../filters/DateRangeControl'`. `<header className="min-w-0">` → `<header className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">`; `<h1>` + subtitle `<p>` wrapped in `<div className="min-w-0">` — **markup + classes byte-identical** (F4-b / R15). `<DashboardFilterBar />` line removed; `<DateRangeControl />` added inside the header. No `useQuery` / `useState` / `useReducer` (I-1). Section order below the header unchanged.
+
+### Removed
+- `src/features/dashboard/components/DashboardFilterBar.tsx` (52 lines) — `git rm`. Sole consumer was `CmoDashboardPage` (re-verified by grep — I-24). `grep -rn DashboardFilterBar src/` → nothing. Its `FILTERS` constant, Radix tooltip and `<div tabIndex={0}>` all gone.
+
+### Impact summary
+- `npm run build` exit 0 — **`DateRangeCalendar-*.js` is a 53.52 kB lazy chunk** (16.32 kB gz); `react-day-picker` is NOT in the entry chunk (`grep DayPicker dist/assets/index-*.js` → nothing). Entry JS chunk **616254 → 625000 B (+8,746)** — `DateRangeControl` + the `Popover` primitive, which reuses the Radix dismissable-layer / focus-scope / portal deps already pulled in by `Select` in Phase 3.
+- `npm test` — **89 passing**, unchanged (new surface is `.tsx` — I-21).
+- `npm run lint` — 0 errors, 1 pre-existing warning (`EnrollMfaStep.tsx:78`).
+- `token-diff --theme src/index.css` — **15**. `shasum src/index.css` unchanged (`ad8fbd930a407e6cb38b471e1ee85715f37c2bf7`). `git diff --stat HEAD -- src/index.css` empty.
+- `git diff --stat HEAD` — exactly 4 paths: `DashboardFilterBar.tsx` (D −52), `DateRangeCalendar.tsx` (A +85), `DateRangeControl.tsx` (A +178), `CmoDashboardPage.tsx` (M +12/−9).
+
+### F4-g / Q4 — resolved
+The calendar view is `lazy()` + `Suspense` from the outset, per the Phase 2 entry-chunk recommendation. rdp + its `date-fns` locale code live in `DateRangeCalendar-*.js` and load only when a user opens "Custom…". Q4 is closed: **lazy-loaded, yes.**
+
+### Deferred to the E2E pass (no interactive browser this run)
+Keyboard traversal incl. `PageUp`/`PageDown` by month and the preset ⇄ calendar focus swap (F4-h), screen-reader range announcement, `PopoverContent` portalled to `<body>`, 360px one-month layout with no viewport overflow, `prefers-reduced-motion` on the layered popover + calendar animations (F4-i), light/dark legibility of the pill border + range-middle/selected/disabled day states. Same posture as the overhaul and P0/1/2/3.

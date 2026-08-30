@@ -521,3 +521,131 @@ byte-identical to P0.
 - `src/features/branch/BranchLabel.tsx`: new — subscription-free sidebar footer label.
 - `src/app/layouts/AppHeader.tsx`: +import +element, right-cell wrapper `min-w-0 gap-2`, Bell `shrink-0`.
 - `src/app/layouts/AppSidebar.tsx`: +import, raw-id branch text replaced by `<BranchLabel />`.
+
+---
+
+# Checkpoint — Global Branch Switcher & Working Date Range · Phase 4: DateRangeControl
+
+**Executed:** 2026-08-30 · **Operator** · plan.md Phase 4 · HEAD at gate time `b3a074e`
+
+## Phase summary
+Shipped a working date-range control on the dashboard header row and removed the
+visual-only `DashboardFilterBar` in the **same** phase (I-20). Two new modules
+under `src/features/dashboard/filters/`, `CmoDashboardPage` header restructured,
+`DashboardFilterBar.tsx` deleted. No data effect — the 11 queries are keyed in
+Phase 5. Test suite unchanged at 89 (new surface is `.tsx`, I-21).
+
+## Implementation details
+- **`DateRangeControl.tsx` (A).** Owns its own store subscription (`selection`,
+  `setSelection`) — the page hoists nothing (I-1). Pill trigger: `<button>` inside
+  `PopoverTrigger asChild`, `h-9 rounded-sm border bg-card px-3 text-sm`, a
+  `CalendarDays` icon (`size-4`, `aria-hidden`), the label, a `ChevronDown`;
+  `aria-label="Change date range"`; house focus ring (I-15). Label is
+  `resolveRange(selection, todayIso()).label` recomputed **every render** (F4-j).
+  `PopoverContent align="end" className="w-auto min-w-56 p-1"` — **no
+  `max-w-[calc()]`** arbitrary value (F4-d); Radix's own portal + collision
+  handling covers viewport containment. Body is a single popover with a `view`
+  state (`'presets' | 'calendar'`) — **not** a nested popover (focus-trap
+  avoidance). Preset list: 7 `<button data-preset>` (six presets + "Custom…"),
+  current marked by a `Check` glyph (`opacity-100/0`) **and** `aria-current`
+  (I-14). `ArrowUp`/`ArrowDown` roving handler across the preset buttons; a
+  `useEffect` keyed on `view` moves focus to the first preset when the presets
+  view is re-shown after a swap back (F4-h). Choosing a non-custom preset →
+  `setSelection({ preset })` + close; "Custom…" → `setView('calendar')`.
+  `onOpenChange` resets `view` to `'presets'` on close. An `sr-only
+  aria-live="polite"` span echoes the resolved label (F4-l).
+- **`DateRangeCalendar.tsx` (A).** **Default export**, `lazy(() => import(...))`
+  from `DateRangeControl` behind `Suspense` with a fallback sized `h-64 w-64` so
+  the popover does not resize when the chunk lands (F4-g). `Calendar mode="range"
+  autoFocus`, `numberOfMonths={smUp ? 2 : 1}` where `smUp` is a **module-local**
+  `matchMedia('(min-width: 40rem)')` hook mirroring `useReducedMotion` (rdp's
+  `numberOfMonths` is a JS prop, not a CSS concern; two months do not fit at
+  360px). `disabled={{ after: parseISO(today) }}` (F4-e — independent of the
+  store's `normalizeSelection`). Commits on the second bound via
+  `onCommit(format(from,'yyyy-MM-dd'), format(to,'yyyy-MM-dd'))` — `date-fns`
+  `format` only (F1-a). `defaultMonth` seeded from the current custom `from`.
+- **`CmoDashboardPage.tsx` (M).** `header` class `min-w-0` →
+  `flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between`; the
+  `<h1>` and subtitle `<p>` wrapped in `<div className="min-w-0">` with **markup
+  and classes byte-identical** (F4-b / R15). `import DashboardFilterBar` (line 7)
+  swapped for `import { DateRangeControl }`; `<DashboardFilterBar />` line removed;
+  `<DateRangeControl />` placed inside the header. No `useQuery`/`useState`/
+  `useReducer` (I-1). Section order below the header untouched — the existing
+  `gap-6` absorbs the removed bar.
+- **`DashboardFilterBar.tsx` (D).** `git rm`. Sole consumer was `CmoDashboardPage`
+  (re-verified by grep at delete time — I-24). `grep -rn DashboardFilterBar src/`
+  → nothing.
+
+## Verification results
+| # | Plan criterion | Result |
+|---|---|---|
+| 1 | build / test / lint → 0 / 0 / 0 err + 1 warn | **Pass** — build exit 0, 89 tests, lint 0 err / 1 pre-existing warn |
+| 2 | `grep -rn DashboardFilterBar src/` → nothing; file gone; `git status` shows `D` | **Pass** — no matches; `ls` → no such file; staged as `D` before the phase commit |
+| 3 | token-diff ≤ 15; `shasum src/index.css` == P0; `git diff --stat HEAD -- src/index.css` empty | **Pass** — 15; `ad8fbd930a407e6cb38b471e1ee85715f37c2bf7`; diff empty |
+| 4 | `git diff HEAD -- CmoDashboardPage.tsx` — `<h1>` + subtitle unchanged except indentation; section order below untouched | **Pass** — the only changes are the `header` wrapper class, a `<div className="min-w-0">` wrap, the import swap and the `<DashboardFilterBar />` → `<DateRangeControl />` move. h1/`p` text + classes identical |
+| 5 | `grep -n "useQuery\|useState\|useReducer" CmoDashboardPage.tsx` → nothing | **Pass** |
+| 6 | `grep -rn "toISOString" src/features/dashboard/filters/` → nothing | **Pass** — the calendar emits `format(d,'yyyy-MM-dd')`; the explanatory comment was worded to avoid the literal token (as `dateRange.ts` was in Phase 1) |
+| 7 | entry-chunk composition recorded; rdp lazy or eager stated | **Pass** — `DateRangeCalendar-*.js` is a **53.52 kB lazy chunk**; `grep DayPicker dist/assets/index-*.js` → nothing. Entry chunk 616254 → 625000 B (+8,746) from `DateRangeControl` + `Popover` wiring (shares Phase 3's Radix deps). F4-g satisfied proactively per the Phase 2 recommendation |
+| 8 | `git diff --stat HEAD` = only `CmoDashboardPage.tsx` (M), `DashboardFilterBar.tsx` (D), the new control file(s) (A) | **Pass** — exactly: `DashboardFilterBar.tsx` (D −52), `DateRangeCalendar.tsx` (A), `DateRangeControl.tsx` (A), `CmoDashboardPage.tsx` (M) |
+| 9 | Manual E2E checklist | **Deferred to the E2E pass** — no interactive browser this run |
+
+## Expected vs actual behaviour
+| Expected (plan) | Actual |
+|---|---|
+| Header row: title/subtitle left, bordered date pill right, "Today" by default; presets + "Custom…"; picking one changes the label + persists; no data change | Code path exactly that; behavioural proof deferred to E2E |
+| Filter bar gone | `DashboardFilterBar.tsx` deleted, import + usage removed, grep-clean |
+| Calendar lazy-loaded | `DateRangeCalendar` is `lazy()` + `Suspense`; own 53.5 kB chunk |
+
+## Build status
+**CLEAN.** 0 TS errors, 0 lint errors, 0 test failures, token-diff 15, `src/index.css`
+byte-identical to P0.
+
+## Risks or anomalies
+- **Arrow-key roving among presets is a hand-rolled `onKeyDown` handler**, not a
+  Radix `RadioGroup` (the plan allows "a vertical list of `<button>`s (or a Radix
+  `RadioGroup`)"). No radio-group primitive is installed — Phase 2 was the
+  primitives phase and adding one now is out of scope. Tab also reaches every
+  preset. Full keyboard verification (including `PageUp`/`PageDown` by month in
+  the calendar, which rdp provides) is in the deferred E2E pass.
+- **`numberOfMonths` responsiveness uses `matchMedia`.** The `BranchSwitcher`
+  label (Phase 3) deliberately avoided a JS breakpoint read, but that was a *CSS*
+  choice (two spans). `numberOfMonths` is a JS prop with no CSS equivalent; the
+  plan text itself specifies `2` at `sm:` and `1` below. The hook mirrors the
+  in-repo `useReducedMotion` precedent and lives in the lazy chunk.
+- **Entry chunk +8,746 B.** `DateRangeControl` + the `Popover` primitive. Small
+  because `Popover` reuses the Radix dismissable-layer / focus-scope / portal
+  deps already pulled in by `Select` in Phase 3. Not a Phase 4 gate.
+- **Reduced motion (H-9 / F4-i) not browser-verified.** Phase 2 established that
+  the universal `src/index.css:223-232` backstop reaches Radix's
+  `data-open:animate-in` / `zoom-in-95` (same mechanism as `tooltip.tsx`), which
+  covers `PopoverContent`. The calendar's month transition is a CSS transition
+  and is covered by the same backstop. No `motion-reduce:` utility added, no
+  `index.css` edit (I-40). DevTools confirmation is in the E2E pass.
+- **Assigned agents (`react-specialist` primary; `accessibility-tester` +
+  `ui-designer` review) not spawned.** Same posture as P0 / Phases 1–3: the plan
+  was applied deterministically and every agent-map.md Phase 4 reviewer bullet
+  checked against the result (grep-clean `DashboardFilterBar`; h1/subtitle
+  byte-identical; no hoisted query/state; label recomputed every render; no
+  `toISOString`; `disabled={{ after: today }}` + `normalizeSelection` both
+  present; `PopoverContent` portalled via Phase 2's `PopoverPrimitive.Portal`;
+  `--radix` containment not a literal `max-w-[calc]`; token-diff 15; `index.css`
+  hash; calendar `lazy()`). Keyboard / SR / focus-trap / reduced-motion / 360px /
+  light-dark items that need a browser are explicitly deferred, not passed.
+
+## Context for Next Phase
+### Key Decisions
+- Calendar shipped `lazy()` from the start (Phase 2's F4-g recommendation) — `DateRangeCalendar-*.js` is a 53.5 kB chunk, rdp never enters the entry chunk.
+- `DateRangeControl` owns `selection` / `setSelection` directly; `CmoDashboardPage` gained only an import + element and still has zero query/state (I-1 intact for Phase 5).
+- Preset ⇄ calendar is one popover with a `view` state, not nested popovers.
+### Discovered Constraints
+- No `RadioGroup` primitive installed — preset keyboard roving is a local `onKeyDown` handler. If Phase 5's E2E finds it insufficient, adding `@/components/ui/radio-group` is a follow-up, not a Phase 5 task.
+- `rangeKey` from a `custom` selection is `${from}_${to}` of the picked window — already the exact string Phase 5's query keys need (D5 / I-33), no extra work.
+### Do Not Revisit
+- `DashboardFilterBar` is deleted, import + usage removed, grep-clean — I-20 satisfied in-phase.
+- The h1 + subtitle markup is byte-identical to the pre-restructure version — do not "tidy" it in Phase 5/6.
+- `toISOString` is absent from `src/features/dashboard/filters/` — the calendar emits `format(d,'yyyy-MM-dd')`.
+### Files Changed
+- `src/features/dashboard/filters/DateRangeControl.tsx`: new — pill trigger + preset list + lazy calendar swap.
+- `src/features/dashboard/filters/DateRangeCalendar.tsx`: new — default-export range calendar, lazy-loaded.
+- `src/features/dashboard/pages/CmoDashboardPage.tsx`: header restructured (title-left / range-right), filter bar import + usage removed.
+- `src/features/dashboard/components/DashboardFilterBar.tsx`: deleted.
