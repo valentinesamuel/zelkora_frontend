@@ -96,7 +96,7 @@ Never amend or rebase a completed phase — the SHAs are what the gates lean on.
 | Phase | SHA | build | tests | lint | token-diff | entry chunk | notes |
 |---|---|---|---|---|---|---|---|
 | P0 baseline | `1dfb27b` | exit 0 | 45 | 0/1 | 15 | 544596 B | overhaul checkpoint + pipeline-store deletion; index.css sha ad8fbd93 |
-| 1 Filter foundation | `PENDING` | exit 0 | 89 | 0/1 | 15 | 544596 B | date-fns@4.4.0 exact, no --legacy-peer-deps; index.css sha ad8fbd93 unchanged; +44 tests, 5 new modules unmounted |
+| 1 Filter foundation | `c2803df` | exit 0 | 89 | 0/1 | 15 | 544596 B | date-fns@4.4.0 exact, no --legacy-peer-deps; index.css sha ad8fbd93 unchanged; +44 tests, 5 new modules unmounted |
 | 2 UI primitives | | | | | | | record the exact CLI command; entry-chunk delta |
 | 3 BranchSwitcher | | | | | | | 360px verdict vs. the P0 capture |
 | 4 DateRangeControl | | | | | | | `DashboardFilterBar` deleted |
