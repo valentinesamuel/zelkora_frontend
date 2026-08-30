@@ -54,8 +54,6 @@ export function calculateAge(
   if (nowMonth < birthMonth || (nowMonth === birthMonth && nowDay < birthDay)) {
     age -= 1;
   }
-
-  if (age < 0 || age > 150) return null;
   return age;
 }
 

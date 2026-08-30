@@ -31,7 +31,7 @@ export function PatientTextField<T extends FieldValues>({
   autoComplete,
   required = false,
   className,
-}: PatientTextFieldProps<T>) {
+}: Readonly<PatientTextFieldProps<T>>) {
   return (
     <FormField
       control={control}

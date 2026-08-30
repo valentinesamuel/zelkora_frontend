@@ -261,7 +261,7 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
         {isEdit && (
           <PatientFormSection
             title="Status"
-            description="Inactive patients stay on record but are filtered out by default."
+            // description="Inactive patients stay on record but are filtered out by default."
           >
             <FormField
               control={form.control}

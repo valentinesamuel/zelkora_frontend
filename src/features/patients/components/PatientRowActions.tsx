@@ -21,6 +21,8 @@ import {
 import { PatientDeleteDialog } from '@/features/patients/components/PatientDeleteDialog';
 import { patientFullName } from '@/features/patients/patientView';
 import type { Patient } from '@/features/patients/types/patient.types';
+import { Can } from '@/features/auth/Can';
+import { RoleEnum } from '@/features/auth/types';
 
 /**
  * One row action. `enabled` is a static flag today; it is the seam where a
@@ -114,17 +116,19 @@ export function PatientRowActions({ patient }: PatientRowActionsProps) {
             );
           })}
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            variant="destructive"
-            onSelect={() => {
-              // Defer so the menu finishes closing (and releases its focus
-              // trap) before the dialog opens in the next tick.
-              setTimeout(() => setDeleteOpen(true), 0);
-            }}
-          >
-            <Trash2 aria-hidden="true" />
-            Delete patient
-          </DropdownMenuItem>
+          <Can role={[RoleEnum.ADMIN, RoleEnum.NURSE, RoleEnum.RECEPTIONIST]}>
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={() => {
+                // Defer so the menu finishes closing (and releases its focus
+                // trap) before the dialog opens in the next tick.
+                setTimeout(() => setDeleteOpen(true), 0);
+              }}
+            >
+              <Trash2 aria-hidden="true" />
+              Delete patient
+            </DropdownMenuItem>
+          </Can>
         </DropdownMenuContent>
       </DropdownMenu>
 
