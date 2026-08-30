@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Activity,
@@ -20,6 +20,7 @@ import { PatientDetailPlaceholder } from '@/features/patients/components/Patient
 import { PatientDetailSection } from '@/features/patients/components/PatientDetailSection';
 import { PatientDetailSkeleton } from '@/features/patients/components/PatientDetailSkeleton';
 import { PatientDeleteDialog } from '@/features/patients/components/PatientDeleteDialog';
+import { PatientLoadError } from '@/features/patients/components/PatientLoadError';
 import { PatientStatusBadge } from '@/features/patients/components/PatientStatusBadge';
 import {
   calculateAge,
@@ -93,40 +94,30 @@ export function PatientDetailPage() {
 
   const notFound = error instanceof ApiError && error.statusCode === 404;
 
+  let body: ReactNode;
+  if (isPending) {
+    body = <PatientDetailSkeleton />;
+  } else if (isError) {
+    body = (
+      <PatientLoadError
+        notFound={notFound}
+        error={error}
+        onRetry={() => void refetch()}
+      />
+    );
+  } else {
+    body = (
+      <PatientDetailContent
+        patient={data}
+        onEditPath={`/patients/${id}/edit`}
+        onDelete={() => setDeleteOpen(true)}
+      />
+    );
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6">
-      {isPending ? (
-        <PatientDetailSkeleton />
-      ) : isError ? (
-        <div className="flex flex-col items-start gap-3 rounded-xl bg-card p-6 text-sm ring-1 ring-foreground/10">
-          <p className="font-medium">
-            {notFound ? 'Patient not found.' : 'Could not load this patient.'}
-          </p>
-          <p className="text-muted-foreground">
-            {notFound
-              ? 'It may have been removed, or the link is incorrect.'
-              : error instanceof ApiError
-                ? error.apiMessage
-                : 'Please try again.'}
-          </p>
-          <div className="flex gap-3">
-            {!notFound && (
-              <Button type="button" onClick={() => void refetch()}>
-                Retry
-              </Button>
-            )}
-            <Button type="button" variant="outline" asChild>
-              <Link to="/patients">Back to patients</Link>
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <PatientDetailContent
-          patient={data}
-          onEditPath={`/patients/${id}/edit`}
-          onDelete={() => setDeleteOpen(true)}
-        />
-      )}
+      {body}
 
       {data && (
         <PatientDeleteDialog

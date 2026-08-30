@@ -60,7 +60,7 @@ export function AuthCarousel() {
 
   useEffect(() => {
     if (paused || reduced) {
-      return;
+      return undefined;
     }
 
     const timeoutId = window.setTimeout(() => {

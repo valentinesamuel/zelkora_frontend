@@ -46,6 +46,11 @@ type PatientFormProps =
   | { mode: 'create' }
   | { mode: 'edit'; patientId: string; initialData: PatientWire };
 
+function submitLabel(isSubmitting: boolean, isEdit: boolean): string {
+  if (isSubmitting) return 'Saving…';
+  return isEdit ? 'Save changes' : 'Register patient';
+}
+
 export function PatientForm(props: Readonly<PatientFormProps>) {
   const navigate = useNavigate();
   const isEdit = props.mode === 'edit';
@@ -277,11 +282,7 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
               form.formState.isSubmitting || (isEdit && !form.formState.isDirty)
             }
           >
-            {form.formState.isSubmitting
-              ? 'Saving…'
-              : isEdit
-                ? 'Save changes'
-                : 'Register patient'}
+            {submitLabel(form.formState.isSubmitting, isEdit)}
           </Button>
           <Button type="button" variant="outline" asChild>
             <Link to="/patients">Cancel</Link>

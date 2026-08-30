@@ -110,8 +110,6 @@ function resolvePresetWindow(
 } {
   const todayDate = parseISO(today);
   switch (preset) {
-    case 'today':
-      return { from: today, to: today };
     case 'last7':
       return { from: toIso(subDays(todayDate, 6)), to: today };
     case 'last30':
@@ -122,6 +120,10 @@ function resolvePresetWindow(
       return { from: toIso(startOfQuarter(todayDate)), to: today };
     case 'ytd':
       return { from: toIso(startOfYear(todayDate)), to: today };
+    case 'today':
+    default:
+      // `today` plus the unreachable fallthrough (the union is exhaustive).
+      return { from: today, to: today };
   }
 }
 

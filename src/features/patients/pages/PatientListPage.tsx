@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import { cn } from '@/lib/utils';
 import { usePatients } from '@/features/patients/api/patients.api';
 import {
@@ -31,6 +33,47 @@ export function PatientListPage() {
   const activeFilterCount = countActiveFilters(query);
   const filtersOrSearchActive = hasActiveQuery(query);
 
+  let results: ReactNode;
+  if (isPending) {
+    results = <PatientTableSkeleton rows={query.limit} />;
+  } else if (isError) {
+    results = <PatientListError onRetry={() => void refetch()} />;
+  } else if (data.patients.length === 0) {
+    results = (
+      <PatientListEmpty
+        variant={filtersOrSearchActive ? 'no-results' : 'no-data'}
+        onClearFilters={clearFilters}
+      />
+    );
+  } else {
+    results = (
+      <div className="flex flex-col gap-4">
+        <div
+          className={cn(
+            'transition-opacity motion-reduce:transition-none',
+            isFetching && isPlaceholderData && 'pointer-events-none opacity-60',
+          )}
+          aria-busy={isFetching && isPlaceholderData}
+        >
+          <PatientTable
+            patients={data.patients}
+            sort={query}
+            onToggleSort={toggleSort}
+          />
+        </div>
+        <PatientListPagination
+          pageCount={data.patients.length}
+          total={data.total}
+          limit={query.limit}
+          pageInfo={data.pageInfo}
+          onLimitChange={setLimit}
+          onPrev={() => goToCursor(data.pageInfo.prevCursor)}
+          onNext={() => goToCursor(data.pageInfo.nextCursor)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-w-0 flex-col gap-6 p-6">
       <PatientListHeader />
@@ -47,43 +90,7 @@ export function PatientListPage() {
         </div>
       </div>
 
-      {isPending ? (
-        <PatientTableSkeleton rows={query.limit} />
-      ) : isError ? (
-        <PatientListError onRetry={() => void refetch()} />
-      ) : data.patients.length === 0 ? (
-        <PatientListEmpty
-          variant={filtersOrSearchActive ? 'no-results' : 'no-data'}
-          onClearFilters={clearFilters}
-        />
-      ) : (
-        <div className="flex flex-col gap-4">
-          <div
-            className={cn(
-              'transition-opacity motion-reduce:transition-none',
-              isFetching &&
-                isPlaceholderData &&
-                'pointer-events-none opacity-60',
-            )}
-            aria-busy={isFetching && isPlaceholderData}
-          >
-            <PatientTable
-              patients={data.patients}
-              sort={query}
-              onToggleSort={toggleSort}
-            />
-          </div>
-          <PatientListPagination
-            pageCount={data.patients.length}
-            total={data.total}
-            limit={query.limit}
-            pageInfo={data.pageInfo}
-            onLimitChange={setLimit}
-            onPrev={() => goToCursor(data.pageInfo.prevCursor)}
-            onNext={() => goToCursor(data.pageInfo.nextCursor)}
-          />
-        </div>
-      )}
+      {results}
     </div>
   );
 }

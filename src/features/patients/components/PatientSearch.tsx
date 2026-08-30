@@ -43,7 +43,7 @@ export function PatientSearch({ value, onChange }: PatientSearchProps) {
   // Debounce draft -> committed. Calls the parent callback (an external system),
   // never setState, so it is a legitimate effect.
   useEffect(() => {
-    if (draft === value) return;
+    if (draft === value) return undefined;
     const id = window.setTimeout(() => onChange(draft), DEBOUNCE_MS);
     return () => window.clearTimeout(id);
   }, [draft, value, onChange]);

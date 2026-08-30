@@ -3,6 +3,7 @@ import type { TableMeta } from '@tanstack/react-table';
 
 import { cn } from '@/lib/utils';
 import type { Patient } from '@/features/patients/types/patient.types';
+import type { SortDir } from '@/features/patients/types/patientListQuery.types';
 
 // Byte-identical to the previous inline sortable-header button
 // (PatientTable.tsx:80). Do not retype — copied verbatim.
@@ -14,6 +15,21 @@ interface PatientSortableHeaderProps {
   readonly sortKey: 'name' | 'age';
   readonly align?: 'start' | 'end';
   readonly meta: TableMeta<Patient>;
+}
+
+function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
+  if (!active) {
+    return (
+      <ChevronsUpDown
+        aria-hidden="true"
+        className="size-3.5 text-muted-foreground/60"
+      />
+    );
+  }
+  if (dir === 'asc') {
+    return <ArrowUp aria-hidden="true" className="size-3.5" />;
+  }
+  return <ArrowDown aria-hidden="true" className="size-3.5" />;
 }
 
 /**
@@ -30,31 +46,20 @@ export function PatientSortableHeader({
 }: PatientSortableHeaderProps) {
   const active = meta.sortField === sortKey;
   const dir = meta.sortDir;
+  const currentOrder = dir === 'asc' ? 'ascending' : 'descending';
+  const ariaLabel = active
+    ? `Sort by ${label.toLowerCase()}, currently ${currentOrder}`
+    : `Sort by ${label.toLowerCase()}`;
 
   return (
     <button
       type="button"
       onClick={() => meta.onToggleSort(sortKey)}
-      aria-label={
-        active
-          ? `Sort by ${label.toLowerCase()}, currently ${
-              dir === 'asc' ? 'ascending' : 'descending'
-            }`
-          : `Sort by ${label.toLowerCase()}`
-      }
+      aria-label={ariaLabel}
       className={cn(HEADER_BUTTON, align === 'end' && 'flex-row-reverse')}
     >
       {label}
-      {!active ? (
-        <ChevronsUpDown
-          aria-hidden="true"
-          className="size-3.5 text-muted-foreground/60"
-        />
-      ) : dir === 'asc' ? (
-        <ArrowUp aria-hidden="true" className="size-3.5" />
-      ) : (
-        <ArrowDown aria-hidden="true" className="size-3.5" />
-      )}
+      <SortIcon active={active} dir={dir} />
     </button>
   );
 }

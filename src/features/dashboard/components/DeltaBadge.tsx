@@ -14,12 +14,19 @@ const intentClass: Record<DeltaBadgeProps['intent'], string> = {
   neutral: 'text-muted-foreground',
 };
 
+function SignArrow({ value }: { value: number }) {
+  const className = 'size-3.5';
+  if (value > 0)
+    return <ArrowUpRight className={className} aria-hidden="true" />;
+  if (value < 0)
+    return <ArrowDownRight className={className} aria-hidden="true" />;
+  return <Minus className={className} aria-hidden="true" />;
+}
+
 // Intent is semantic, not the sign — a falling ED wait is `good`. Arrow from
 // sign(value), colour from intent; glyph and label carry the meaning, not colour
 // alone (WCAG 1.4.1).
 export function DeltaBadge({ value, label, intent }: DeltaBadgeProps) {
-  const Arrow = value > 0 ? ArrowUpRight : value < 0 ? ArrowDownRight : Minus;
-
   return (
     <span
       className={cn(
@@ -27,7 +34,7 @@ export function DeltaBadge({ value, label, intent }: DeltaBadgeProps) {
         intentClass[intent],
       )}
     >
-      <Arrow className="size-3.5" aria-hidden="true" />
+      <SignArrow value={value} />
       <span className="tabular-nums">{label}</span>
     </span>
   );
