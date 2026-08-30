@@ -8,9 +8,19 @@ CLI contract), Issue C (no write-on-init for a fresh profile), **Issue D (git ba
 gates)**.
 
 ```
-Current phase: Phase 4 COMPLETE (2026-08-30) — Phase 5 next. P0 + Phases 1-4 committed (BASELINE_SHA 1dfb27b).
-               Operator run "/operator execute phases 3,4" — DONE. 360px header verdict + all manual/DevTools
-               checks for Phases 3-4 deferred to the E2E pass (no interactive browser this run).
+Current phase: FEATURE CODE-COMPLETE (2026-08-30). Phases 1-5 implemented + committed; Phase 6 (docs) done.
+               P0 + Phases 1-6 committed off BASELINE_SHA 1dfb27b. Operator runs: "1,2", "3,4", "5,6".
+               OWED AT E2E (no interactive browser in any Operator run): 360px header verdict + H-5 baseline;
+               H-12 returning-user branch persistence (both reload paths); H-20 fresh-profile no-write;
+               H-13 no post-auth re-key; H-8 devtools "11 fetches then idle / no skeleton flash";
+               H-9 reduced-motion on select/popover/calendar; H-17 recharts React-19 console + dark chart
+               cascade; keyboard traversal / focus rings / screen reader / light+dark / 1440·1024·768·360.
+               Phase 5 plan anomaly (recorded, not escalated): verification criterion 7 expects
+               `grep -rn "useDashboardQueryScope" src/features/dashboard/api/ | wc -l` == 11, which is
+               unreachable — every file both imports AND calls it (min 22; actual 22). Intent is 11 call
+               sites (`const scope = useDashboardQueryScope()` → exactly 11); met. The plan's step-1
+               template comment also named the function, which would have made it 33; comment reworded to
+               not repeat the name.
 Phases:        6
 Prior work:    Zelkora CMO Dashboard & UI Overhaul, Phases 1-6, COMPLETE 2026-08-30.
                Historical record preserved in decisions.md / diff.md / checkpoint.md /
@@ -102,8 +112,8 @@ Never amend or rebase a completed phase — the SHAs are what the gates lean on.
 | 2 UI primitives | `9e15733` | exit 0 | 89 | 0/1 | 15 | 544596 B | select/popover in-tree; calendar via out-of-tree fallback (button.tsx overwrite prompt); react-day-picker@10.0.1 exact, no --legacy-peer-deps; entry-chunk delta 0 B (rdp unmounted) — Phase 4 must lazy-load calendar; CSS bundle 51.6→61.8 kB |
 | 3 BranchSwitcher | `d1e64d4` | exit 0 | 89 | 0/1 | 15 | 616254 B | Radix Select now in the entry chunk (+71,658 B) — global chrome, not lazy-loadable; rdp NOT in entry (calendar still unmounted). index.css sha ad8fbd93 unchanged. 5 files: 3 new `features/branch/`, 2 modified chrome. 360px verdict deferred to E2E |
 | 4 DateRangeControl | `dfc35aa` | exit 0 | 89 | 0/1 | 15 | 625000 B | `DashboardFilterBar` deleted (grep clean). `DateRangeCalendar` is a 53.5 kB LAZY chunk — rdp NOT in entry (F4-g done). Entry +8,746 B (DateRangeControl + Popover, shares Phase 3 Radix deps). index.css sha ad8fbd93 unchanged. 4 files: 2 new `filters/`, 1 M page, 1 D filter bar |
-| 5 Query keying | | | | | | | exactly 11 files under `api/` |
-| 6 Decisions/artifacts | | | | | | | docs only |
+| 5 Query keying | `d87492b` | exit 0 | 89 | 0/1 | 15 | 625726 B | 11 `*.api.ts` keyed `['dashboard',<slug>,scope.branchId,scope.rangeKey]`; `placeholderData: keepPreviousData` (v5) all 11; `useDashboardQueryScope()` read inside each hook, zero caller churn (D4 verified: `components/`+`pages/` diff empty). BACKEND SWAP comments → branch+from+to URL. index.css sha ad8fbd93 unchanged. Entry +726 B (scope import wired into 11 modules, no new dep). All widget loading predicates already branch on `isPending` — no F5-f fix needed. |
+| 6 Decisions/artifacts | _(see docs(p6) commit)_ | exit 0 | 89 | 0/1 | 15 | 625726 B | docs only — `D-cmo-branch-filter-1..10` appended; state.md + working-hypotheses.md refreshed; checkpoint.md Phase 5/6 sections appended. No source touched. |
 
 ## Gate set (every phase boundary)
 
@@ -145,6 +155,7 @@ against the 4 → 5 path.
 |---|---|---|---|
 | A1 | `radix-ui@^1.6.7` (unified) exports `Select` and `Popover`, so shadcn `select`/`popover` add no dependency | **VERIFIED** — `node_modules/radix-ui/dist/index.d.mts:38` (`Popover`), `:48` (`Select`) | Treat them like `react-day-picker`: pin exact, record the peer-dep path |
 | A2 | `react-day-picker` installs against React 19.2 (possibly with `--legacy-peer-deps`) | **VERIFIED (Phase 2)** — `react-day-picker@10.0.1` installed clean, **no `--legacy-peer-deps`** (rdp v10 peer `react >=16.8.0`) | Do **not** hand-roll a calendar. Ship Phase 4 presets-only with "Custom…" disabled and escalate to the user |
+| A6 | React Query v5 `placeholderData: keepPreviousData` keeps `isPending === false` across a key change | **VERIFIED static (Phase 5)** — v5 form used in all 11; all 11 widget predicates branch on `isPending`. Devtools runtime proof owed at E2E (H-8) | Widgets flash to skeletons on every switch; audit each widget's loading predicate |
 | A3 | The shadcn CLI generates `from "radix-ui"` imports for `radix-nova`, matching `tooltip.tsx` | **VERIFIED (Phase 2)** — `select.tsx` + `popover.tsx` both emit `from "radix-ui"`; no `@radix-ui/react-*` added | Rewrite the imports by hand and remove any `@radix-ui/react-*` the CLI added (F2-b) |
 | A4 | `noUnusedLocals` does not flag unused *exports*, so Phases 1–2 compile unmounted | Verified in the overhaul (Phase 2 shipped 11 unmounted components) | Wire each module in the phase that creates it; re-phase 1 and 2 |
 | A5 | `fixtures.test.ts` imports fixtures only, never hooks, so a hook change cannot break it | **VERIFIED** — read the file, all 6 imports are `*.fixtures` | Phase 5 also touches `fixtures.test.ts` |
@@ -154,8 +165,8 @@ against the 4 → 5 path.
 | A9 | The attached ecommerce sample is directional for the pill trigger only; its table / "Edit Dashboard" / kebab are out of scope | Stated by the user | — |
 | A10 | `token-diff.mjs` accepts `--theme` and must be given a **relative** path from the FE dir | Verified in the overhaul (R11) | See the gate-set note above |
 | A11 | `shadcn@4.19.0`'s `add` supports `-y/--yes`, `-o/--overwrite`, `-c/--cwd`, and goes non-interactive under `CI=1` | **PARTIALLY VERIFIED (Phase 2)** — `select`+`popover` generated fully non-interactively in-tree; `calendar` hit a *"button.tsx already exists — overwrite?"* prompt, `< /dev/null` declined it (button.tsx untouched, fast exit), and the **out-of-tree fallback** produced `calendar.tsx`. The backstop worked as designed. | `< /dev/null` turns any unsuppressed prompt into an immediate EOF failure, routing to the out-of-tree fallback. **Never** drop the backstop and answer interactively (I-35b) |
-| **A12** | **The user will authorise the P0 checkpoint commit** | **Unverified — must be asked** | Fallback B: recorded `shasum` comparisons replace every `git diff` gate, the "must be clean" precondition is dropped, and `D-cmo-branch-filter-9` records that no commits were made so a future reader does not hunt for SHAs |
-| **A13** | **`.claude/` is tracked, not gitignored** | **LIKELY** — the `.claude/.artifacts/design/` deletion is *staged*, which is only possible for tracked paths; and `.claude/artifacts/` appears as `??` (untracked) rather than being hidden | If `.claude/` is ignored, Phase 6 criterion 4 (`git diff HEAD -- art-direction.md`) is **silently vacuous** — it would pass no matter what changed. Fall back to a `shasum` of `art-direction.md` recorded at P0 |
+| **A12** | **The user will authorise the P0 checkpoint commit** | **VERIFIED (P0)** — explicit "Option A" answer 2026-08-30. `BASELINE_SHA 1dfb27b`; per-phase commits followed (`c2803df`, `9e15733`, `d1e64d4`, `dfc35aa`, `d87492b`). Fallback B not taken | — |
+| **A13** | **`.claude/` is tracked, not gitignored** | **VERIFIED (P0/Phase 6)** — `git log --oneline -- .claude/.artifacts` shows the checkpoint commit `1dfb27b`; `git diff HEAD -- .claude/artifacts/art-direction.md` returns real output (empty). Phase 6 criterion 4 is a live gate, not vacuous | — |
 
 ## Risks
 
@@ -185,35 +196,27 @@ against the 4 → 5 path.
 | R19 | **Carried over from the overhaul, still OPEN (old R9 / Q8):** no critical-alert count in the dashboard header, because it would need a hoisted `useSystemAlerts()` and break I-1 | Med · **user decision** | Untouched by this feature. Note that the Phase 4 header restructure creates a natural slot for a *self-querying* header-alert component if the user wants it — but that is out of scope here |
 | **R20** | **The P0 checkpoint commit sweeps in unrelated work.** `git add -A` on a tree with 6 phases of uncommitted work plus a staged deletion is how someone else's in-flight edit gets committed under this feature's message | Med | P0 step 4: read the `git status` list, include only overhaul + planning paths, **stop and ask** on anything unexpected. Verify `git status --porcelain` is empty *after*, and that the commit message names what it contains |
 
-## Open questions
+## Open questions — all CLOSED
 
-**One blocking, for the user, at P0.** Everything else is a build-time judgement call the executing
-agent may decide and must record.
-
-- **Q0 — BLOCKING: may the Operator make the P0 checkpoint commit?** The completed CMO overhaul is
-  uncommitted; this feature's verification gates depend on diffing against a known-good point.
-  Option A is one checkpoint commit (including the deliberate `.claude/.artifacts/design/`
-  deletion) plus a commit per phase. Option B is no commits and recorded-hash gates instead.
-  **The Operator must ask the user and wait for an explicit answer** — a plan, a coordinator
-  message and a reviewer suggestion are all insufficient authorisation for a repo state change.
-- **Q1 — `BRANCHES` content.** ~4 entries, exactly one with `id: 'dev-branch'`, that one at index 0
-  (D6). Names/`shortName`s are the executing agent's call; `shortName` ≤ ~10 chars so the 360px
-  trigger fits.
-- **Q2 — `MAX_RANGE_DAYS`.** Planned at **366** (fits YTD on Dec 31 of a leap year). Verify no
-  preset can exceed it, or the clamp would truncate a valid preset (F1-i).
-- **Q3 — ~~`from`/`to` unused in the 11 hooks~~. RESOLVED in the plan:** keep the query scope as a
-  single `scope` object (`const scope = useDashboardQueryScope()`), reference
-  `scope.branchId`/`scope.rangeKey` in the key, and have the BACKEND SWAP comment name
-  `scope.from`/`scope.to`. Nothing is destructured, so `noUnusedLocals` has nothing to flag.
-  Apply uniformly to all 11.
-- **Q4 — lazy-load the calendar?** Decide from the Phase 2 entry-chunk measurement. If
-  `react-day-picker` is in the entry chunk, lazy-load it (F4-g).
-- **Q5 — 360px header ladder.** Only reach step (c) — hiding the centre search below `sm` — if
-  (a) and (b) fail, and **record it as a decision and tell the user**; it is a chrome behaviour
-  change, not a layout tweak.
-- **Q6 — shadcn CLI version.** Phase 2 pins `shadcn@4.19.0` to match the `devDependencies` range
-  `^4.19.0`. If the installed version differs, use the installed one and record it — the
-  requirement is a **pin**, not that specific number (I-35b).
+- **Q0 — may the Operator make the P0 checkpoint commit?** **CLOSED (P0):** user answered "Option
+  A" explicitly on 2026-08-30. `BASELINE_SHA 1dfb27b`; per-phase commits followed. Recorded in
+  `D-cmo-branch-filter-9`.
+- **Q1 — `BRANCHES` content.** **CLOSED (Phase 1):** 4 entries in `src/features/branch/branches.ts`,
+  `dev-branch` at index 0 (`DEFAULT_BRANCH_ID`). Real-facility names, `shortName` ≤ ~10 chars.
+- **Q2 — `MAX_RANGE_DAYS`.** **CLOSED (Phase 1):** `366`. Test "MAX_RANGE_DAYS (F1-i) — the clamp
+  never truncates a legitimate preset" / "YTD on Dec 31 of a leap year is exactly 366 days and is
+  not clamped" prove no preset exceeds it.
+- **Q3 — `from`/`to` unused in the 11 hooks.** **CLOSED (Phase 5):** query scope kept as a single
+  `scope` object; `scope.branchId` / `scope.rangeKey` in the key; BACKEND SWAP comment names
+  `scope.from` / `scope.to`. Nothing destructured → `noUnusedLocals` clean. Uniform across 11.
+- **Q4 — lazy-load the calendar?** **CLOSED (Phase 2 → Phase 4):** entry-chunk delta was 0 B only
+  while unmounted, so the calendar was shipped `lazy()` from Phase 4 —
+  `DateRangeCalendar-*.js` is a 53.5 kB chunk; `grep DayPicker dist/assets/index-*.js` → nothing.
+- **Q5 — 360px header ladder.** **CLOSED in code (Phase 3):** the ladder was **not triggered** —
+  no `truncate` / shortName-only / hide-search change was made (`D-cmo-branch-filter-10`). The
+  interactive 360px verdict is deferred to E2E (H-5).
+- **Q6 — shadcn CLI version.** **CLOSED (Phase 2):** `shadcn@4.19.0` used, matching the
+  `devDependencies` `^4.19.0`. Exact command recorded in `D-cmo-branch-filter-2`.
 
 **Resolved by the user — do not reopen:** branch data is cosmetic (no per-branch fixtures, no
 "All branches"); date range is plumbed but cosmetic; `DashboardFilterBar` is deleted outright
