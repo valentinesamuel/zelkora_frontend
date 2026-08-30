@@ -40,7 +40,7 @@ import {
   type PatientFormValues,
 } from '@/features/patients/schemas/patientForm.schema';
 import type { PatientWire } from '@/features/patients/types/patient.types';
-import { ApiError } from '@/lib/apiClient';
+import { setRootSubmitError } from '@/lib/formErrors';
 
 type PatientFormProps =
   | { mode: 'create' }
@@ -84,12 +84,7 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
       );
       navigate('/patients');
     } catch (err) {
-      form.setError('root', {
-        message:
-          err instanceof ApiError
-            ? err.apiMessage
-            : 'Something went wrong. Please try again.',
-      });
+      setRootSubmitError(form, err);
     }
   }
 

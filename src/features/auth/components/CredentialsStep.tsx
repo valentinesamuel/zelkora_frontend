@@ -10,7 +10,7 @@ import { Form, FormControl, FormField } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-import { ApiError } from '../../../lib/apiClient';
+import { setRootSubmitError } from '@/lib/formErrors';
 import type { LoginResult } from '../types';
 import { credentialsSchema, type CredentialsValues } from '../schemas';
 import { useAuthStore } from '../authStore';
@@ -44,12 +44,7 @@ export function CredentialsStep({
       const result = await loginWithCredentials(values);
       onResult(result);
     } catch (err) {
-      form.setError('root', {
-        message:
-          err instanceof ApiError
-            ? err.apiMessage
-            : 'Something went wrong. Please try again.',
-      });
+      setRootSubmitError(form, err);
     }
   }
 

@@ -6,6 +6,10 @@
 // only bridge between them and is pure (inject `now` in tests).
 
 import { calculateAge } from '@/features/patients/format';
+import { initialsOf } from '@/lib/name';
+
+/** `"Adebayo Okonkwo"` -> `"AO"`, `"Chidi"` -> `"C"`, `""` -> `"?"`. */
+export { initialsOf as patientInitials } from '@/lib/name';
 
 export type PatientSex = 'male' | 'female' | 'other';
 export type PatientPaymentType = 'hmo' | 'cash' | 'corporate';
@@ -123,15 +127,6 @@ export interface Patient {
   readonly lastVisitAt: string | null;
 }
 
-/** `"Adebayo Okonkwo"` -> `"AO"`, `"Chidi"` -> `"C"`, `""` -> `"?"`. */
-export function patientInitials(fullName: string): string {
-  const tokens = fullName.trim().split(/\s+/).filter(Boolean);
-  if (tokens.length === 0) return '?';
-  const first = tokens[0]!.charAt(0);
-  const last = tokens.length > 1 ? tokens[tokens.length - 1]!.charAt(0) : '';
-  return (first + last).toUpperCase();
-}
-
 function trimToNull(value: string | undefined): string | null {
   if (value === undefined) return null;
   const trimmed = value.trim();
@@ -154,7 +149,7 @@ export function toPatient(wire: PatientWire, now: Date = new Date()): Patient {
     id: wire.id,
     zrn: wire.zrn,
     fullName,
-    initials: patientInitials(fullName),
+    initials: initialsOf(fullName),
     age: calculateAge(wire.dateOfBirth, now),
     sex: wire.gender,
     phone: trimToNull(wire.phoneNumber),

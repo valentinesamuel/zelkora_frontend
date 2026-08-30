@@ -1,6 +1,7 @@
 // Pure serde for the persisted filter blob (I-37) — NO I/O. The store
-// (`dashboardFiltersStore.ts`) is the only module that touches `localStorage`;
-// this file only turns a raw string into a validated shape and back.
+// (`dashboardFiltersStore.ts`) owns persistence, reaching `localStorage` only
+// through `@/lib/storage`; this file just turns a raw string into a validated
+// shape and back.
 
 import { DEFAULT_BRANCH_ID, isKnownBranchId } from '@/features/branch/branches';
 import {

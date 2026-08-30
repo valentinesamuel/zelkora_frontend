@@ -21,6 +21,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { initialsOf } from '@/lib/name';
+import { readStorage, writeStorage } from '@/lib/storage';
 import { BranchLabel } from '@/features/branch/BranchLabel';
 
 import { useAuthStore } from '../../features/auth/authStore';
@@ -29,24 +31,13 @@ import type { NavItem } from './navigation';
 
 const COLLAPSED_STORAGE_KEY = 'zelkora.sidebar.collapsed';
 
-/**
- * Persisted collapse state. The `try/catch` is mandatory — Safari private mode
- * and some embedded webviews throw on `localStorage` access.
- */
+/** Persisted collapse state; absent / unreadable storage means "expanded". */
 function readCollapsed(): boolean {
-  try {
-    return localStorage.getItem(COLLAPSED_STORAGE_KEY) === 'true';
-  } catch {
-    return false;
-  }
+  return readStorage(COLLAPSED_STORAGE_KEY) === 'true';
 }
 
 function writeCollapsed(value: boolean): void {
-  try {
-    localStorage.setItem(COLLAPSED_STORAGE_KEY, String(value));
-  } catch {
-    // Storage unavailable (private mode / webview) — collapse just won't persist.
-  }
+  writeStorage(COLLAPSED_STORAGE_KEY, String(value));
 }
 
 const ROW_BASE =
@@ -55,15 +46,6 @@ const ROW_BASE =
 function rowLayout(collapsed: boolean, depth: number): string {
   if (collapsed) return 'justify-center px-0';
   return depth > 0 ? 'pr-3 pl-10' : 'px-3';
-}
-
-/** `"Adebayo Okonkwo"` -> `"AO"`, `"Chidi"` -> `"C"`, `""` -> `"?"`. */
-function initialsOf(fullName: string): string {
-  const tokens = fullName.trim().split(/\s+/).filter(Boolean);
-  if (tokens.length === 0) return '?';
-  const first = tokens[0]!.charAt(0);
-  const last = tokens.length > 1 ? tokens[tokens.length - 1]!.charAt(0) : '';
-  return (first + last).toUpperCase();
 }
 
 function RowIcon({ icon: Icon }: { icon: LucideIcon }) {

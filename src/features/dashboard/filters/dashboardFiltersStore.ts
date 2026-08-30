@@ -13,6 +13,7 @@ import {
   FILTERS_STORAGE_KEY,
 } from '@/features/dashboard/filters/filtersPersistence';
 import { isKnownBranchId } from '@/features/branch/branches';
+import { readStorage, writeStorage } from '@/lib/storage';
 
 export function todayIso(): string {
   return format(new Date(), 'yyyy-MM-dd');
@@ -29,25 +30,14 @@ interface DashboardFiltersState {
   markUserSeedApplied(): void;
 }
 
-function readRaw(): string | null {
-  try {
-    return localStorage.getItem(FILTERS_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function writeRaw(value: string): void {
-  try {
-    localStorage.setItem(FILTERS_STORAGE_KEY, value);
-  } catch {}
-}
-
 const initialToday = todayIso();
-const decoded = decodeFilters(readRaw(), initialToday);
+const decoded = decodeFilters(readStorage(FILTERS_STORAGE_KEY), initialToday);
 
 if (decoded.present && decoded.healed) {
-  writeRaw(encodeFilters(decoded.branchId, decoded.selection));
+  writeStorage(
+    FILTERS_STORAGE_KEY,
+    encodeFilters(decoded.branchId, decoded.selection),
+  );
 }
 
 export const useDashboardFiltersStore = create<DashboardFiltersState>()(
@@ -62,13 +52,16 @@ export const useDashboardFiltersStore = create<DashboardFiltersState>()(
         return;
       }
       set({ branchId: id });
-      writeRaw(encodeFilters(id, get().selection));
+      writeStorage(FILTERS_STORAGE_KEY, encodeFilters(id, get().selection));
     },
 
     setSelection: (sel) => {
       const normalized = normalizeSelection(sel, todayIso());
       set({ selection: normalized });
-      writeRaw(encodeFilters(get().branchId, normalized));
+      writeStorage(
+        FILTERS_STORAGE_KEY,
+        encodeFilters(get().branchId, normalized),
+      );
     },
 
     markUserSeedApplied: () => {
