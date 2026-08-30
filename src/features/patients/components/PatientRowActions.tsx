@@ -45,7 +45,8 @@ const ACTIONS: readonly PatientAction[] = [
     id: 'edit',
     label: 'Edit patient',
     icon: Pencil,
-    enabled: false,
+    to: (p) => `/patients/${p.id}/edit`,
+    enabled: true,
   },
   {
     id: 'schedule',

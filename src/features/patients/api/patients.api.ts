@@ -1,5 +1,5 @@
-// The patient-list query hook. Server state only — URL state lives in
-// `usePatientListParams`, UI state stays local to components.
+// The patient-list query hook + single-patient read. Server state only — URL
+// state lives in `usePatientListParams`, UI state stays local to components.
 //
 // `keepPreviousData` keeps the current page on screen while the next page /
 // a changed filter loads, so the table never flashes to skeleton after first
@@ -7,15 +7,14 @@
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import { fixturePatientsRepository } from '@/features/patients/api/patientsRepository';
+import { patientsRepository } from '@/features/patients/api/patientsRepository';
 import { serializePatientListParams } from '@/features/patients/filters/patientListParams';
+import { apiRequest } from '@/lib/apiClient';
+import type { PatientWire } from '@/features/patients/types/patient.types';
 import type {
   PatientListQuery,
   PatientListResult,
 } from '@/features/patients/types/patientListQuery.types';
-
-// Single indirection point — swap for the live repository here.
-const patientsRepository = fixturePatientsRepository;
 
 export const PATIENTS_QUERY_KEY = 'patients';
 
@@ -28,5 +27,22 @@ export function usePatients(query: PatientListQuery) {
     queryKey: patientsQueryKey(query),
     queryFn: () => patientsRepository.list(query),
     placeholderData: keepPreviousData,
+  });
+}
+
+/** `GET /patients/:id` — the raw wire record, used to hydrate the edit form. */
+export function getPatient(id: string): Promise<PatientWire> {
+  return apiRequest<PatientWire>(`/patients/${id}`);
+}
+
+export function patientDetailQueryKey(patientId: string) {
+  return [PATIENTS_QUERY_KEY, 'detail', patientId] as const;
+}
+
+export function usePatient(patientId: string) {
+  return useQuery<PatientWire>({
+    queryKey: patientDetailQueryKey(patientId),
+    queryFn: () => getPatient(patientId),
+    enabled: patientId.length > 0,
   });
 }

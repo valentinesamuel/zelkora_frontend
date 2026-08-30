@@ -45,6 +45,66 @@ export interface PatientWire {
   readonly updatedAt: string; // RFC3339
 }
 
+/**
+ * Wire shape of `GET /api/v1/patients` (list). Mirrors the backend
+ * `ListPatientsResponse` (zelkora_backend internal/patient/dto.go) — page-based
+ * pagination, `total` is a real count.
+ */
+export interface ListPatientsWire {
+  readonly patients: PatientWire[];
+  readonly page: number;
+  readonly limit: number;
+  readonly total: number;
+}
+
+/**
+ * Request body for `POST /api/v1/patients`. Mirrors the backend
+ * `CreatePatientRequest` minus `lgaId` (no endpoint to populate an LGA picker
+ * yet) and minus `branchId` (taken from the JWT, never sent). Optional fields
+ * are omitted entirely when empty rather than sent as `null` / `""`.
+ */
+export interface CreatePatientBody {
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  email?: string;
+  phoneNumber: string;
+  dateOfBirth: string; // "YYYY-MM-DD"
+  gender: PatientSex;
+  bloodGroup?: string;
+  maritalStatus?: string;
+  address?: string;
+  nationality?: string;
+  occupation?: string;
+  paymentType: PatientPaymentType;
+  nextOfKin: PatientNextOfKin;
+}
+
+/**
+ * Request body for `PATCH /api/v1/patients/:id`. Mirrors the backend
+ * `UpdatePatientRequest` minus `lgaId` / `branchId`. Every field optional — only
+ * dirty fields are sent. NOTE: the backend skips a field sent as JSON `null`
+ * (keeps the old value); send `""` to actually blank an optional text field.
+ * `nextOfKin`, when present, must be the complete object (all four sub-fields).
+ */
+export interface UpdatePatientBody {
+  firstName?: string;
+  lastName?: string;
+  middleName?: string;
+  email?: string;
+  phoneNumber?: string;
+  dateOfBirth?: string; // "YYYY-MM-DD"
+  gender?: PatientSex;
+  bloodGroup?: string;
+  maritalStatus?: string;
+  address?: string;
+  nationality?: string;
+  occupation?: string;
+  paymentType?: PatientPaymentType;
+  nextOfKin?: PatientNextOfKin;
+  isActive?: boolean;
+}
+
 /** Presentation model — what `PatientTable` and its cells consume. */
 export interface Patient {
   readonly id: string;

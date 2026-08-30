@@ -1,118 +1,116 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { fixturePatientsRepository } from '@/features/patients/api/patientsRepository';
-import { PATIENT_FIXTURES } from '@/features/patients/api/patients.fixtures';
+import { apiRequest } from '@/lib/apiClient';
+import { patientsRepository } from '@/features/patients/api/patientsRepository';
 import { DEFAULT_PATIENT_LIST_QUERY } from '@/features/patients/filters/patientListParams';
+import type {
+  ListPatientsWire,
+  PatientWire,
+} from '@/features/patients/types/patient.types';
 import type { PatientListQuery } from '@/features/patients/types/patientListQuery.types';
+
+vi.mock('@/lib/apiClient', () => ({ apiRequest: vi.fn() }));
+
+const apiRequestMock = vi.mocked(apiRequest);
 
 function query(overrides: Partial<PatientListQuery> = {}): PatientListQuery {
   return { ...DEFAULT_PATIENT_LIST_QUERY, ...overrides };
 }
 
-describe('fixturePatientsRepository.list', () => {
-  it('returns the first page with a total and forward cursor only', async () => {
-    const result = await fixturePatientsRepository.list(query({ limit: 10 }));
-    expect(result.patients).toHaveLength(10);
-    expect(result.total).toBe(PATIENT_FIXTURES.length);
+function wirePatient(id: string): PatientWire {
+  return {
+    id,
+    zrn: `ZRN-LAG-${id}`,
+    firstName: 'Ada',
+    lastName: 'Okoro',
+    phoneNumber: '08030000000',
+    dateOfBirth: '1990-01-01',
+    gender: 'female',
+    paymentType: 'cash',
+    nextOfKin: {
+      name: 'Ben',
+      phone: '08030000001',
+      relationship: 'brother',
+      address: 'Lagos',
+    },
+    isActive: true,
+    createdAt: '2023-01-01T00:00:00Z',
+    updatedAt: '2023-01-01T00:00:00Z',
+  };
+}
+
+function listWire(overrides: Partial<ListPatientsWire> = {}): ListPatientsWire {
+  return {
+    patients: [wirePatient('1')],
+    page: 1,
+    limit: 25,
+    total: 1,
+    ...overrides,
+  };
+}
+
+beforeEach(() => {
+  apiRequestMock.mockReset();
+});
+
+describe('patientsRepository.list', () => {
+  it('requests page 1 when there is no cursor', async () => {
+    apiRequestMock.mockResolvedValue(listWire());
+    await patientsRepository.list(query({ limit: 25 }));
+    expect(apiRequestMock).toHaveBeenCalledWith('/patients?page=1&limit=25');
+  });
+
+  it('maps wire patients through toPatient', async () => {
+    apiRequestMock.mockResolvedValue(listWire({ total: 1 }));
+    const result = await patientsRepository.list(query());
+    expect(result.patients[0]).toMatchObject({
+      id: '1',
+      fullName: 'Ada Okoro',
+      sex: 'female',
+    });
+    expect(result.total).toBe(1);
+  });
+
+  it('exposes a forward cursor only on the first of several pages', async () => {
+    apiRequestMock.mockResolvedValue(
+      listWire({ total: 60, limit: 25, patients: [] }),
+    );
+    const result = await patientsRepository.list(query({ limit: 25 }));
     expect(result.pageInfo.hasPrev).toBe(false);
     expect(result.pageInfo.prevCursor).toBeNull();
     expect(result.pageInfo.hasNext).toBe(true);
     expect(result.pageInfo.nextCursor).not.toBeNull();
   });
 
-  it('walks forward with nextCursor and back to the first page with prevCursor', async () => {
-    const first = await fixturePatientsRepository.list(query({ limit: 10 }));
-    const second = await fixturePatientsRepository.list(
-      query({ limit: 10, cursor: first.pageInfo.nextCursor }),
-    );
+  it('round-trips the page number through the opaque cursor', async () => {
+    apiRequestMock.mockResolvedValue(listWire({ total: 60, patients: [] }));
+    const first = await patientsRepository.list(query({ limit: 25 }));
 
-    expect(second.pageInfo.hasPrev).toBe(true);
-    expect(second.patients[0]!.id).not.toBe(first.patients[0]!.id);
-
-    const back = await fixturePatientsRepository.list(
-      query({ limit: 10, cursor: second.pageInfo.prevCursor }),
+    apiRequestMock.mockResolvedValue(
+      listWire({ total: 60, page: 2, patients: [] }),
     );
-    expect(back.patients.map((p) => p.id)).toEqual(
-      first.patients.map((p) => p.id),
+    await patientsRepository.list(
+      query({ limit: 25, cursor: first.pageInfo.nextCursor }),
     );
+    expect(apiRequestMock).toHaveBeenLastCalledWith('/patients?page=2&limit=25');
   });
 
-  it('sorts by name ascending and descending', async () => {
-    const asc = await fixturePatientsRepository.list(
-      query({ limit: 100, sortField: 'name', sortDir: 'asc' }),
+  it('has no next page when page * limit === total', async () => {
+    apiRequestMock.mockResolvedValue(
+      listWire({ total: 50, limit: 25, page: 2, patients: [] }),
     );
-    const names = asc.patients.map((p) => p.fullName);
-    expect([...names]).toEqual([...names].sort((a, b) => a.localeCompare(b, 'en')));
-
-    const desc = await fixturePatientsRepository.list(
-      query({ limit: 100, sortField: 'name', sortDir: 'desc' }),
+    const result = await patientsRepository.list(
+      query({ limit: 25, cursor: btoa('p:2') }),
     );
-    expect(desc.patients[0]!.fullName).toBe(names[names.length - 1]);
+    expect(result.pageInfo.hasNext).toBe(false);
+    expect(result.pageInfo.nextCursor).toBeNull();
+    expect(result.pageInfo.hasPrev).toBe(true);
+    expect(result.pageInfo.prevCursor).not.toBeNull();
   });
 
-  it('filters by search across name, ZRN and phone digits', async () => {
-    const byName = await fixturePatientsRepository.list(
-      query({ limit: 100, search: 'John Okoro' }),
-    );
-    expect(byName.patients.length).toBeGreaterThanOrEqual(2);
-    expect(byName.patients.every((p) => p.fullName.includes('John Okoro'))).toBe(
-      true,
-    );
-
-    const byZrn = await fixturePatientsRepository.list(
-      query({ limit: 100, search: 'ZRN-LAG-090001' }),
-    );
-    expect(byZrn.patients).toHaveLength(1);
-    expect(byZrn.patients[0]!.zrn).toBe('ZRN-LAG-090001');
-
-    const byPhone = await fixturePatientsRepository.list(
-      query({ limit: 100, search: '08031234567' }),
-    );
-    expect(byPhone.patients.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it('filters by status and sex', async () => {
-    const inactive = await fixturePatientsRepository.list(
-      query({ limit: 100, status: 'inactive' }),
-    );
-    expect(inactive.patients.length).toBeGreaterThan(0);
-    expect(inactive.patients.every((p) => p.status === 'inactive')).toBe(true);
-
-    const female = await fixturePatientsRepository.list(
-      query({ limit: 100, sex: 'female' }),
-    );
-    expect(female.patients.every((p) => p.sex === 'female')).toBe(true);
-  });
-
-  it('filters by age range', async () => {
-    const kids = await fixturePatientsRepository.list(
-      query({ limit: 100, ageMin: 0, ageMax: 5 }),
-    );
-    expect(kids.patients.length).toBeGreaterThan(0);
-    expect(kids.patients.every((p) => p.age !== null && p.age <= 5)).toBe(true);
-  });
-
-  it('filters by registered date range', async () => {
-    const early2023 = await fixturePatientsRepository.list(
-      query({ limit: 100, registeredFrom: '2023-01-01', registeredTo: '2023-01-31' }),
-    );
-    expect(
-      early2023.patients.length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      early2023.patients.every(
-        (p) => p.registeredAt >= '2023-01-01' && p.registeredAt <= '2023-01-31T23:59:59Z',
-      ),
-    ).toBe(true);
-  });
-
-  it('returns an empty page (not an error) when nothing matches', async () => {
-    const none = await fixturePatientsRepository.list(
-      query({ limit: 100, search: 'zzzzz-no-such-patient' }),
-    );
-    expect(none.patients).toHaveLength(0);
-    expect(none.total).toBe(0);
-    expect(none.pageInfo.hasNext).toBe(false);
-    expect(none.pageInfo.hasPrev).toBe(false);
+  it('clamps a malformed cursor back to page 1', async () => {
+    apiRequestMock.mockResolvedValue(listWire());
+    await patientsRepository.list(query({ cursor: 'not-base64!!' }));
+    expect(apiRequestMock).toHaveBeenCalledWith('/patients?page=1&limit=25');
   });
 });
