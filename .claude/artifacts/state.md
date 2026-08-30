@@ -8,8 +8,9 @@ CLI contract), Issue C (no write-on-init for a fresh profile), **Issue D (git ba
 gates)**.
 
 ```
-Current phase: Phase 2 COMPLETE (2026-08-30) — Phase 3 next. P0 + Phases 1-2 committed (BASELINE_SHA 1dfb27b).
-               Operator run "/operator execute phases P0,1,2" — DONE. Phase 3 needs the 360px AppHeader capture first (see baseline block).
+Current phase: Phase 3 COMPLETE (2026-08-30) — Phase 4 next. P0 + Phases 1-3 committed (BASELINE_SHA 1dfb27b).
+               Operator run "/operator execute phases 3,4" — in progress. 360px header verdict + all
+               manual/DevTools checks for Phase 3 deferred to the E2E pass (no interactive browser this run).
 Phases:        6
 Prior work:    Zelkora CMO Dashboard & UI Overhaul, Phases 1-6, COMPLETE 2026-08-30.
                Historical record preserved in decisions.md / diff.md / checkpoint.md /
@@ -99,7 +100,7 @@ Never amend or rebase a completed phase — the SHAs are what the gates lean on.
 | P0 baseline | `1dfb27b` | exit 0 | 45 | 0/1 | 15 | 544596 B | overhaul checkpoint + pipeline-store deletion; index.css sha ad8fbd93 |
 | 1 Filter foundation | `c2803df` | exit 0 | 89 | 0/1 | 15 | 544596 B | date-fns@4.4.0 exact, no --legacy-peer-deps; index.css sha ad8fbd93 unchanged; +44 tests, 5 new modules unmounted |
 | 2 UI primitives | `9e15733` | exit 0 | 89 | 0/1 | 15 | 544596 B | select/popover in-tree; calendar via out-of-tree fallback (button.tsx overwrite prompt); react-day-picker@10.0.1 exact, no --legacy-peer-deps; entry-chunk delta 0 B (rdp unmounted) — Phase 4 must lazy-load calendar; CSS bundle 51.6→61.8 kB |
-| 3 BranchSwitcher | | | | | | | 360px verdict vs. the P0 capture |
+| 3 BranchSwitcher | `d1e64d4` | exit 0 | 89 | 0/1 | 15 | 616254 B | Radix Select now in the entry chunk (+71,658 B) — global chrome, not lazy-loadable; rdp NOT in entry (calendar still unmounted). index.css sha ad8fbd93 unchanged. 5 files: 3 new `features/branch/`, 2 modified chrome. 360px verdict deferred to E2E |
 | 4 DateRangeControl | | | | | | | `DashboardFilterBar` deleted |
 | 5 Query keying | | | | | | | exactly 11 files under `api/` |
 | 6 Decisions/artifacts | | | | | | | docs only |

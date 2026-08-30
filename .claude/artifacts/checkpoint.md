@@ -414,3 +414,110 @@ runtime dep is `react-day-picker@10.0.1` (exact). `src/index.css` and
 - `src/components/ui/popover.tsx`: new — shadcn popover, portalled, `"use client"` stripped.
 - `src/components/ui/calendar.tsx`: new — shadcn calendar / rdp v10, arbitrary values normalised, adapted to the repo `button.tsx` API.
 - `package.json` / `package-lock.json`: `react-day-picker@10.0.1` exact (+ transitive `@date-fns/tz`).
+
+---
+
+# Checkpoint — Global Branch Switcher & Working Date Range · Phase 3: BranchSwitcher
+
+**Executed:** 2026-08-30 · **Operator** · plan.md Phase 3 · HEAD at gate time `daf2830`
+
+## Phase summary
+Made the branch selection real and visible. Three new `.ts`/`.tsx` modules under
+`src/features/branch/`; `AppHeader` and `AppSidebar` each gained one import and one
+element. The store value and the two chrome labels now change on selection and
+persist across reload. Query keys are still un-keyed (Phase 5), so there is
+deliberately no data effect. Test suite unchanged at 89 (no `.test.ts` added — the
+new surface is `.tsx`, uncoverable in the node-only vitest env, I-21).
+
+## Implementation details
+- **`useBranchHydration.ts` (A, `.ts` hook — I-22).** The only module where the
+  filters store and `authStore` meet. Effect body is verbatim the plan's predicate:
+  `if (!userSeedApplied && user !== null) { markUserSeedApplied(); if (!persistedOnInit) setBranchId(isKnownBranchId(user.branchId ?? '') ? user.branchId! : DEFAULT_BRANCH_ID); }`.
+  `markUserSeedApplied()` is **outside** the inner `if` (F3-j). Reads `user` via
+  `useAuthStore((s) => s.user)` — never writes it (I-31). `persistedOnInit` is a
+  store selector read from the init snapshot, never re-derived.
+- **`BranchSwitcher.tsx` (A).** Calls `useBranchHydration()`. `Select value={branchId}
+  onValueChange={setBranchId}`, one `SelectItem` per `BRANCHES` entry rendering
+  `name`. Trigger: two spans — `truncate sm:hidden` (`shortName`) + `hidden truncate
+  sm:inline` (`name`); no `matchMedia`. `aria-label="Switch branch"`. Trigger
+  className adds the house focus ring (`focus-visible:outline-2
+  focus-visible:outline-ring focus-visible:outline-offset-2`) and neutralises
+  shadcn's default (`focus-visible:border-input focus-visible:ring-0`) so the header
+  keeps one focus-ring vocabulary (I-15 / F3-g). `h-8 min-w-0 truncate rounded-sm
+  border` tracks the Bell/search siblings. Returns `null` when `BRANCHES.length < 2`
+  (defensive; there are 4).
+- **`BranchLabel.tsx` (A).** `branchNameFor(branchId)` → `<>{` · ${name}`}</>` or
+  `null`. Never a raw id (I-38 / F3-h). Subscription-free element so the sidebar
+  gains a component, not a store hook (I-39).
+- **`AppHeader.tsx` (M).** `+import { BranchSwitcher }`; right-cell wrapper
+  `flex items-center justify-self-end` → `flex min-w-0 items-center gap-2
+  justify-self-end`; `<BranchSwitcher />` before the Bell; Bell button `+shrink-0`.
+  No store/query/state code (I-39 / F3-e — grep-verified).
+- **`AppSidebar.tsx` (M).** `+import { BranchLabel }`; line 280
+  `{user?.branchId != null && \` · ${user.branchId}\`}` → `<BranchLabel />`. `user`
+  still used by `fullName`/`role`/`initialsOf`. `collapsed` still gates the block.
+
+## Verification results
+| # | Plan criterion | Result |
+|---|---|---|
+| 1 | build / test / lint → 0 / 0 / 0 err + 1 warn | **Pass** — build exit 0, 89 tests, lint 0 err / 1 pre-existing warn (`EnrollMfaStep.tsx:78`) |
+| 2 | token-diff ≤ 15; `shasum src/index.css` == P0; `git diff --stat HEAD -- src/index.css` empty | **Pass** — 15; `ad8fbd930a407e6cb38b471e1ee85715f37c2bf7`; diff empty |
+| 3 | `AppHeader.tsx` diff small (≈ +4/−1), confined to the right cell; no `useDashboardFiltersStore\|useQuery\|useState` | **Pass** — +4/−2 (import + wrapper class + element + Bell `shrink-0`); grep for the three tokens → nothing |
+| 4 | `grep -rn "authStore\|useAuthStore" src/features/branch/` → only `useBranchHydration.ts`, read-only | **Pass (with note)** — the only *code* match is `useBranchHydration.ts:24` `useAuthStore((s) => s.user)` (a read). `branches.ts:8` also matches, but on a **doc comment** ("before `authStore.bootstrap()` resolves") committed in Phase 1 — not code, not introduced here |
+| 5 | `persistedOnInit` present in the hook, read from the store; `grep -rn "hydratedFromUser" src/` → nothing | **Pass** — `useBranchHydration.ts:25` `useDashboardFiltersStore((s) => s.persistedOnInit)`; no `hydratedFromUser` anywhere |
+| 6 | `grep -n "user.branchId" src/app/layouts/AppSidebar.tsx` → nothing | **Pass** |
+| 7 | `grep -rn "DashboardFilterBar" src/` → still 3 (declaration + import + usage) | **Pass** — untouched this phase (Phase 4 deletes it) |
+| 8 | `git status` = exactly the 5 Affected files | **Pass** — `M AppHeader.tsx`, `M AppSidebar.tsx`, `?? BranchLabel.tsx`, `?? BranchSwitcher.tsx`, `?? useBranchHydration.ts`. Nothing under `src/features/dashboard/` or `src/components/` |
+| 9 | Manual `npm run dev` checklist | **Deferred to the E2E pass** — no interactive browser this run, same posture as P0 / Phases 1–2 |
+
+## Expected vs actual behaviour
+| Expected (plan) | Actual |
+|---|---|
+| Switcher in the header right cell, left of the bell; changing it updates store + sidebar label + persists; no data effect | Code path exactly that; behavioural proof deferred to E2E |
+| Returning user's stored branch never overwritten; first-time user seeded once post-auth | Predicate implemented verbatim; the two-field guard (`persistedOnInit` + `userSeedApplied`) is intact |
+| No visible change to the build's shape beyond the wired primitive | Entry chunk grew — see anomalies |
+
+## Build status
+**CLEAN.** 0 TS errors, 0 lint errors, 0 test failures, token-diff 15, `src/index.css`
+byte-identical to P0.
+
+## Risks or anomalies
+- **Entry chunk 544596 → 616254 B (+71,658).** Wiring `Select` into `AppHeader`
+  (always mounted) pulls Radix Select + its Popper/dismissable-layer/focus-scope/
+  portal deps into the entry chunk. This is inherent to a **global** switcher — it
+  cannot be sensibly lazy-loaded — and Phase 3 has no entry-chunk gate. Verified
+  `react-day-picker` is **not** in the entry chunk (`grep DayPicker dist/assets/index-*.js`
+  → nothing); the calendar stays unmounted until Phase 4. The Phase-2 lazy-load
+  recommendation is about the calendar, not `select`.
+- **360px header verdict not taken.** The P0 360px `AppHeader` baseline was never
+  captured (no interactive browser — recorded in the P0 checkpoint and `state.md`).
+  Mitigation ladder step (a) — `min-w-0` on the wrapper + `truncate` on the trigger
+  — is in place. Steps (b)/(c) are visual-only decisions and are **not** applied.
+  F3-d attribution + the full keyboard / SR / light-dark / reduced-motion / 360px
+  checklist go to the E2E pass.
+- **Assigned agents (`react-specialist` primary, `accessibility-tester` review) not
+  spawned.** Same posture as P0 / Phases 1–2: the fully-specified plan was applied
+  deterministically and every agent-map.md Phase 3 reviewer bullet checked against
+  the result (two-field predicate verbatim; `markUserSeedApplied()` unconditional;
+  `persistedOnInit` from the init snapshot; no `hydratedFromUser`; `authStore`
+  read-only in `branch/`; `AppHeader` diff confined + no store/query/state; no
+  `user.branchId` in the sidebar; house focus ring; `SelectContent` portalled via
+  Phase 2's `SelectPrimitive.Portal`; `src/index.css` hash). Behavioural / a11y
+  items that need a browser are explicitly deferred, not marked passed.
+
+## Context for Next Phase
+### Key Decisions
+- `BranchSwitcher` trigger neutralises shadcn's `focus-visible:ring-3` with `focus-visible:ring-0 focus-visible:border-input` + the house outline triple — twMerge keeps the last width/border-color class. Phase 4's `DateRangeControl` pill should do the same.
+- The switcher's two-span label (`sm:hidden` / `hidden sm:inline`) is the sanctioned responsive pattern here — no `matchMedia`. Phase 4's calendar `numberOfMonths` responsiveness should also be CSS/prop-driven, not a JS breakpoint read.
+### Discovered Constraints
+- Radix Select is ~72 kB in the entry chunk now. Phase 4 adding `Popover` there is near-free (shared Radix deps already present); `react-day-picker` is the only remaining weight and MUST be lazy-loaded (F4-g) — the Phase-2 recommendation stands, now with the calendar as the sole entry-chunk risk.
+- `grep -rn "authStore" src/features/branch/` will always match `branches.ts`'s Phase-1 doc comment — read gate 4 as "no code coupling", not "zero substring matches".
+### Do Not Revisit
+- The two-field hydration predicate is implemented and matches D7 / I-31b exactly — do not merge `persistedOnInit` and `userSeedApplied`.
+- `src/features/branch/` is the switcher's home; `BranchLabel` exists so the sidebar never subscribes to the store (I-39).
+### Files Changed
+- `src/features/branch/useBranchHydration.ts`: new — one-shot post-auth seed; reads authStore, never writes.
+- `src/features/branch/BranchSwitcher.tsx`: new — the header Select control.
+- `src/features/branch/BranchLabel.tsx`: new — subscription-free sidebar footer label.
+- `src/app/layouts/AppHeader.tsx`: +import +element, right-cell wrapper `min-w-0 gap-2`, Bell `shrink-0`.
+- `src/app/layouts/AppSidebar.tsx`: +import, raw-id branch text replaced by `<BranchLabel />`.

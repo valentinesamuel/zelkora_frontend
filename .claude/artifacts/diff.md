@@ -553,3 +553,31 @@ CI=1 npx --yes shadcn@4.19.0 add select popover calendar --yes --cwd . < /dev/nu
 
 ### F4-g / Q4 recommendation (entry-chunk delta)
 Entry-chunk delta is **0 bytes** *only because the calendar is still unmounted*. `react-day-picker` (~30 kB gz JS) + `date-fns` locale code will land in the dashboard's chunk the moment Phase 4 imports `Calendar`. **Recommendation: Phase 4 MUST lazy-load the calendar view** (`lazy()` + `Suspense`, fallback sized to the loaded height per F4-g) so the preset-only path stays light.
+
+---
+
+# Global Branch Switcher & Working Date Range — Phase 3: BranchSwitcher
+
+**Executed:** 2026-08-30 · Operator · plan.md Phase 3 · HEAD at gate time = `daf2830` (Phase 2 SHA `9e15733`)
+
+### Added
+- `src/features/branch/useBranchHydration.ts` — `.ts` hook (I-22). The one place the filters store and `authStore` meet. Effect body verbatim from the plan: `if (!userSeedApplied && user !== null) { markUserSeedApplied(); if (!persistedOnInit) setBranchId(isKnownBranchId(user.branchId ?? '') ? user.branchId! : DEFAULT_BRANCH_ID); }`. `markUserSeedApplied()` outside the inner `if` (F3-j). `user` read via `useAuthStore((s) => s.user)` — never written (I-31). `persistedOnInit` is a store selector, read from the init snapshot.
+- `src/features/branch/BranchSwitcher.tsx` — feature component. Calls `useBranchHydration()`. `<Select value={branchId} onValueChange={setBranchId}>`, one `<SelectItem value={branch.id}>{branch.name}</SelectItem>` per `BRANCHES` entry. Trigger: `aria-label="Switch branch"`, two label spans (`truncate sm:hidden` shortName / `hidden truncate sm:inline` name — no `matchMedia`), className `h-8 min-w-0 truncate rounded-sm border text-sm` + house focus ring (`focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2`) with shadcn's default neutralised (`focus-visible:border-input focus-visible:ring-0`). `return null` when `BRANCHES.length < 2`. Only the component is exported (I-22).
+- `src/features/branch/BranchLabel.tsx` — 15-line feature component. `branchNameFor(branchId)` → `<>{` · ${name}`}</>` or `null`. Never a raw id (I-38 / F3-h).
+
+### Modified
+- `src/app/layouts/AppHeader.tsx` — `+import { BranchSwitcher } from '@/features/branch/BranchSwitcher'`. Right-cell wrapper `flex items-center justify-self-end` → `flex min-w-0 items-center gap-2 justify-self-end`. `<BranchSwitcher />` added before the Bell `<button>`. Bell button className `+shrink-0`. **No store / query / state code** (I-39 / F3-e — `grep -n "useDashboardFiltersStore\|useQuery\|useState"` → nothing).
+- `src/app/layouts/AppSidebar.tsx` — `+import { BranchLabel } from '@/features/branch/BranchLabel'`. Line 280 `{user?.branchId != null && \` · ${user.branchId}\`}` → `<BranchLabel />`. `user` still used by `fullName` / `role` / `initialsOf`; `collapsed` still gates the footer block.
+
+### Not changed
+- No `.api.ts`, no `CmoDashboardPage`, no `DashboardFilterBar` (still 3 grep matches), no `src/components/ui/**`, no `src/index.css`, no `package.json`.
+
+### Impact summary
+- `npm run build` exit 0 — entry JS chunk **544596 → 616254 B (+71,658)**. Wiring `Select` into the always-mounted `AppHeader` pulls Radix Select + Popper / dismissable-layer / focus-scope / portal into the entry chunk. Inherent to a **global** control — not lazy-loadable. `react-day-picker` is **NOT** in the entry chunk (`grep DayPicker dist/assets/index-*.js` → nothing) — the calendar stays unmounted until Phase 4.
+- `npm test` — **89 passing**, unchanged (new surface is `.tsx`, uncoverable in node-only vitest — I-21).
+- `npm run lint` — 0 errors, 1 pre-existing warning (`EnrollMfaStep.tsx:78`).
+- `token-diff --theme src/index.css` — **15**. `shasum src/index.css` unchanged (`ad8fbd930a407e6cb38b471e1ee85715f37c2bf7`). `git diff --stat HEAD -- src/index.css` empty.
+- `git status --porcelain` — exactly the 5 Affected files: `M AppHeader.tsx`, `M AppSidebar.tsx`, `?? BranchLabel.tsx`, `?? BranchSwitcher.tsx`, `?? useBranchHydration.ts`. Nothing under `src/features/dashboard/` or `src/components/`.
+
+### Deferred to the E2E pass (no interactive browser this run)
+360px header overflow attribution (F3-d — the P0 360px baseline was never captured), keyboard traversal + focus ring, screen-reader announcement, `SelectContent` portalled to `<body>`, light/dark, `prefers-reduced-motion`, storage resilience (corrupt value / `not json` / private mode), and the returning-user vs first-time-user vs fresh-profile behavioural checks. Same posture as the overhaul and P0/1/2.
