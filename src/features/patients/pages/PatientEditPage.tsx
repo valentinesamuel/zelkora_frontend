@@ -15,7 +15,7 @@ export function PatientEditPage() {
   const notFound = error instanceof ApiError && error.statusCode === 404;
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-6">
       <header>
         <h1 className="font-display text-2xl font-semibold tracking-tight">
           Edit patient

@@ -31,6 +31,21 @@ interface PatientSelectFieldProps<T extends FieldValues> {
   className?: string;
 }
 
+/**
+ * When a record loads with a value the option list doesn't contain (e.g. a
+ * free-text blood group / marital status entered before this became a dropdown),
+ * surface it as an extra item so the field renders the real value rather than
+ * an empty placeholder — and doesn't silently blank it on save.
+ */
+function withCurrentValue(
+  options: readonly SelectOption[],
+  value: unknown,
+): readonly SelectOption[] {
+  if (typeof value !== 'string' || value === '') return options;
+  if (options.some((o) => o.value === value)) return options;
+  return [...options, { value, label: value }];
+}
+
 /** RHF-bound Radix select row for the patient form. */
 export function PatientSelectField<T extends FieldValues>({
   control,
@@ -45,36 +60,39 @@ export function PatientSelectField<T extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem className={cn(className)}>
-          <FormLabel>
-            {label}
-            {required && (
-              <span aria-hidden="true" className="text-destructive">
-                *
-              </span>
-            )}
-          </FormLabel>
-          <Select
-            value={field.value || undefined}
-            onValueChange={field.onChange}
-          >
-            <FormControl>
-              <SelectTrigger className="w-full" onBlur={field.onBlur}>
-                <SelectValue placeholder={placeholder} />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {options.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field }) => {
+        const resolvedOptions = withCurrentValue(options, field.value);
+        return (
+          <FormItem className={cn(className)}>
+            <FormLabel>
+              {label}
+              {required && (
+                <span aria-hidden="true" className="text-destructive">
+                  *
+                </span>
+              )}
+            </FormLabel>
+            <Select
+              value={field.value || undefined}
+              onValueChange={field.onChange}
+            >
+              <FormControl>
+                <SelectTrigger className="w-full" onBlur={field.onBlur}>
+                  <SelectValue placeholder={placeholder} />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {resolvedOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 }

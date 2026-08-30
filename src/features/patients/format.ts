@@ -4,6 +4,13 @@
 
 const EM_DASH = '—';
 
+/** Trim a value for display; empty / nullish -> `"—"`. */
+export function formatOptionalText(value: string | null | undefined): string {
+  if (value == null) return EM_DASH;
+  const trimmed = value.trim();
+  return trimmed === '' ? EM_DASH : trimmed;
+}
+
 // UTC-pinned: registration/visit values are day-precision and must render the
 // same wherever the code runs (and in tests, regardless of the runner's zone).
 const registeredDateFormatter = new Intl.DateTimeFormat('en-NG', {

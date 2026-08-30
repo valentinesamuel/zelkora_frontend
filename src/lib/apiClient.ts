@@ -41,7 +41,7 @@ export class ApiError extends Error {
 }
 
 export interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH';
+  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
   token?: string; // explicit override, e.g. enrollmentToken
   skipAuth?: boolean; // send no Authorization header at all

@@ -6,7 +6,10 @@
 import { useMutation } from '@tanstack/react-query';
 
 import { queryClient } from '@/app/providers/queryClient';
-import { PATIENTS_QUERY_KEY } from '@/features/patients/api/patients.api';
+import {
+  PATIENTS_QUERY_KEY,
+  patientDetailQueryKey,
+} from '@/features/patients/api/patients.api';
 import { apiRequest } from '@/lib/apiClient';
 import type {
   CreatePatientBody,
@@ -25,6 +28,11 @@ export function updatePatient(
   return apiRequest<PatientWire>(`/patients/${id}`, { method: 'PATCH', body });
 }
 
+/** `DELETE /patients/:id` — soft-delete on the backend, admin-gated (403 otherwise). */
+export function deletePatient(id: string): Promise<null> {
+  return apiRequest<null>(`/patients/${id}`, { method: 'DELETE' });
+}
+
 function invalidatePatients(): Promise<void> {
   return queryClient.invalidateQueries({ queryKey: [PATIENTS_QUERY_KEY] });
 }
@@ -40,5 +48,15 @@ export function useUpdatePatient(id: string) {
   return useMutation({
     mutationFn: (body: UpdatePatientBody) => updatePatient(id, body),
     onSuccess: invalidatePatients,
+  });
+}
+
+export function useDeletePatient(id: string) {
+  return useMutation({
+    mutationFn: () => deletePatient(id),
+    onSuccess: async () => {
+      await invalidatePatients();
+      queryClient.removeQueries({ queryKey: patientDetailQueryKey(id) });
+    },
   });
 }

@@ -153,4 +153,32 @@ describe('apiRequest', () => {
     // original + refresh only; no replay.
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it('sends a DELETE with no body and unwraps a null result', async () => {
+    const { apiRequest } = await import('./apiClient');
+    fetchMock.mockResolvedValueOnce(successResponse(null, 'patient deleted'));
+
+    const result = await apiRequest<null>('/patients/abc', { method: 'DELETE' });
+
+    expect(result).toBeNull();
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe(`${BASE}/patients/abc`);
+    expect(init.method).toBe('DELETE');
+    expect(init.body).toBeUndefined();
+    // No Content-Type header when there is no body.
+    expect(init.headers['Content-Type']).toBeUndefined();
+  });
+
+  it('throws a typed ApiError when DELETE hits a 404', async () => {
+    const { apiRequest, ApiError: ApiErrorClass } = await import('./apiClient');
+    fetchMock.mockResolvedValueOnce(errorResponse(404, 'patient not found'));
+
+    const err = (await apiRequest('/patients/missing', {
+      method: 'DELETE',
+    }).catch((e: unknown) => e)) as ApiError;
+
+    expect(err).toBeInstanceOf(ApiErrorClass);
+    expect(err.statusCode).toBe(404);
+    expect(err.apiMessage).toBe('patient not found');
+  });
 });

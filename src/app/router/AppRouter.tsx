@@ -6,6 +6,7 @@ import { LoginPage } from '@/features/auth/LoginPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { StubPage } from '@/features/dashboard/pages/StubPage';
 import { PatientCreatePage } from '@/features/patients/pages/PatientCreatePage';
+import { PatientDetailPage } from '@/features/patients/pages/PatientDetailPage';
 import { PatientEditPage } from '@/features/patients/pages/PatientEditPage';
 import { PatientListPage } from '@/features/patients/pages/PatientListPage';
 import { ProfilePage } from '@/features/profile/ProfilePage';
@@ -34,10 +35,7 @@ export function AppRouter() {
         <Route path="patients" element={<PatientListPage />} />
         <Route path="patients/new" element={<PatientCreatePage />} />
         <Route path="patients/:patientId/edit" element={<PatientEditPage />} />
-        <Route
-          path="patients/:patientId"
-          element={<StubPage title="Patient record" note="Patient detail view lands in a later phase." />}
-        />
+        <Route path="patients/:patientId" element={<PatientDetailPage />} />
         <Route
           path="billing"
           element={<StubPage title="Billing" note="Billing overview lands in a later phase." />}

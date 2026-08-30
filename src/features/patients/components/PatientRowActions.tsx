@@ -1,4 +1,12 @@
-import { CalendarPlus, Eye, FileText, MoreHorizontal, Pencil } from 'lucide-react';
+import { useState } from 'react';
+import {
+  CalendarPlus,
+  Eye,
+  FileText,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -10,13 +18,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { PatientDeleteDialog } from '@/features/patients/components/PatientDeleteDialog';
 import type { Patient } from '@/features/patients/types/patient.types';
 
 /**
  * One row action. `enabled` is a static flag today; it is the seam where a
  * permission check (`can(user, 'patient:edit')`) will live once roles are
- * data-driven. Nothing here is destructive — patient deletion is deliberately
- * absent from the list.
+ * data-driven. Delete is handled separately below — it needs a confirm dialog
+ * and is destructive, so it is not part of this link list.
  */
 interface PatientAction {
   readonly id: string;
@@ -61,43 +70,67 @@ interface PatientRowActionsProps {
 }
 
 export function PatientRowActions({ patient }: PatientRowActionsProps) {
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          aria-label={`Actions for ${patient.fullName || patient.zrn}`}
-          className="flex size-8 items-center justify-center rounded-sm text-muted-foreground transition-colors motion-reduce:transition-none hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[state=open]:bg-muted data-[state=open]:text-foreground"
-        >
-          <MoreHorizontal className="size-4" aria-hidden="true" />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-52">
-        <DropdownMenuLabel className="truncate">
-          {patient.fullName || patient.zrn}
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {ACTIONS.map((action) => {
-          const Icon = action.icon;
-          if (action.enabled && action.to) {
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label={`Actions for ${patient.fullName || patient.zrn}`}
+            className="flex size-8 items-center justify-center rounded-sm text-muted-foreground transition-colors motion-reduce:transition-none hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring data-[state=open]:bg-muted data-[state=open]:text-foreground"
+          >
+            <MoreHorizontal className="size-4" aria-hidden="true" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-52">
+          <DropdownMenuLabel className="truncate">
+            {patient.fullName || patient.zrn}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {ACTIONS.map((action) => {
+            const Icon = action.icon;
+            if (action.enabled && action.to) {
+              return (
+                <DropdownMenuItem key={action.id} asChild>
+                  <Link to={action.to(patient)}>
+                    <Icon aria-hidden="true" />
+                    {action.label}
+                  </Link>
+                </DropdownMenuItem>
+              );
+            }
             return (
-              <DropdownMenuItem key={action.id} asChild>
-                <Link to={action.to(patient)}>
-                  <Icon aria-hidden="true" />
-                  {action.label}
-                </Link>
+              <DropdownMenuItem key={action.id} disabled>
+                <Icon aria-hidden="true" />
+                {action.label}
+                <span className="ml-auto text-xs text-muted-foreground">
+                  Soon
+                </span>
               </DropdownMenuItem>
             );
-          }
-          return (
-            <DropdownMenuItem key={action.id} disabled>
-              <Icon aria-hidden="true" />
-              {action.label}
-              <span className="ml-auto text-xs text-muted-foreground">Soon</span>
-            </DropdownMenuItem>
-          );
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          })}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onSelect={() => {
+              // Defer so the menu finishes closing (and releases its focus
+              // trap) before the dialog opens in the next tick.
+              setTimeout(() => setDeleteOpen(true), 0);
+            }}
+          >
+            <Trash2 aria-hidden="true" />
+            Delete patient
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <PatientDeleteDialog
+        patient={patient}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+      />
+    </>
   );
 }

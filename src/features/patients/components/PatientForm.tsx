@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
@@ -18,6 +17,7 @@ import {
   useCreatePatient,
   useUpdatePatient,
 } from '@/features/patients/api/patientMutations.api';
+import { PatientComboboxField } from '@/features/patients/components/PatientComboboxField';
 import { PatientFormSection } from '@/features/patients/components/PatientFormSection';
 import { PatientSelectField } from '@/features/patients/components/PatientSelectField';
 import { PatientTextField } from '@/features/patients/components/PatientTextField';
@@ -29,6 +29,13 @@ import {
   toPatientFormValues,
 } from '@/features/patients/patientForm';
 import {
+  BLOOD_GROUP_OPTIONS,
+  GENDER_OPTIONS,
+  MARITAL_STATUS_OPTIONS,
+  NATIONALITY_OPTIONS,
+  PAYMENT_TYPE_OPTIONS,
+} from '@/features/patients/patientOptions';
+import {
   patientFormSchema,
   type PatientFormValues,
 } from '@/features/patients/schemas/patientForm.schema';
@@ -38,18 +45,6 @@ import { ApiError } from '@/lib/apiClient';
 type PatientFormProps =
   | { mode: 'create' }
   | { mode: 'edit'; patientId: string; initialData: PatientWire };
-
-const GENDER_OPTIONS = [
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
-  { value: 'other', label: 'Other' },
-];
-
-const PAYMENT_TYPE_OPTIONS = [
-  { value: 'hmo', label: 'HMO' },
-  { value: 'cash', label: 'Cash' },
-  { value: 'corporate', label: 'Corporate' },
-];
 
 export function PatientForm(props: Readonly<PatientFormProps>) {
   const navigate = useNavigate();
@@ -111,156 +106,176 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
           </Alert>
         )}
 
-        <Card>
-          <CardContent className="flex flex-col gap-6">
-            <PatientFormSection title="Identity">
-              <PatientTextField
-                control={form.control}
-                name="firstName"
-                label="First name"
-                autoComplete="given-name"
-                required
-              />
-              <PatientTextField
-                control={form.control}
-                name="lastName"
-                label="Last name"
-                autoComplete="family-name"
-                required
-              />
-              <PatientTextField
-                control={form.control}
-                name="middleName"
-                label="Middle name"
-                autoComplete="additional-name"
-              />
-              <PatientTextField
-                control={form.control}
-                name="dateOfBirth"
-                label="Date of birth"
-                type="date"
-                required
-              />
-              <PatientSelectField
-                control={form.control}
-                name="gender"
-                label="Gender"
-                options={GENDER_OPTIONS}
-                placeholder="Select a gender"
-                required
-              />
-            </PatientFormSection>
+        <PatientFormSection
+          title="Identity"
+          description="Legal name, date of birth and gender."
+        >
+          <PatientTextField
+            control={form.control}
+            name="firstName"
+            label="First name"
+            autoComplete="given-name"
+            required
+          />
+          <PatientTextField
+            control={form.control}
+            name="lastName"
+            label="Last name"
+            autoComplete="family-name"
+            required
+          />
+          <PatientTextField
+            control={form.control}
+            name="middleName"
+            label="Middle name"
+            autoComplete="additional-name"
+          />
+          <PatientTextField
+            control={form.control}
+            name="dateOfBirth"
+            label="Date of birth"
+            type="date"
+            required
+          />
+          <PatientSelectField
+            control={form.control}
+            name="gender"
+            label="Gender"
+            options={GENDER_OPTIONS}
+            placeholder="Select a gender"
+            required
+          />
+        </PatientFormSection>
 
-            <PatientFormSection title="Contact">
-              <PatientTextField
-                control={form.control}
-                name="phoneNumber"
-                label="Phone number"
-                type="tel"
-                autoComplete="tel"
-                required
-              />
-              <PatientTextField
-                control={form.control}
-                name="email"
-                label="Email"
-                type="email"
-                autoComplete="email"
-              />
-              <PatientTextareaField
-                control={form.control}
-                name="address"
-                label="Residential address"
-                className="sm:col-span-2"
-              />
-            </PatientFormSection>
+        <PatientFormSection
+          title="Contact"
+          description="How the clinic reaches this patient."
+        >
+          <PatientTextField
+            control={form.control}
+            name="phoneNumber"
+            label="Phone number"
+            type="tel"
+            autoComplete="tel"
+            required
+          />
+          <PatientTextField
+            control={form.control}
+            name="email"
+            label="Email"
+            type="email"
+            autoComplete="email"
+          />
+          <PatientTextareaField
+            control={form.control}
+            name="address"
+            label="Residential address"
+            className="sm:col-span-2"
+          />
+        </PatientFormSection>
 
-            <PatientFormSection title="Demographics">
-              <PatientTextField
-                control={form.control}
-                name="bloodGroup"
-                label="Blood group"
-              />
-              <PatientTextField
-                control={form.control}
-                name="maritalStatus"
-                label="Marital status"
-              />
-              <PatientTextField
-                control={form.control}
-                name="nationality"
-                label="Nationality"
-              />
-              <PatientTextField
-                control={form.control}
-                name="occupation"
-                label="Occupation"
-              />
-            </PatientFormSection>
+        <PatientFormSection
+          title="Demographics"
+          description="Optional background details."
+        >
+          <PatientSelectField
+            control={form.control}
+            name="bloodGroup"
+            label="Blood group"
+            options={BLOOD_GROUP_OPTIONS}
+            placeholder="Select a blood group"
+          />
+          <PatientSelectField
+            control={form.control}
+            name="maritalStatus"
+            label="Marital status"
+            options={MARITAL_STATUS_OPTIONS}
+            placeholder="Select a marital status"
+          />
+          <PatientComboboxField
+            control={form.control}
+            name="nationality"
+            label="Nationality"
+            options={NATIONALITY_OPTIONS}
+            placeholder="Select nationality"
+          />
+          <PatientTextField
+            control={form.control}
+            name="occupation"
+            label="Occupation"
+          />
+        </PatientFormSection>
 
-            <PatientFormSection title="Payment">
-              <PatientSelectField
-                control={form.control}
-                name="paymentType"
-                label="Payment type"
-                options={PAYMENT_TYPE_OPTIONS}
-                placeholder="Select a payment type"
-                required
-              />
-            </PatientFormSection>
+        <PatientFormSection
+          title="Payment"
+          description="Determines how visits are billed."
+        >
+          <PatientSelectField
+            control={form.control}
+            name="paymentType"
+            label="Payment type"
+            options={PAYMENT_TYPE_OPTIONS}
+            placeholder="Select a payment type"
+            required
+          />
+        </PatientFormSection>
 
-            <PatientFormSection title="Next of kin">
-              <PatientTextField
-                control={form.control}
-                name="nextOfKin.name"
-                label="Full name"
-                required
-              />
-              <PatientTextField
-                control={form.control}
-                name="nextOfKin.phone"
-                label="Phone number"
-                type="tel"
-                required
-              />
-              <PatientTextField
-                control={form.control}
-                name="nextOfKin.relationship"
-                label="Relationship"
-                required
-              />
-              <PatientTextareaField
-                control={form.control}
-                name="nextOfKin.address"
-                label="Address"
-                className="sm:col-span-2"
-                required
-              />
-            </PatientFormSection>
+        <PatientFormSection
+          title="Next of kin"
+          description="Emergency contact for this patient."
+        >
+          <PatientTextField
+            control={form.control}
+            name="nextOfKin.name"
+            label="Full name"
+            required
+          />
+          <PatientTextField
+            control={form.control}
+            name="nextOfKin.phone"
+            label="Phone number"
+            type="tel"
+            required
+          />
+          <PatientTextField
+            control={form.control}
+            name="nextOfKin.relationship"
+            label="Relationship"
+            required
+          />
+          <PatientTextareaField
+            control={form.control}
+            name="nextOfKin.address"
+            label="Address"
+            className="sm:col-span-2"
+            required
+          />
+        </PatientFormSection>
 
-            {isEdit && (
-              <PatientFormSection title="Status">
-                <FormField
-                  control={form.control}
-                  name="isActive"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center gap-2 sm:col-span-2">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={(v) => field.onChange(v === true)}
-                        />
-                      </FormControl>
-                      <FormLabel>Active patient</FormLabel>
-                    </FormItem>
-                  )}
-                />
-              </PatientFormSection>
-            )}
-          </CardContent>
-        </Card>
+        {isEdit && (
+          <PatientFormSection
+            title="Status"
+            description="Inactive patients stay on record but are filtered out by default."
+          >
+            <FormField
+              control={form.control}
+              name="isActive"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center gap-2 sm:col-span-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(v) => field.onChange(v === true)}
+                    />
+                  </FormControl>
+                  <FormLabel>Active patient</FormLabel>
+                </FormItem>
+              )}
+            />
+          </PatientFormSection>
+        )}
 
-        <div className="flex items-center gap-3">
+        <div className="sticky bottom-0 z-10 -mx-6 flex items-center gap-3 border-t bg-background/80 px-6 py-4 backdrop-blur">
           <Button
             type="submit"
             disabled={
