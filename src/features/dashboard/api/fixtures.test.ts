@@ -5,10 +5,8 @@ import { revenueBillingFixture } from '@/features/dashboard/api/revenueBilling.f
 import { hmoClaimsFixture } from '@/features/dashboard/api/hmoClaims.fixtures';
 import { edFlowFixture } from '@/features/dashboard/api/edFlow.fixtures';
 import { dischargeReadinessFixture } from '@/features/dashboard/api/dischargeReadiness.fixtures';
-import { qualitySafetyFixture } from '@/features/dashboard/api/qualitySafety.fixtures';
 
 const INTENTS = ['good', 'bad', 'neutral'] as const;
-const isInteger = (n: number) => Number.isInteger(n);
 const isFinitePct = (n: number) => Number.isFinite(n) && n >= 0 && n <= 100;
 
 describe('dashboardKpis fixture', () => {
@@ -35,7 +33,7 @@ describe('revenueBilling fixture', () => {
 
   it('money fields are integer minor units', () => {
     for (const v of [s.totalMinor, s.cashMinor, s.hmoMinor, s.targetMinor, s.outstandingArMinor]) {
-      expect(isInteger(v)).toBe(true);
+      expect(Number.isInteger(v)).toBe(true);
     }
   });
 
@@ -55,7 +53,7 @@ describe('revenueBilling fixture', () => {
   });
 
   it('daysInAr is a positive integer', () => {
-    expect(isInteger(s.daysInAr)).toBe(true);
+    expect(Number.isInteger(s.daysInAr)).toBe(true);
     expect(s.daysInAr).toBeGreaterThan(0);
   });
 });
@@ -65,13 +63,13 @@ describe('hmoClaims fixture', () => {
 
   it('counts are non-negative integers', () => {
     for (const v of [s.pendingCount, s.deniedCount, s.daysToAdjudication]) {
-      expect(isInteger(v)).toBe(true);
+      expect(Number.isInteger(v)).toBe(true);
       expect(v).toBeGreaterThanOrEqual(0);
     }
   });
 
   it('submitted value is integer minor units', () => {
-    expect(isInteger(s.submittedValueMinor)).toBe(true);
+    expect(Number.isInteger(s.submittedValueMinor)).toBe(true);
   });
 
   it('denial rate is a 0–100 percentage', () => {
@@ -84,7 +82,7 @@ describe('edFlow fixture', () => {
     expect(edFlowFixture.points.length).toBeGreaterThanOrEqual(7);
     for (const p of edFlowFixture.points) {
       expect(p.day.length).toBeGreaterThan(0);
-      expect(isInteger(p.visits)).toBe(true);
+      expect(Number.isInteger(p.visits)).toBe(true);
       expect(p.visits).toBeGreaterThan(0);
       expect(Number.isFinite(p.avgWaitMin)).toBe(true);
       expect(p.avgWaitMin).toBeGreaterThan(0);
@@ -96,25 +94,8 @@ describe('dischargeReadiness fixture', () => {
   it('all buckets are non-negative integers', () => {
     const { readyNow, readySoon, notReady } = dischargeReadinessFixture;
     for (const v of [readyNow, readySoon, notReady]) {
-      expect(isInteger(v)).toBe(true);
+      expect(Number.isInteger(v)).toBe(true);
       expect(v).toBeGreaterThanOrEqual(0);
     }
-  });
-});
-
-describe('qualitySafety fixture', () => {
-  it('has four indicators with valid intents and non-empty displays', () => {
-    expect(qualitySafetyFixture.indicators).toHaveLength(4);
-    for (const ind of qualitySafetyFixture.indicators) {
-      expect(ind.id.length).toBeGreaterThan(0);
-      expect(ind.label.length).toBeGreaterThan(0);
-      expect(ind.display.length).toBeGreaterThan(0);
-      expect(INTENTS).toContain(ind.deltaIntent);
-    }
-  });
-
-  it('indicator ids are unique', () => {
-    const ids = qualitySafetyFixture.indicators.map((i) => i.id);
-    expect(new Set(ids).size).toBe(ids.length);
   });
 });

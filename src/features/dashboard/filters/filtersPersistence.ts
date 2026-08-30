@@ -7,7 +7,7 @@ import { normalizeSelection, type RangeSelection } from '@/features/dashboard/fi
 
 export const FILTERS_STORAGE_KEY = 'zelkora.dashboard.filters';
 
-/** The on-disk shape. One key, one JSON blob, one version stamp (I-32b). */
+// The on-disk shape: one key, one JSON blob, one version stamp (I-32b).
 export interface PersistedFilters {
   v: 1;
   branchId: string;
@@ -21,13 +21,10 @@ export interface DecodedFilters {
   selection: RangeSelection;
   /** `raw !== null` — i.e. a stored value existed at all. */
   present: boolean;
-  /**
-   * A PRESENT stored value had to be corrected (bad JSON, wrong shape, an
-   * unrecognised `v`, an unknown branch, or a range the self-heal ladder
-   * changed). ALWAYS `false` when `present === false` — a fresh profile is not
-   * "healed" (I-32c / DE Issue C). `present` and `healed` answer two different
-   * questions and must never be conflated at the call site.
-   */
+  // A present stored value had to be corrected (bad JSON, wrong shape,
+  // unrecognised `v`, unknown branch, or a healed range). Always `false` when
+  // `present` is `false` — a fresh profile is not "healed" (I-32c). `present`
+  // and `healed` are separate questions; never conflate them at the call site.
   healed: boolean;
 }
 
@@ -38,12 +35,8 @@ function defaults(today: string): Pick<DecodedFilters, 'branchId' | 'selection'>
   };
 }
 
-/**
- * Turn a raw `localStorage` string (or `null`) into a validated `DecodedFilters`.
- * The `JSON.parse` lives INSIDE this function's own try/catch — a malformed
- * string is a throw, not a `null`, and an unguarded parse would white-screen the
- * app on boot and keep doing so across reloads (F1-d).
- */
+// `JSON.parse` must stay inside this try/catch — a malformed string throws, and
+// an unguarded parse white-screens the app on every boot (F1-d).
 export function decodeFilters(raw: string | null, today: string): DecodedFilters {
   if (raw === null) {
     return { ...defaults(today), present: false, healed: false };

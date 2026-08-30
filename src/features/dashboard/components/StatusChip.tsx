@@ -1,8 +1,8 @@
 import { cn } from '@/lib/utils';
 
 interface StatusChipProps {
-  label: string;
-  variant?: 'neutral' | 'success' | 'warning' | 'danger';
+  readonly label: string;
+  readonly variant?: 'neutral' | 'success' | 'warning' | 'danger';
 }
 
 const variantClassName: Record<
@@ -15,7 +15,6 @@ const variantClassName: Record<
   danger: 'bg-destructive/10 text-destructive-text border-destructive/30',
 };
 
-/** Always renders its text label — never colour-only, never icon-only. */
 export function StatusChip({ label, variant = 'neutral' }: StatusChipProps) {
   return (
     <span

@@ -3,9 +3,9 @@ import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DeltaBadgeProps {
-  value: number;
-  label: string;
-  intent: 'good' | 'bad' | 'neutral';
+  readonly value: number;
+  readonly label: string;
+  readonly intent: 'good' | 'bad' | 'neutral';
 }
 
 const intentClass: Record<DeltaBadgeProps['intent'], string> = {
@@ -14,12 +14,9 @@ const intentClass: Record<DeltaBadgeProps['intent'], string> = {
   neutral: 'text-muted-foreground',
 };
 
-/**
- * A signed change indicator. Intent is SEMANTIC and decoupled from the sign — a
- * falling ED wait time is `good`. The direction arrow is chosen by `sign(value)`;
- * the colour by `intent`. Colour is never the only channel: the arrow glyph and
- * the `label` text both carry the meaning (WCAG 1.4.1).
- */
+// Intent is semantic, not the sign — a falling ED wait is `good`. Arrow from
+// sign(value), colour from intent; glyph and label carry the meaning, not colour
+// alone (WCAG 1.4.1).
 export function DeltaBadge({ value, label, intent }: DeltaBadgeProps) {
   const Arrow = value > 0 ? ArrowUpRight : value < 0 ? ArrowDownRight : Minus;
 

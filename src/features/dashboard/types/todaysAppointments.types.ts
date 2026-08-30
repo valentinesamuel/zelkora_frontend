@@ -1,5 +1,4 @@
-// Contract for today's appointments list. Backend swap target:
-// GET /dashboard/appointments/today (see api/todaysAppointments.api.ts).
+// Today's appointments list payload. Backend: GET /dashboard/appointments/today.
 
 export type AppointmentStatus =
   | 'scheduled'

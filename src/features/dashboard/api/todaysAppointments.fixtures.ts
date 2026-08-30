@@ -1,7 +1,5 @@
 import type { TodaysAppointmentsResponse } from '@/features/dashboard/types/todaysAppointments.types';
 
-// Static, deterministic dummy payload. Every AppointmentStatus value appears at
-// least once so each statusLabel is exercised.
 export const todaysAppointmentsFixture: TodaysAppointmentsResponse = {
   appointments: [
     {

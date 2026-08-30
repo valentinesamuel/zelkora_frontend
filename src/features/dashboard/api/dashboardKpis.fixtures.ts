@@ -1,11 +1,6 @@
 import type { DashboardKpisResponse } from '@/features/dashboard/types/dashboardKpis.types';
 
-// Static, deterministic dummy payload for a clinical-operations executive view.
-// Four CMD concerns: ED average wait, inpatient occupancy, patients awaiting
-// discharge, nursing overtime. `display` is pre-formatted for the UI; percentages
-// are stored as 0–100 numbers (e.g. 87.4). `deltaIntent` is the semantic reading
-// of the trend, not its arithmetic sign. Each `spark` is a 7-point weekly history
-// whose last value tracks `value`.
+// Four CMO KPIs. Each `spark` is a 7-point weekly history ending at `value`.
 export const dashboardKpisFixture: DashboardKpisResponse = {
   items: [
     {

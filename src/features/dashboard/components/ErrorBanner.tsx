@@ -1,6 +1,6 @@
 interface ErrorBannerProps {
-  message: string;
-  onRetry: () => void;
+  readonly message: string;
+  readonly onRetry: () => void;
 }
 
 /** Inline error surface — deliberately not a toast, so it cannot be missed. */

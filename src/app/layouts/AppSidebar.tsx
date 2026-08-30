@@ -206,8 +206,8 @@ export function AppSidebar() {
     <TooltipProvider>
       <aside
         className={cn(
-          'flex shrink-0 flex-col self-stretch border-r bg-card transition-[width] duration-[220ms] motion-reduce:transition-none',
-          collapsed ? 'w-16' : 'w-[220px]',
+          'flex shrink-0 flex-col self-stretch border-r bg-card transition-[width] duration-220 motion-reduce:transition-none',
+          collapsed ? 'w-16' : 'w-55',
         )}
       >
         {/* Brand + collapse toggle */}

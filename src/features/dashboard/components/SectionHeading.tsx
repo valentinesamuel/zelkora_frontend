@@ -1,12 +1,8 @@
 interface SectionHeadingProps {
-  title: string;
-  subtitle?: string;
+  readonly title: string;
+  readonly subtitle?: string;
 }
 
-/**
- * A plain section label — `font-display` heading over an optional muted
- * subtitle. Deliberately a `<div>`, not a card: it groups the cards below it.
- */
 export function SectionHeading({ title, subtitle }: SectionHeadingProps) {
   return (
     <div className="min-w-0">

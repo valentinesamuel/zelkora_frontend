@@ -1,17 +1,14 @@
 import type { ReactNode } from 'react';
 
 interface ChartCardProps {
-  title: string;
-  subtitle?: string;
-  action?: ReactNode;
-  children: ReactNode;
+  readonly title: string;
+  readonly subtitle?: string;
+  readonly action?: ReactNode;
+  readonly children: ReactNode;
 }
 
-/**
- * Card chrome for a chart. The body is a FIXED height (`--chart-card-h`) and
- * `w-full min-w-0`, so a recharts `ResponsiveContainer` inside it can never
- * resolve to `height: 0`. No consumer may bypass the fixed-height body.
- */
+// The body is a fixed height (`--chart-card-h`) and `w-full min-w-0` so a
+// recharts `ResponsiveContainer` inside it can never resolve to `height: 0`.
 export function ChartCard({ title, subtitle, action, children }: ChartCardProps) {
   return (
     <section className="rounded-lg border bg-card p-5 shadow-card min-w-0">

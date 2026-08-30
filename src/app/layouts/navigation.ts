@@ -11,6 +11,8 @@ import {
   BarChart3,
   Building2,
   CalendarClock,
+  CreditCard,
+  FileCheck,
   FlaskConical,
   LayoutDashboard,
   Package,
@@ -38,45 +40,47 @@ export interface NavGroup {
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    label: 'Overview',
+    label: "Overview",
     items: [
       {
-        label: 'Dashboard',
-        to: '/dashboard',
+        label: "Dashboard",
+        to: "/dashboard",
         icon: LayoutDashboard,
         enabled: true,
       },
     ],
   },
   {
-    label: 'Patient Care',
+    label: "Patient Care",
     items: [
-      { label: 'Patients', icon: Users, enabled: false },
-      { label: 'Queue & Appointments', icon: CalendarClock, enabled: false },
-      { label: 'Consultations', icon: Stethoscope, enabled: false },
-      { label: 'Lab', icon: FlaskConical, enabled: false },
+      { label: "Patients", icon: Users, enabled: false },
+      { label: "Queue & Appointments", icon: CalendarClock, enabled: false },
+      { label: "Consultations", icon: Stethoscope, enabled: false },
+      { label: "Lab", icon: FlaskConical, enabled: false },
     ],
   },
   {
-    label: 'Finance',
+    label: "Finance",
     items: [
-      { label: 'Billing & Claims', icon: ReceiptText, enabled: false },
+      { label: "Billing", icon: ReceiptText, enabled: false },
+      { label: "Claims", icon: FileCheck, enabled: false },
+      { label: "Payments", icon: CreditCard, enabled: false },
     ],
   },
   {
-    label: 'People',
+    label: "People",
     items: [
-      { label: 'Staff', icon: UserCog, enabled: false },
-      { label: 'Roles / Permissions', icon: ShieldCheck, enabled: false },
+      { label: "Staff", icon: UserCog, enabled: false },
+      { label: "Roles / Permissions", icon: ShieldCheck, enabled: false },
     ],
   },
   {
-    label: 'Operations',
+    label: "Operations",
     items: [
-      { label: 'Pharmacy', icon: Pill, enabled: false },
-      { label: 'Inventory', icon: Package, enabled: false },
-      { label: 'Staffing', icon: Building2, enabled: false },
-      { label: 'Reports', icon: BarChart3, enabled: false },
+      { label: "Pharmacy", icon: Pill, enabled: false },
+      { label: "Inventory", icon: Package, enabled: false },
+      { label: "Staffing", icon: Building2, enabled: false },
+      { label: "Reports", icon: BarChart3, enabled: false },
     ],
   },
 ];

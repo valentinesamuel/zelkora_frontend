@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import type { ReactNode } from 'react';
 
 import { useEdFlow } from '@/features/dashboard/api/edFlow.api';
 import { useDischargeReadiness } from '@/features/dashboard/api/dischargeReadiness.api';
@@ -11,10 +12,8 @@ import { KpiCardRow } from '@/features/dashboard/components/KpiCardRow';
 import { SectionHeading } from '@/features/dashboard/components/SectionHeading';
 import { FinancialBillingWidget } from '@/features/dashboard/components/FinancialBillingWidget';
 import { TodaysAppointmentsWidget } from '@/features/dashboard/components/TodaysAppointmentsWidget';
-import { QualitySafetyWidget } from '@/features/dashboard/components/QualitySafetyWidget';
 import { SystemAlertsWidget } from '@/features/dashboard/components/SystemAlertsWidget';
 import { SystemHealthWidget } from '@/features/dashboard/components/SystemHealthWidget';
-// import { AccessControlWidget } from '@/features/dashboard/components/AccessControlWidget';
 import { RecentActivityWidget } from '@/features/dashboard/components/RecentActivityWidget';
 
 const EdVolumeWaitChart = lazy(
@@ -28,79 +27,82 @@ const CHART_FALLBACK = (
   <div className="size-full animate-pulse rounded-lg bg-muted" />
 );
 
-/**
- * Owns `useEdFlow()` — its own pending / error / empty states, so a failed
- * ED-flow query never blanks the rest of the board (I-1). The lazy recharts
- * chunk mounts only on success, inside `ChartCard`'s fixed-height body.
- */
+interface ChartStateProps<T> {
+  readonly query: {
+    readonly data: T | undefined;
+    readonly isPending: boolean;
+    readonly isError: boolean;
+    readonly refetch: () => void;
+  };
+  readonly errorMessage: string;
+  readonly emptyMessage: string;
+  readonly isEmpty: (data: T) => boolean;
+  readonly children: (data: T) => ReactNode;
+}
+
+// The pending / error / empty / lazy-chart ladder both chart cards share.
+function ChartState<T>({
+  query,
+  errorMessage,
+  emptyMessage,
+  isEmpty,
+  children,
+}: ChartStateProps<T>) {
+  if (query.isPending) return CHART_FALLBACK;
+  if (query.isError || query.data === undefined) {
+    return (
+      <div className="flex h-full items-center">
+        <ErrorBanner message={errorMessage} onRetry={query.refetch} />
+      </div>
+    );
+  }
+  if (isEmpty(query.data)) return <EmptyState message={emptyMessage} />;
+  return <Suspense fallback={CHART_FALLBACK}>{children(query.data)}</Suspense>;
+}
+
 function EdVolumeWaitCard() {
   const reduced = useReducedMotion();
-  const { data, isPending, isError, refetch } = useEdFlow();
+  const query = useEdFlow();
 
   return (
     <ChartCard
       title="ED volume & wait time"
       subtitle="Daily visits against average wait (min)"
     >
-      {isPending ? (
-        CHART_FALLBACK
-      ) : isError ? (
-        <div className="flex h-full items-center">
-          <ErrorBanner
-            message="Could not load ED volume and wait time."
-            onRetry={refetch}
-          />
-        </div>
-      ) : data.points.length === 0 ? (
-        <EmptyState message="No ED flow data to show." />
-      ) : (
-        <Suspense fallback={CHART_FALLBACK}>
-          <EdVolumeWaitChart data={data.points} animate={!reduced} />
-        </Suspense>
-      )}
+      <ChartState
+        query={query}
+        errorMessage="Could not load ED volume and wait time."
+        emptyMessage="No ED flow data to show."
+        isEmpty={(d) => d.points.length === 0}
+      >
+        {(d) => <EdVolumeWaitChart data={d.points} animate={!reduced} />}
+      </ChartState>
     </ChartCard>
   );
 }
 
-/** Owns `useDischargeReadiness()` with the same independent-failure contract. */
 function DischargeReadinessCard() {
   const reduced = useReducedMotion();
-  const { data, isPending, isError, refetch } = useDischargeReadiness();
-
-  const isEmpty =
-    data !== undefined &&
-    data.readyNow + data.readySoon + data.notReady === 0;
+  const query = useDischargeReadiness();
 
   return (
     <ChartCard
       title="Discharge readiness"
       subtitle="Currently-admitted patients by readiness"
     >
-      {isPending ? (
-        CHART_FALLBACK
-      ) : isError ? (
-        <div className="flex h-full items-center">
-          <ErrorBanner
-            message="Could not load discharge readiness."
-            onRetry={refetch}
-          />
-        </div>
-      ) : isEmpty ? (
-        <EmptyState message="No discharge-readiness data to show." />
-      ) : (
-        <Suspense fallback={CHART_FALLBACK}>
-          <DischargeReadinessChart data={data} animate={!reduced} />
-        </Suspense>
-      )}
+      <ChartState
+        query={query}
+        errorMessage="Could not load discharge readiness."
+        emptyMessage="No discharge-readiness data to show."
+        isEmpty={(d) => d.readyNow + d.readySoon + d.notReady === 0}
+      >
+        {(d) => <DischargeReadinessChart data={d} animate={!reduced} />}
+      </ChartState>
     </ChartCard>
   );
 }
 
-/**
- * CMO home — a clinical-operations executive view. Every widget owns its own
- * query, loading, error and empty handling: there is no page-level state and no
- * hoisted query here (I-1), so one failing domain never blanks the board.
- */
+
 export function CmoDashboardPage() {
   return (
     <div className="flex min-w-0 flex-col gap-6 p-6">
@@ -118,7 +120,7 @@ export function CmoDashboardPage() {
 
       <KpiCardRow />
 
-      <div className="grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-2">
+      <div className="grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
         <EdVolumeWaitCard />
         <DischargeReadinessCard />
       </div>
@@ -127,7 +129,7 @@ export function CmoDashboardPage() {
 
       <div className="grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-2">
         <TodaysAppointmentsWidget />
-        <QualitySafetyWidget />
+        <RecentActivityWidget />
       </div>
 
       <section className="flex min-w-0 flex-col gap-4">
@@ -135,11 +137,9 @@ export function CmoDashboardPage() {
           title="System status"
           subtitle="Platform health and recent activity"
         />
-        <div className="grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <div className="grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-2">
           <SystemAlertsWidget />
           <SystemHealthWidget />
-          {/* <AccessControlWidget /> */}
-          <RecentActivityWidget />
         </div>
       </section>
     </div>

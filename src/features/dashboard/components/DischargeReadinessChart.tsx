@@ -7,18 +7,13 @@ import {
   Tooltip,
 } from 'recharts';
 
-// Presentation primitive — data comes from the caller (Phase 5 wires the
-// `dischargeReadiness` resource). Shape mirrors `dischargeReadiness.types.ts`.
-interface DischargeReadiness {
-  readyNow: number;
-  readySoon: number;
-  notReady: number;
-}
+import type { DischargeReadinessResponse } from '@/features/dashboard/types/dischargeReadiness.types';
+import { ChartFigure } from '@/features/dashboard/components/ChartFigure';
+import { CHART_TOOLTIP_STYLE } from '@/features/dashboard/components/chartTooltipStyle';
 
 interface DischargeReadinessChartProps {
-  data: DischargeReadiness;
-  /** Consumer passes `false` under `prefers-reduced-motion`. */
-  animate?: boolean;
+  readonly data: DischargeReadinessResponse;
+  readonly animate?: boolean;
 }
 
 const SLICES = [
@@ -27,10 +22,7 @@ const SLICES = [
   { key: 'notReady', label: 'Not ready', color: 'var(--chart-4)' },
 ] as const;
 
-/**
- * Discharge-readiness donut. Legend plus an `sr-only` text summary — the
- * recharts SVG on its own is unreadable to assistive tech. Lazy-loaded.
- */
+// Lazy-loaded — recharts must never enter the entry bundle.
 export default function DischargeReadinessChart({
   data,
   animate = true,
@@ -47,8 +39,7 @@ export default function DischargeReadinessChart({
       : `${data.readyNow} ready now, ${data.readySoon} ready within 24 hours, ${data.notReady} not ready, of ${total} inpatients.`;
 
   return (
-    <figure className="h-full w-full min-w-0">
-      <figcaption className="sr-only">{summary}</figcaption>
+    <ChartFigure summary={summary}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
@@ -70,17 +61,9 @@ export default function DischargeReadinessChart({
             iconType="circle"
             wrapperStyle={{ fontSize: 12 }}
           />
-          <Tooltip
-            contentStyle={{
-              background: 'var(--popover)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--popover-foreground)',
-              fontSize: 12,
-            }}
-          />
+          <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
         </PieChart>
       </ResponsiveContainer>
-    </figure>
+    </ChartFigure>
   );
 }

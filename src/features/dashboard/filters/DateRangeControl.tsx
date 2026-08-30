@@ -1,9 +1,3 @@
-// The working date-range control on the dashboard header row. Owns its own store
-// subscription (I-1 — the page must not hoist one and thread it down). A
-// bordered pill trigger showing the resolved range label; the popover body is a
-// preset list that swaps in-place to a lazy-loaded calendar for "Custom…" (no
-// nested popover — nested portals are a focus-management trap).
-
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { CalendarDays, Check, ChevronDown, ChevronLeft } from 'lucide-react';
 
@@ -38,16 +32,11 @@ export function DateRangeControl() {
 
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<View>('presets');
-  const presetsRef = useRef<HTMLDivElement>(null);
+  const presetsRef = useRef<HTMLFieldSetElement>(null);
 
-  // Always recomputed from the store — never cached at selection time, or "Today"
-  // would show yesterday's date after midnight (F4-j).
   const today = todayIso();
   const { label } = resolveRange(selection, today);
 
-  // Move focus to the first preset when the presets view is (re)shown after a
-  // swap back from the calendar (F4-h). On a fresh open, view is already
-  // 'presets' so this does not fire and Radix's own initial focus applies.
   useEffect(() => {
     if (view === 'presets') {
       presetsRef.current
@@ -70,7 +59,7 @@ export function DateRangeControl() {
     setOpen(false);
   }
 
-  function handlePresetKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+  function handlePresetKeyDown(event: React.KeyboardEvent<HTMLFieldSetElement>) {
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
       return;
     }
@@ -117,11 +106,10 @@ export function DateRangeControl() {
 
         <PopoverContent align="end" className="w-auto min-w-56 p-1">
           {view === 'presets' ? (
-            <div
+            <fieldset
               ref={presetsRef}
-              role="group"
               aria-label="Date range presets"
-              className="flex flex-col"
+              className="flex flex-col border-0 p-0"
               onKeyDown={handlePresetKeyDown}
             >
               {PRESETS.map((preset) => {
@@ -146,7 +134,7 @@ export function DateRangeControl() {
                   </button>
                 );
               })}
-            </div>
+            </fieldset>
           ) : (
             <div className="flex flex-col gap-1">
               <button

@@ -1,13 +1,9 @@
-// Pure date-range logic (I-37). No React, no localStorage, no ambient clock
-// reads. `today` is ALWAYS injected as a `YYYY-MM-DD` string — this is the
-// single design move that makes the whole module deterministically testable in
-// a `node` vitest env and immune to the timezone / DST class of bug.
+// Pure date-range logic (I-37): `today` is always injected as `YYYY-MM-DD`, all
+// arithmetic goes through `date-fns` calendar helpers, and dates are emitted
+// with `format(d, 'yyyy-MM-dd')` only. Converting a local date to UTC is banned
+// here — it shifts the date a day west of Greenwich (F1-a).
 //
-// All arithmetic goes through `date-fns` calendar helpers. UTC conversion of a
-// local date is banned here (it shifts the date by a day at any non-zero
-// offset — F1-a); dates are emitted with `format(d, 'yyyy-MM-dd')` only.
-//
-// Preset semantics — this table IS the test matrix (F1-f):
+// Preset semantics — this table is the test matrix (F1-f):
 //   today    | today                    | today
 //   last7    | today − 6d               | today   (inclusive of today → N−1 offset)
 //   last30   | today − 29d              | today
@@ -15,8 +11,6 @@
 //   quarter  | startOfQuarter(today)    | today   (quarter TO DATE)
 //   ytd      | startOfYear(today)       | today
 //   custom   | sel.from                 | sel.to
-// The "last N" presets are INCLUSIVE of today — hence the N−1 subtraction. Stated
-// so nobody silently changes the semantics later.
 
 import {
   differenceInCalendarDays,
@@ -63,11 +57,8 @@ export const PRESET_LABELS: Record<PresetKey, string> = {
   custom: 'Custom…',
 };
 
-/**
- * Chosen so "Year to date" on Dec 31 of a leap year (exactly 366 days) and a
- * full leap year both fit without the span clamp truncating a legitimate preset
- * (F1-i). No preset resolves to a span wider than this.
- */
+// 366 so a full leap year / leap-year YTD is not truncated by the span clamp
+// (F1-i). No preset resolves to a wider span.
 export const MAX_RANGE_DAYS = 366;
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -151,17 +142,8 @@ export function resolveRange(sel: RangeSelection, today: string): ResolvedRange 
   return { from, to, rangeKey: `${from}_${to}`, label };
 }
 
-/**
- * Coerce arbitrary parsed JSON into a valid `RangeSelection`. Self-heal ladder
- * (each rule has a test); the function is IDEMPOTENT — `n(n(x)) === n(x)`.
- *
- *   1. not an object / unknown `preset`                    → { preset: 'today' }
- *   2. preset !== 'custom'                                 → drop any from/to
- *   3. custom with a missing / non-ISO / invalid bound     → { preset: 'today' }
- *   4. reversed (from > to)                                → swap, keep custom
- *   5. to  > today                                         → clamp to today (both if from > today)
- *   6. span > MAX_RANGE_DAYS                               → clamp from to (to − (MAX−1))
- */
+// Coerce arbitrary parsed JSON into a valid `RangeSelection`. Each self-heal
+// rule below has a test; the function is idempotent — `n(n(x)) === n(x)`.
 export function normalizeSelection(raw: unknown, today: string): RangeSelection {
   if (typeof raw !== 'object' || raw === null) {
     return { preset: 'today' };
@@ -184,12 +166,12 @@ export function normalizeSelection(raw: unknown, today: string): RangeSelection 
   let from = candidate.from;
   let to = candidate.to;
 
-  // 4. reversed → swap
+  // reversed → swap
   if (from > to) {
     [from, to] = [to, from];
   }
 
-  // 5. future → clamp to today
+  // future → clamp to today
   if (to > today) {
     to = today;
   }
@@ -197,7 +179,7 @@ export function normalizeSelection(raw: unknown, today: string): RangeSelection 
     from = today;
   }
 
-  // 6. oversized → pull `from` forward
+  // oversized → pull `from` forward
   if (inclusiveSpanDays(from, to) > MAX_RANGE_DAYS) {
     from = toIso(subDays(parseISO(to), MAX_RANGE_DAYS - 1));
   }

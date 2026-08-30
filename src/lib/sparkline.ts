@@ -16,8 +16,12 @@ const round = (n: number): number => Math.round(n * 100) / 100;
  *   - all values equal  → a flat line at mid-height (`max - min === 0` would
  *                          otherwise divide by zero and emit `NaN,NaN`)
  */
-export function sparkPoints(values: number[], w: number, h: number): string {
-  if (values.length === 0) return '';
+export function sparkPoints(
+  values: readonly number[],
+  w: number,
+  h: number,
+): string {
+  if (values.length === 0) return "";
   if (values.length === 1) return `${round(w / 2)},${round(h / 2)}`;
 
   const min = Math.min(...values);
@@ -31,5 +35,5 @@ export function sparkPoints(values: number[], w: number, h: number): string {
       const y = range === 0 ? h / 2 : h - ((v - min) / range) * h;
       return `${round(x)},${round(y)}`;
     })
-    .join(' ');
+    .join(" ");
 }

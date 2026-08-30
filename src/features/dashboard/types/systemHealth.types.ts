@@ -1,5 +1,4 @@
-// Contract for the system-health tiles. Backend swap target:
-// GET /dashboard/system-health (see api/systemHealth.api.ts).
+// System-health tiles payload. Backend: GET /dashboard/system-health.
 
 export type SystemHealthStatus = 'ok' | 'degraded' | 'down';
 

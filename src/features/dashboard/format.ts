@@ -1,4 +1,6 @@
 // Pure formatting helpers for the dashboard. No React, no side effects.
+// Money is always passed as minor units (kobo). Percentages are passed
+// already scaled to 0–100, never as a 0–1 ratio.
 
 const nairaCurrencyFormatter = new Intl.NumberFormat('en-NG', {
   style: 'currency',
@@ -15,11 +17,8 @@ const integerFormatter = new Intl.NumberFormat('en-NG', {
   maximumFractionDigits: 0,
 });
 
-/**
- * `amountMinor` is kobo. Returns e.g. `₦1,234.50`.
- * Some runtimes ship an ICU build that renders `NGN` even for narrowSymbol —
- * in that case we format the plain number and prefix the symbol ourselves.
- */
+// Some ICU builds render `NGN` even for `narrowSymbol`; fall back to the plain
+// number with a hand-prefixed ₦ in that case.
 export function formatNaira(amountMinor: number): string {
   const major = amountMinor / 100;
   const formatted = nairaCurrencyFormatter.format(major);
@@ -34,10 +33,7 @@ const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 const WEEK_MS = 7 * DAY_MS;
 
-/**
- * `now` is injectable so callers and tests stay deterministic.
- * Future timestamps clamp to "just now".
- */
+// `now` is injectable so callers and tests stay deterministic.
 export function formatRelativeTime(iso: string, now: Date = new Date()): string {
   const then = new Date(iso);
   const diffMs = now.getTime() - then.getTime();
@@ -54,30 +50,24 @@ export function formatRelativeTime(iso: string, now: Date = new Date()): string 
   });
 }
 
-/** Plain integer with thousands separators, no decimals. `1234 → "1,234"`. */
+export function formatClockTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export function formatNumber(n: number): string {
   return integerFormatter.format(n);
 }
 
-/**
- * `n` is ALREADY a percentage value — `94.8 → "94.8%"` — NOT a 0–1 ratio.
- * Passing `0.948` here (expecting `"94.8%"`) is the likeliest silent bug at a
- * call site; it renders `"0.9%"`. Percentages in the data layer are stored as
- * `94.8` (see the dashboard types files).
- */
+// `n` is already a percentage (`94.8 → "94.8%"`), not a 0–1 ratio.
 export function formatPercent(n: number, digits = 1): string {
   return `${n.toFixed(digits)}%`;
 }
 
-/**
- * `amountMinor` is kobo. Compact naira for cards and tiles:
- * `₦2.9M` / `₦884K` / `₦950`. Thresholds on the absolute kobo value:
- *   < 100_000            → plain naira, 0 decimals   (₦950)
- *   < 100_000_000        → thousands, 0 decimals     (₦884K)
- *   < 100_000_000_000    → millions, 1 decimal       (₦2.9M)
- *   otherwise            → billions, 1 decimal       (₦3.1B)
- * The sign sits OUTSIDE the symbol: `-₦2.9M`.
- */
+// Compact naira for cards and tiles: `₦2.9M` / `₦884K` / `₦950`, sign outside
+// the symbol (`-₦2.9M`). Thresholds are on the absolute kobo value.
 export function formatNairaCompact(amountMinor: number): string {
   const sign = amountMinor < 0 ? '-' : '';
   const abs = Math.abs(amountMinor);
@@ -89,16 +79,6 @@ export function formatNairaCompact(amountMinor: number): string {
   return `${sign}₦${(major / 1_000_000_000).toFixed(1)}B`;
 }
 
-/**
- * The glyph and the sign carry the meaning; colour only reinforces it.
- * Currently unused after Phase 5 retired `KpiBand` (its sole caller); kept
- * because it is pure, tested (`format.test.ts`) and plausibly reused.
- */
-export function formatDelta(value: number): {
-  glyph: '▲' | '▼' | '–';
-  text: string;
-} {
-  if (value > 0) return { glyph: '▲', text: `+${value}` };
-  if (value < 0) return { glyph: '▼', text: String(value) };
-  return { glyph: '–', text: '0' };
+export function countLabel(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`;
 }

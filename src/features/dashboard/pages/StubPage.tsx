@@ -5,17 +5,11 @@ interface StubPageProps {
   note?: string;
 }
 
-/**
- * Placeholder for a route whose real screen is not built yet. Every stub still
- * has a title, one sentence naming what will live here, an echo of any route
- * params (so a row-click contract is visibly correct), and a way back to the
- * dashboard — no dead ends (`D-role-dashboard-shell-8`).
- */
-export function StubPage({ title, note }: StubPageProps) {
+export function StubPage({ title, note }: Readonly<StubPageProps>) {
   const params = useParams();
   const routeParams = Object.entries(params).filter(
-    ([, value]) => typeof value === 'string',
-  ) as Array<[string, string]>;
+    (entry): entry is [string, string] => entry[1] !== undefined,
+  );
 
   return (
     <div className="p-6">

@@ -1,5 +1,4 @@
-// Contract for the system alerts feed. Backend swap target:
-// GET /dashboard/system-alerts (see api/systemAlerts.api.ts).
+// System alerts feed payload. Backend: GET /dashboard/system-alerts.
 
 export type AlertSeverity = 'critical' | 'warning' | 'info';
 

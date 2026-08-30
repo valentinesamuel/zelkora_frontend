@@ -1,6 +1,5 @@
 import type { SystemAlertsResponse } from '@/features/dashboard/types/systemAlerts.types';
 
-// Static, deterministic dummy payload. Every severity value appears at least once.
 export const systemAlertsFixture: SystemAlertsResponse = {
   alerts: [
     {

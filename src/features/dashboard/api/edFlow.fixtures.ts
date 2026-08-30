@@ -1,8 +1,7 @@
 import type { EdFlowResponse } from '@/features/dashboard/types/edFlow.types';
 
-// Static, deterministic dummy payload: one rolling week of ED activity. Wait
-// climbs with volume mid-week; the final day's `avgWaitMin` (42) matches the
-// "ED average wait" KPI in dashboardKpis.fixtures.ts.
+// One rolling week of ED activity; the final day's `avgWaitMin` (42) matches the
+// ED average wait KPI.
 export const edFlowFixture: EdFlowResponse = {
   points: [
     { day: 'Mon', visits: 168, avgWaitMin: 38 },

@@ -3,8 +3,8 @@ import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface IconChipProps {
-  icon: LucideIcon;
-  tone?: 'accent' | 'success' | 'warning' | 'danger';
+  readonly icon: LucideIcon;
+  readonly tone?: 'accent' | 'success' | 'warning' | 'danger';
 }
 
 const toneClass: Record<NonNullable<IconChipProps['tone']>, string> = {
@@ -14,10 +14,7 @@ const toneClass: Record<NonNullable<IconChipProps['tone']>, string> = {
   danger: 'bg-destructive/10 text-destructive-text',
 };
 
-/**
- * A decorative tinted icon tile. `aria-hidden` — it is never the only label for
- * anything it sits beside.
- */
+// Decorative tinted icon tile; never the only label for what it sits beside.
 export function IconChip({ icon: Icon, tone = 'accent' }: IconChipProps) {
   return (
     <span

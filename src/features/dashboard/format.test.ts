@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  formatDelta,
+  countLabel,
+  formatClockTime,
   formatNaira,
   formatNairaCompact,
   formatNumber,
@@ -10,7 +11,6 @@ import {
 } from './format';
 
 // Pure-function coverage for the dashboard formatters. Node env, no DOM.
-// These are the first non-`apiClient` unit tests in the repo (plan Phase 8 step 4).
 
 describe('formatNaira', () => {
   it('renders kobo as naira with a narrow symbol and thousands separators', () => {
@@ -106,16 +106,19 @@ describe('formatNairaCompact', () => {
   });
 });
 
-describe('formatDelta', () => {
-  it('marks a positive value with ▲ and a signed label', () => {
-    expect(formatDelta(12)).toEqual({ glyph: '▲', text: '+12' });
+describe('countLabel', () => {
+  it('keeps the noun singular for a count of one', () => {
+    expect(countLabel(1, 'alert')).toBe('1 alert');
   });
 
-  it('marks a negative value with ▼ and a signed label', () => {
-    expect(formatDelta(-4)).toEqual({ glyph: '▼', text: '-4' });
+  it('pluralises every other count, including zero', () => {
+    expect(countLabel(0, 'alert')).toBe('0 alerts');
+    expect(countLabel(3, 'recent update')).toBe('3 recent updates');
   });
+});
 
-  it('marks zero with – and "0"', () => {
-    expect(formatDelta(0)).toEqual({ glyph: '–', text: '0' });
+describe('formatClockTime', () => {
+  it('renders an hour:minute clock time', () => {
+    expect(formatClockTime('2026-08-29T09:05:00.000Z')).toMatch(/\d{1,2}:\d{2}/);
   });
 });

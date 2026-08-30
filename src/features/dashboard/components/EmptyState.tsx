@@ -1,5 +1,5 @@
 interface EmptyStateProps {
-  message: string;
+  readonly message: string;
 }
 
 /** Reserves height so an empty widget body does not collapse. */

@@ -1,13 +1,10 @@
 import type { HmoClaimsResponse } from '@/features/dashboard/types/hmoClaims.types';
 
-// Static, deterministic dummy payload. Money is minor units (kobo).
-// Every HmoClaimStatus value appears at least once. Real Nigerian HMO names.
 export const hmoClaimsFixture: HmoClaimsResponse = {
   summary: {
     pendingCount: 9,
     deniedCount: 3,
     submittedValueMinor: 88_400_000,
-    // 3 denied of 24 adjudicated this period ≈ 12.5%.
     denialRatePct: 12.5,
     daysToAdjudication: 16,
   },

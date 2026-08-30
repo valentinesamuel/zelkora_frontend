@@ -1,7 +1,4 @@
-// Contract for the revenue & billing panel. Backend swap target:
-// GET /dashboard/revenue-billing (see api/revenueBilling.api.ts).
-// All money fields are minor units (kobo), suffixed `*Minor`.
-// Percentages are stored as 0–100 numbers (e.g. 91.9), matching `formatPercent`.
+// Revenue & billing panel payload. Backend: GET /dashboard/revenue-billing.
 
 export interface RevenueSummary {
   totalMinor: number;
@@ -16,8 +13,7 @@ export interface RevenueSummary {
   outstandingArMinor: number;
   /** Average days a receivable stays open. */
   daysInAr: number;
-  /** Daily revenue history (major-unit naira) for the summary sparkline; the
-   *  last point equals `totalMinor / 100`. Never fewer than 2 points. */
+  // Daily revenue history (major-unit naira); last point equals `totalMinor / 100`.
   trend: number[];
 }
 

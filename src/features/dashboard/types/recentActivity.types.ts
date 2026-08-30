@@ -1,5 +1,4 @@
-// Contract for the recent-activity audit feed. Backend swap target:
-// GET /dashboard/recent-activity (see api/recentActivity.api.ts).
+// Recent-activity audit feed payload. Backend: GET /dashboard/recent-activity.
 
 export interface ActivityEntry {
   id: string;

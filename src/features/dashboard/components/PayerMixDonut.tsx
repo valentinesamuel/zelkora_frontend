@@ -1,18 +1,15 @@
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 
 import { formatNairaCompact } from '@/features/dashboard/format';
+import { ChartFigure } from '@/features/dashboard/components/ChartFigure';
 
 interface PayerMixDonutProps {
-  cashMinor: number;
-  hmoMinor: number;
-  /** Consumer passes `false` under `prefers-reduced-motion`. */
-  animate?: boolean;
+  readonly cashMinor: number;
+  readonly hmoMinor: number;
+  readonly animate?: boolean;
 }
 
-/**
- * Two-slice cash / HMO donut with the combined total in the centre. Lazy-loaded
- * — recharts must never enter the entry bundle.
- */
+// Two-slice cash / HMO donut with the combined total in the centre. Lazy-loaded.
 export default function PayerMixDonut({
   cashMinor,
   hmoMinor,
@@ -23,14 +20,12 @@ export default function PayerMixDonut({
     { name: 'HMO', value: Math.max(hmoMinor, 0), color: 'var(--chart-2)' },
   ];
   const total = cashMinor + hmoMinor;
+  const summary = `Payer mix: ${formatNairaCompact(cashMinor)} cash, ${formatNairaCompact(
+    hmoMinor,
+  )} HMO, ${formatNairaCompact(total)} total.`;
 
   return (
-    <figure className="relative h-full w-full min-w-0">
-      <figcaption className="sr-only">
-        {`Payer mix: ${formatNairaCompact(cashMinor)} cash, ${formatNairaCompact(
-          hmoMinor,
-        )} HMO, ${formatNairaCompact(total)} total.`}
-      </figcaption>
+    <ChartFigure summary={summary} className="relative">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
@@ -56,6 +51,6 @@ export default function PayerMixDonut({
         </span>
         <span className="text-xs text-muted-foreground">Total</span>
       </div>
-    </figure>
+    </ChartFigure>
   );
 }

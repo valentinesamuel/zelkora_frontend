@@ -6,7 +6,7 @@ export function DashboardPage() {
   const user = useAuthStore((s) => s.user);
 
   if (user === null) {
-    throw new Error('DashboardPage rendered without an authenticated user');
+    return null;
   }
 
   switch (user.role) {

@@ -1,4 +1,3 @@
-/** Pulsing dot plus the literal word "Live" — the text carries the meaning. */
 export function LiveIndicator() {
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">

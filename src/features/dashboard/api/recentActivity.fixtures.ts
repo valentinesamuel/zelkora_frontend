@@ -1,6 +1,5 @@
 import type { RecentActivityResponse } from '@/features/dashboard/types/recentActivity.types';
 
-// Static, deterministic dummy payload.
 export const recentActivityFixture: RecentActivityResponse = {
   entries: [
     {

@@ -1,6 +1,5 @@
 import type { SystemHealthResponse } from '@/features/dashboard/types/systemHealth.types';
 
-// Static, deterministic dummy payload. Every status value appears at least once.
 export const systemHealthFixture: SystemHealthResponse = {
   tiles: [
     {

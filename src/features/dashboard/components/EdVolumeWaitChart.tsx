@@ -9,46 +9,44 @@ import {
   YAxis,
 } from 'recharts';
 
-// Presentation primitive — data comes from the caller (Phase 5 wires the
-// `edFlow` resource). Shape mirrors `edFlow.types.ts` structurally.
-interface EdFlowPoint {
-  day: string;
-  visits: number;
-  avgWaitMin: number;
-}
+import type { EdFlowPoint } from '@/features/dashboard/types/edFlow.types';
+import { ChartFigure } from '@/features/dashboard/components/ChartFigure';
+import { CHART_TOOLTIP_STYLE } from '@/features/dashboard/components/chartTooltipStyle';
 
 interface EdVolumeWaitChartProps {
-  data: EdFlowPoint[];
-  /** Consumer passes `false` under `prefers-reduced-motion`. */
-  animate?: boolean;
+  readonly data: EdFlowPoint[];
+  readonly animate?: boolean;
 }
 
 const AXIS = 'var(--muted-foreground)';
 
 function trendSummary(data: EdFlowPoint[]): string {
   if (data.length === 0) return 'No ED volume or wait-time data available.';
-  const first = data[0];
-  const last = data[data.length - 1];
-  const dir =
-    last.avgWaitMin > first.avgWaitMin
-      ? 'up'
-      : last.avgWaitMin < first.avgWaitMin
-        ? 'down'
-        : 'flat';
+
+  const first = data.at(0);
+  const last = data.at(-1);
+
+  if (!first || !last) {
+    return 'No ED volume or wait-time data available.';
+  }
+
+  let dir = 'flat';
+  if (last.avgWaitMin > first.avgWaitMin) {
+    dir = 'up';
+  } else if (last.avgWaitMin < first.avgWaitMin) {
+    dir = 'down';
+  }
+
   return `ED visits from ${first.visits} on ${first.day} to ${last.visits} on ${last.day}. Average wait ${dir} from ${first.avgWaitMin} to ${last.avgWaitMin} minutes over the period.`;
 }
 
-/**
- * ED daily visit volume (bars, left axis) against average wait minutes (line,
- * right axis). Lazy-loaded — recharts must never enter the entry bundle.
- */
+// Lazy-loaded — recharts must never enter the entry bundle.
 export default function EdVolumeWaitChart({
   data,
   animate = true,
-}: EdVolumeWaitChartProps) {
+}: Readonly<EdVolumeWaitChartProps>) {
   return (
-    <figure className="h-full w-full min-w-0">
-      <figcaption className="sr-only">{trendSummary(data)}</figcaption>
+    <ChartFigure summary={trendSummary(data)}>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: 4 }}>
           <CartesianGrid vertical={false} stroke="var(--border)" />
@@ -76,15 +74,7 @@ export default function EdVolumeWaitChart({
             width={32}
             stroke={AXIS}
           />
-          <Tooltip
-            contentStyle={{
-              background: 'var(--popover)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--popover-foreground)',
-              fontSize: 12,
-            }}
-          />
+          <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
           <Bar
             yAxisId="visits"
             dataKey="visits"
@@ -105,6 +95,6 @@ export default function EdVolumeWaitChart({
           />
         </ComposedChart>
       </ResponsiveContainer>
-    </figure>
+    </ChartFigure>
   );
 }

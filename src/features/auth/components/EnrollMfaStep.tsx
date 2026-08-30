@@ -34,7 +34,7 @@ export function EnrollMfaStep({
   onEnrolled,
 }: Readonly<EnrollMfaStepProps>) {
 
-  const startedRef = useRef(false);
+  const startedRef = useRef<string | null>(null);
 
   const [secret, setSecret] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -48,10 +48,11 @@ export function EnrollMfaStep({
   });
 
   useEffect(() => {
-    if (startedRef.current) {
+    if (startedRef.current === enrollmentToken) {
       return;
     }
-    startedRef.current = true;
+
+    startedRef.current = enrollmentToken;
 
     void (async () => {
       try {
@@ -63,7 +64,6 @@ export function EnrollMfaStep({
         setQrDataUrl(dataUrl);
       } catch (err) {
         if (err instanceof ApiError && err.statusCode === 409) {
-
           onEnrolled();
           return;
         }
@@ -74,8 +74,7 @@ export function EnrollMfaStep({
         );
       }
     })();
-
-  }, []);
+  }, [enrollmentToken, onEnrolled]);
 
   async function onVerify({ passcode }: EnrollVerifyValues) {
     try {

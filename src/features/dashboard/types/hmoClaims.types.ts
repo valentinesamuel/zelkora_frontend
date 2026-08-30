@@ -1,7 +1,4 @@
-// Contract for the HMO claims panel. Backend swap target:
-// GET /dashboard/hmo-claims (see api/hmoClaims.api.ts).
-// Money fields are minor units (kobo), suffixed `*Minor`.
-// Percentages are stored as 0–100 numbers (e.g. 12.5), matching `formatPercent`.
+// HMO claims panel payload. Backend: GET /dashboard/hmo-claims.
 
 export type HmoClaimStatus = 'submitted' | 'pending' | 'approved' | 'denied';
 
