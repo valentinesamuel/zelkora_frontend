@@ -7,6 +7,8 @@
  */
 import { Bell, Search } from 'lucide-react';
 
+import { BranchSwitcher } from '@/features/branch/BranchSwitcher';
+
 import { useAuthStore } from '../../features/auth/authStore';
 
 function greetingFor(hours: number): string {
@@ -44,11 +46,12 @@ export function AppHeader() {
         <span className="truncate">Search patients…</span>
       </button>
 
-      <div className="flex items-center justify-self-end">
+      <div className="flex min-w-0 items-center gap-2 justify-self-end">
+        <BranchSwitcher />
         <button
           type="button"
           aria-label="Notifications"
-          className="flex size-8 items-center justify-center rounded-sm text-muted-foreground transition-colors motion-reduce:transition-none hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+          className="flex size-8 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors motion-reduce:transition-none hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
         >
           <Bell className="size-4" aria-hidden="true" />
         </button>

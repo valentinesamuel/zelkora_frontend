@@ -21,6 +21,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { BranchLabel } from '@/features/branch/BranchLabel';
 
 import { useAuthStore } from '../../features/auth/authStore';
 import { NAV_GROUPS } from './navigation';
@@ -277,7 +278,7 @@ export function AppSidebar() {
               </p>
               <p className="truncate text-xs text-muted-foreground">
                 {user?.role ?? '—'}
-                {user?.branchId != null && ` · ${user.branchId}`}
+                <BranchLabel />
               </p>
             </div>
           )}
