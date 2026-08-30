@@ -31,6 +31,22 @@ export default defineConfig([
     },
   },
   {
+    // Broaden past sonarjs "recommended" toward SonarQube's full "Sonar way"
+    // JS/TS profile: rules that ship off in the npm preset but are on in
+    // SonarQube itself. `todo-tag` downgraded to warn (TODOs are kept on
+    // purpose; the marker should be visible, not fail the build).
+    files: ['**/*.{ts,tsx}'],
+    rules: {
+      'sonarjs/todo-tag': 'warn',
+      'sonarjs/no-duplicate-string': ['error', { threshold: 3 }],
+      'sonarjs/prefer-immediate-return': 'error',
+      'sonarjs/no-collapsible-if': 'error',
+      'sonarjs/no-inconsistent-returns': 'error',
+      'sonarjs/no-nested-switch': 'error',
+      'sonarjs/no-commented-code': 'error',
+    },
+  },
+  {
     // Decision D9 (DE-approved 2026-08-27): the components/** layer is
     // domain-agnostic and must never import from features/**. See INV-L2.
     files: ['src/components/**/*.{ts,tsx}'],
