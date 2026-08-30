@@ -8,7 +8,7 @@ CLI contract), Issue C (no write-on-init for a fresh profile), **Issue D (git ba
 gates)**.
 
 ```
-Current phase: P0 COMPLETE (Option A, BASELINE_SHA 1dfb27b, 2026-08-30) — Phase 1 next
+Current phase: Phase 1 COMPLETE (2026-08-30) — Phase 2 next. P0 done (Option A, BASELINE_SHA 1dfb27b).
 Phases:        6
 Prior work:    Zelkora CMO Dashboard & UI Overhaul, Phases 1-6, COMPLETE 2026-08-30.
                Historical record preserved in decisions.md / diff.md / checkpoint.md /
@@ -96,7 +96,7 @@ Never amend or rebase a completed phase — the SHAs are what the gates lean on.
 | Phase | SHA | build | tests | lint | token-diff | entry chunk | notes |
 |---|---|---|---|---|---|---|---|
 | P0 baseline | `1dfb27b` | exit 0 | 45 | 0/1 | 15 | 544596 B | overhaul checkpoint + pipeline-store deletion; index.css sha ad8fbd93 |
-| 1 Filter foundation | | | | | | | expect token-diff 15 unchanged; index.css hash unchanged |
+| 1 Filter foundation | `PENDING` | exit 0 | 89 | 0/1 | 15 | 544596 B | date-fns@4.4.0 exact, no --legacy-peer-deps; index.css sha ad8fbd93 unchanged; +44 tests, 5 new modules unmounted |
 | 2 UI primitives | | | | | | | record the exact CLI command; entry-chunk delta |
 | 3 BranchSwitcher | | | | | | | 360px verdict vs. the P0 capture |
 | 4 DateRangeControl | | | | | | | `DashboardFilterBar` deleted |

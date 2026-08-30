@@ -446,3 +446,68 @@ Documentation only. No source file, config, dependency or asset touched.
   (`plan.md`, `state.md`, `dependency-graph.json`, `invariants.md`,
   `working-hypotheses.md`, `agent-map.md`, `art-direction.md`, `decisions.md`)
   plus the Operator process files `checkpoint.md` and `diff.md`.
+
+---
+
+# Global Branch Switcher & Working Date Range — Phase 1: Filter foundation
+
+**Executed:** 2026-08-30 · Operator · plan.md Phase 1 · HEAD at gate time = `fa3a37b` (P0 bookkeeping) / feature baseline `1dfb27b`
+
+### Added
+- `src/features/branch/branches.ts` — leaf module, imports nothing. `Branch`,
+  `BRANCHES` (4 entries, `dev-branch` at index 0 per D6), `DEFAULT_BRANCH_ID`,
+  `isKnownBranchId`, `branchNameFor` (returns `null`, never a raw id — I-38).
+- `src/features/dashboard/filters/dateRange.ts` — pure (I-37). `PRESETS`,
+  `PresetKey`, `RangeSelection`, `ResolvedRange`, `PRESET_LABELS`,
+  `MAX_RANGE_DAYS = 366`, `resolveRange(sel, today)`, `normalizeSelection(raw, today)`.
+  `today` injected as a `YYYY-MM-DD` string on every export; all arithmetic via
+  `date-fns` (`parseISO`/`subDays`/`startOfQuarter`/`startOfYear`/
+  `differenceInCalendarDays`/`isValid`/`format`). No ambient clock read, no UTC
+  conversion.
+- `src/features/dashboard/filters/dateRange.test.ts` — 27 cases: six presets
+  (from/to/rangeKey/label), quarter first+last day, YTD first+last day,
+  month+year boundary `last7`/`last30`/`last90`, leap-February `last7`, custom
+  happy/single-day/out-of-year label, malformed custom → today, the full
+  `normalizeSelection` ladder (null/undefined/`{}`/unknown preset/stray from-to/
+  garbage bound/reversed→swap/future→clamp/only-`to`-future/oversized→clamp) and
+  idempotency, plus the `MAX_RANGE_DAYS` non-truncation proof (YTD Dec 31 leap = 366).
+- `src/features/dashboard/filters/filtersPersistence.ts` — pure serde, no I/O.
+  `FILTERS_STORAGE_KEY`, `PersistedFilters` (`v:1`), `DecodedFilters` with
+  `present` and `healed` as **two separate booleans** (`healed` always `false`
+  when `present` is `false` — I-32c). `JSON.parse` inside its own try/catch.
+- `src/features/dashboard/filters/filtersPersistence.test.ts` — 17 cases:
+  `null` asserts `{present:false, healed:false}`; `''`/`'not json'`/`'[]'`/
+  `{"v":2}` → `{present:true, healed:true}`; unknown branchId / unknown preset /
+  future custom → healed; clean preset + clean custom → `healed:false`;
+  `encode ∘ decode` fidelity (preset, custom, from/to not serialised for non-custom).
+- `src/features/dashboard/filters/dashboardFiltersStore.ts` — the one impure
+  module. `todayIso()` (the single sanctioned `new Date()` — I-37). Zustand
+  `create()` (no `persist` middleware). Two distinct init fields:
+  `persistedOnInit` (set once from `decodeFilters().present`, no setter) and
+  `userSeedApplied` (`false`, flipped only by `markUserSeedApplied()`). Init reads
+  `localStorage` once at module-eval via a `try/catch` `readRaw()`; writes back
+  **iff `decoded.present && decoded.healed`**. Setters (`setBranchId`,
+  `setSelection`) write through `writeRaw(encodeFilters(...))` in the setter, never
+  an effect; `setBranchId` no-ops an unknown id; `setSelection` re-runs
+  `normalizeSelection`. `useDashboardQueryScope()` — the Phase-5 read surface,
+  memoised on `(branchId, selection, today)`, returns plain-string
+  `{ branchId, rangeKey, from, to }`.
+
+### Modified
+- `package.json` / `package-lock.json` — `date-fns` added, pinned **`4.4.0`**
+  (exact, no caret). No `ERESOLVE`, **no `--legacy-peer-deps`** (matches the
+  `D-cmo-ui-overhaul-3` recharts outcome; `date-fns` is dependency-free).
+
+### Not touched (Phase 1 scope guard)
+- `src/index.css` (hash `ad8fbd93…` unchanged), any `.api.ts`, `AppHeader`,
+  `AppSidebar`, `CmoDashboardPage`, `DashboardFilterBar`. `git diff --stat HEAD`
+  shows only `package.json` + lockfile plus the six new files.
+
+### Impact summary
+- `npm run build` exit 0 — entry chunk `index-CYsBHSWx.js` **544596 B, byte-identical
+  to P0**: the five new modules are tree-shaken (nothing imports them yet;
+  `noUnusedLocals` tolerates unused exports).
+- `npm test` — **89 passing** (45 → 89, +44 across 2 new files).
+- `npm run lint` — 0 errors, 1 pre-existing warning (`EnrollMfaStep.tsx:78`).
+- `token-diff --theme src/index.css` — **15**, unchanged. `shasum src/index.css`
+  unchanged. No visible change to the app.
