@@ -108,3 +108,88 @@ Nothing under `.claude/` is compiled — the phase cannot affect the build, and 
 - `.claude/artifacts/decisions.md`: new — `D-cmo-ui-overhaul-1..7` rationale log.
 - `.claude/artifacts/diff.md`: appended the Phase 6 section.
 - `.claude/artifacts/state.md`: Phase 6 marked complete.
+
+---
+
+# Checkpoint — Global Branch Switcher & Working Date Range · Precondition P0
+
+**Executed:** 2026-08-30 · **Operator** · plan.md Precondition P0 (DE Issue D) · **no agent** (agent-map.md: P0 is a user question + a mechanical git sequence)
+
+## Phase summary
+Established a real git baseline so every later `git diff` gate is scoped to `HEAD`.
+The working tree was NOT clean at the start — the entire completed CMO Dashboard & UI
+Overhaul (Phases 1–6) plus this feature's planning artifacts were uncommitted, and the
+`.claude/.artifacts/design/` pipeline store was pending deletion. The user was asked the
+blocking question Q0 and explicitly authorised **Option A** (one checkpoint commit + a
+commit per phase). All four gates were re-run green before committing.
+
+## Implementation details
+- Verified `git status` — 119 paths: 31 added / 21 deleted / 8 modified plus the untracked
+  `src/features/dashboard/` tree (60 files), `.claude/artifacts/` (10), `uisamples/` (2),
+  `public/fonts/` (2), layout + router wiring, and the 20-file `.claude/.artifacts/design/`
+  deletion.
+- Inspected every entry not explicitly named in state.md's P0 block (`AppRouter.tsx`,
+  `AuthBootstrap.tsx`, `index.html`, `LoginPage.tsx`, `ProfilePage.tsx`, the two READMEs,
+  `uisamples/`). All trace to the overhaul or this feature's planning — router wired to
+  `AppLayout`/`DashboardPage`/`StubPage`, font preload + `<title>`, the DEV-gated `?devAuth`
+  stub that seeds `branchId: 'dev-branch'`, and the ecommerce reference PNGs. **No unrelated
+  in-flight work; nothing was staged.** R20 satisfied.
+- Re-ran all four gates BEFORE committing (readings below).
+- `git add -A` then ONE commit `1dfb27b` on branch `DEV` (parent `bea5f9e`). The commit
+  message names its contents and quotes the gate readings; it makes the
+  `.claude/.artifacts/design/` deletion permanent (I-29).
+- `git status --porcelain` after → EMPTY. `git rev-parse HEAD` → `BASELINE_SHA`.
+- Recorded `BASELINE_SHA`, authorisation, and all gate readings in `state.md`.
+
+## Verification results
+| P0 criterion | Result |
+|---|---|
+| User authorised the commit (explicit, not inferred) | **Pass** — answered "Option A" to the blocking question |
+| All four gates green before committing (never commit a red tree) | **Pass** — see table |
+| Commit scoped deliberately; stop-and-ask on anything unexpected | **Pass** — full list reviewed, everything in scope, no unrelated work found |
+| Staged `.claude/.artifacts/design/` deletion included | **Pass** — 20 files deleted in the commit |
+| `git status --porcelain` EMPTY after | **Pass** |
+| `BASELINE_SHA` recorded in `state.md` | **Pass** — `1dfb27b769030d884adaf00b635685c531795da5` |
+
+| Gate | Reading (re-run, not copied) |
+|---|---|
+| `npm run build` | exit 0 — 2671 modules, entry JS `index-CYsBHSWx.js` **544596 B** |
+| `npm test` | exit 0 — 4 files, **45 passing** |
+| `npm run lint` | exit 0 — **0 errors, 1 warning** (`react-hooks/exhaustive-deps`, `EnrollMfaStep.tsx:78`) |
+| `token-diff --theme src/index.css` | **15** hardcoded, 0 missing |
+| `shasum src/index.css` | **`ad8fbd930a407e6cb38b471e1ee85715f37c2bf7`** |
+| entry chunk | 544596 B (next largest `CategoricalChart` 271155 B — recharts still split out) |
+
+## Expected vs actual behaviour
+| Expected (plan) | Actual |
+|---|---|
+| Tree not clean; overhaul uncommitted; `.claude/.artifacts/design/` staged-deleted | Confirmed, except the design-store deletion showed as **unstaged** `D ` (tree moved since planning) — folded into the commit, same end state |
+| One checkpoint commit; per-phase commits follow; gates scoped to HEAD | Done — `BASELINE_SHA 1dfb27b`; Option-B hash table left blank by design |
+| Gate readings match `checkpoint.md:61-64` | Match exactly (45 tests, 0/1 lint, token-diff 15, entry 544596 B) |
+
+## Build status
+**CLEAN.** Zero TS errors, zero lint errors, zero test failures, token-diff 15. Baseline frozen.
+
+## Risks or anomalies
+- **AppHeader @ 360px baseline NOT captured** — this Operator run has no interactive browser.
+  Phases 1–2 do not touch `AppHeader`, so P0/1/2 are unaffected, but **Phase 3 MUST capture
+  this first** (H-5 / R6) or F3-d header-overflow is unattributable. Recorded in `state.md`.
+- The `.claude/.artifacts/design/` deletion was unstaged, not staged as planning predicted —
+  no impact, the commit makes it permanent either way.
+- `uisamples/` is 4.1 MB of reference PNGs. Included in the baseline as feature-planning input
+  (the plan treats the ecommerce sample as a Phase 4 directional reference). Flagged so a
+  reviewer knows it was a deliberate inclusion, not a stray `git add -A`.
+- Per agent-map.md, P0 has no assigned agent — executed directly by the Operator.
+
+## Context for Next Phase
+### Key Decisions
+- P0 Option A taken: `BASELINE_SHA = 1dfb27b769030d884adaf00b635685c531795da5` on branch `DEV`. Every `git diff` gate in Phases 1–5 is live and scoped to `HEAD`; the Option-B hash fallback is NOT in play.
+- Whole dirty tree committed as one checkpoint — every path was reviewed and traced to the overhaul or this feature's planning; no unrelated work existed to exclude.
+### Discovered Constraints
+- No interactive browser in this Operator run — all manual/DevTools checks (360px capture, keyboard, SR, reduced-motion) must be done in a dedicated E2E pass, same posture as the overhaul.
+### Do Not Revisit
+- P0 authorisation is settled — do not re-ask; do not amend or rebase `1dfb27b` (I-41).
+- `.claude/.artifacts/design/` deletion is committed and permanent (I-29); `validate-manifest.mjs` stays unrun (I-30).
+### Files Changed
+- (baseline commit `1dfb27b`) — 119 paths: the CMO overhaul, planning artifacts, and the pipeline-store deletion. Not a phase change; the frozen starting point.
+- `.claude/artifacts/state.md`: P0 baseline block + phase pointer filled in (committed with Phase 1 bookkeeping).

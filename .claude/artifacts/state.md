@@ -8,7 +8,7 @@ CLI contract), Issue C (no write-on-init for a fresh profile), **Issue D (git ba
 gates)**.
 
 ```
-Current phase: 0 (planning complete, DE rounds 1-2 applied — nothing executed)
+Current phase: P0 COMPLETE (Option A, BASELINE_SHA 1dfb27b, 2026-08-30) — Phase 1 next
 Phases:        6
 Prior work:    Zelkora CMO Dashboard & UI Overhaul, Phases 1-6, COMPLETE 2026-08-30.
                Historical record preserved in decisions.md / diff.md / checkpoint.md /
@@ -68,30 +68,24 @@ tree must never be committed.
 ### Baseline record — FILL IN AT P0
 
 ```
-P0 outcome:            [ ] Option A (checkpoint commit)   [ ] Option B (hashes only)
-User authorisation:    ____________________  (who said yes, when)
-BASELINE_SHA:          ____________________  (git rev-parse HEAD after the checkpoint commit)
-git status after P0:   ____________________  (must be EMPTY under Option A)
+P0 outcome:            [X] Option A (checkpoint commit)   [ ] Option B (hashes only)
+User authorisation:    valentinesamuel2580@gmail.com — 2026-08-30, explicit "Option A" answer to the Operator's blocking P0 question
+BASELINE_SHA:          1dfb27b769030d884adaf00b635685c531795da5  (branch DEV; parent bea5f9e)
+git status after P0:   EMPTY (git status --porcelain returned nothing)
 
-Gate readings at baseline (re-run, do not copy from checkpoint.md):
-  npm run build        ____________________
-  npm test             ____________________  (expect 45 passing)
-  npm run lint         ____________________  (expect 0 err / 1 warn, EnrollMfaStep.tsx:78)
-  token-diff           ____________________  (expect 15; ceiling for every phase is 15)
-  entry chunk size     ____________________  (from `ls -la dist/assets | sort -k5 -n`)
-  shasum src/index.css ____________________  <- THE belt-and-braces I-40 gate; works under
-                                                BOTH options; must be identical at every
-                                                phase boundary and at feature end
-  AppHeader @ 360px    ____________________  (already overflowing? H-5 — capture BEFORE Phase 3)
+Gate readings at baseline (re-run 2026-08-30, NOT copied from checkpoint.md):
+  npm run build        exit 0 — 2671 modules, entry JS index-CYsBHSWx.js 544596 B
+  npm test             exit 0 — 4 files, 45 passing
+  npm run lint         exit 0 — 0 errors, 1 warning (react-hooks/exhaustive-deps, EnrollMfaStep.tsx:78)
+  token-diff           15 hardcoded value(s), 0 missing token(s)   (ceiling for every phase = 15)
+  entry chunk size     544596 B  (dist/assets/index-CYsBHSWx.js; next largest CategoricalChart 271155 B — recharts still split out)
+  shasum src/index.css ad8fbd930a407e6cb38b471e1ee85715f37c2bf7   <- THE belt-and-braces I-40 gate
+  AppHeader @ 360px    NOT CAPTURED — no interactive browser in this Operator run. Phases 1-2 do
+                       not touch AppHeader; this MUST be captured before Phase 3 (H-5 / R6) or
+                       F3-d overflow is unattributable. Flagged in Risks/anomalies.
 
-Under Option B only — additional baseline hashes (P0 step 5):
-  components.json                                   ____________________
-  src/app/layouts/AppHeader.tsx                     ____________________
-  src/app/layouts/AppSidebar.tsx                    ____________________
-  src/features/dashboard/pages/CmoDashboardPage.tsx ____________________
-  .claude/artifacts/art-direction.md                ____________________
-  src/features/dashboard/api/*.api.ts               (11 hashes) ____________________
-  full enumeration of src/features/dashboard/**/*.ts*  (for Phase 5 #9) ____________________
+Under Option A the git diff gates are live against BASELINE_SHA; the Option-B hash table below
+is left blank by design (not taken).
 ```
 
 ### Per-phase commit log — FILL IN AS PHASES COMPLETE (Option A)
@@ -101,7 +95,7 @@ Never amend or rebase a completed phase — the SHAs are what the gates lean on.
 
 | Phase | SHA | build | tests | lint | token-diff | entry chunk | notes |
 |---|---|---|---|---|---|---|---|
-| P0 baseline | | | 45 | 0/1 | 15 | | overhaul checkpoint + pipeline-store deletion |
+| P0 baseline | `1dfb27b` | exit 0 | 45 | 0/1 | 15 | 544596 B | overhaul checkpoint + pipeline-store deletion; index.css sha ad8fbd93 |
 | 1 Filter foundation | | | | | | | expect token-diff 15 unchanged; index.css hash unchanged |
 | 2 UI primitives | | | | | | | record the exact CLI command; entry-chunk delta |
 | 3 BranchSwitcher | | | | | | | 360px verdict vs. the P0 capture |
