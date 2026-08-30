@@ -5,6 +5,7 @@ import { PublicOnly, RequireAuth } from '@/features/auth/guards';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { StubPage } from '@/features/dashboard/pages/StubPage';
+import { PatientListPage } from '@/features/patients/pages/PatientListPage';
 import { ProfilePage } from '@/features/profile/ProfilePage';
 
 export function AppRouter() {
@@ -28,6 +29,11 @@ export function AppRouter() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="patients" element={<PatientListPage />} />
+        <Route
+          path="patients/new"
+          element={<StubPage title="Register patient" note="Patient registration lands in a later phase." />}
+        />
         <Route
           path="patients/:patientId"
           element={<StubPage title="Patient record" note="Patient detail view lands in a later phase." />}

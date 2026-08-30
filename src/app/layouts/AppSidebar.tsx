@@ -50,7 +50,7 @@ function writeCollapsed(value: boolean): void {
 }
 
 const ROW_BASE =
-  'flex h-9 w-full items-center gap-3 rounded-none border-l-2 text-sm transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2';
+  'flex h-9 w-full items-center gap-3 rounded-none text-sm transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2';
 
 function rowLayout(collapsed: boolean, depth: number): string {
   if (collapsed) return 'justify-center px-0';
@@ -110,9 +110,14 @@ function EnabledRow({
           cn(
             ROW_BASE,
             rowLayout(collapsed, depth),
-            isActive
-              ? 'border-primary bg-accent-muted font-medium text-foreground'
-              : 'border-transparent text-foreground hover:bg-muted',
+            collapsed && isActive && 'bg-accent-muted font-medium text-foreground',
+            collapsed && !isActive && 'text-foreground hover:bg-muted',
+            !collapsed &&
+              isActive &&
+              'border-l-2 border-primary bg-accent-muted font-medium text-foreground',
+            !collapsed &&
+              !isActive &&
+              'border-l-2 border-transparent text-foreground hover:bg-muted',
           )
         }
       >
@@ -146,7 +151,9 @@ function DisabledRow({
         className={cn(
           ROW_BASE,
           rowLayout(collapsed, depth),
-          'cursor-default border-transparent text-muted-foreground',
+          collapsed
+            ? 'cursor-default text-muted-foreground'
+            : 'cursor-default border-l-2 border-transparent text-muted-foreground',
         )}
       >
         <RowIcon icon={item.icon} />

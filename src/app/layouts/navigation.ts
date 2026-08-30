@@ -4,8 +4,9 @@
  * This is DATA, not a component — it lives in a `.ts` module so that
  * `react-refresh/only-export-components` does not fire on the sidebar.
  *
- * Only `Dashboard` is navigable today. Every other entry is `enabled: false`
- * and deliberately carries NO `to`, so it can never be linked to by accident.
+ * Only `Dashboard` and `Patients` are navigable today. Every other entry is
+ * `enabled: false` and deliberately carries NO `to`, so it can never be linked
+ * to by accident.
  */
 import {
   BarChart3,
@@ -53,7 +54,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Patient Care",
     items: [
-      { label: "Patients", icon: Users, enabled: false },
+      { label: "Patients", to: "/patients", icon: Users, enabled: true },
       { label: "Queue & Appointments", icon: CalendarClock, enabled: false },
       { label: "Consultations", icon: Stethoscope, enabled: false },
       { label: "Lab", icon: FlaskConical, enabled: false },
