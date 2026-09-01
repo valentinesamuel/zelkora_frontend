@@ -7,12 +7,7 @@ import {
   patientInitialsOf,
   patientLastVisitAt,
 } from '@/features/patients/patientView';
-import {
-  PatientPaymentTypeEnum,
-  PatientSexEnum,
-  PatientStatusEnum,
-  type Patient,
-} from '@/features/patients/types/patient.types';
+import type { Patient } from '@/features/patients/types/patient.types';
 
 const NOW = new Date('2026-08-30T12:00:00Z');
 
@@ -24,8 +19,8 @@ function patient(overrides: Partial<Patient> = {}): Patient {
     lastName: 'Okonkwo',
     phoneNumber: '08031234567',
     dateOfBirth: '1990-01-01',
-    gender: PatientSexEnum.FEMALE,
-    paymentType: PatientPaymentTypeEnum.HMO,
+    gender: 'female',
+    paymentType: 'hmo',
     nextOfKin: { name: 'N', phone: 'p', relationship: 'r', address: 'a' },
     isActive: true,
     createdAt: '2025-05-01T09:30:00Z',
@@ -58,13 +53,11 @@ describe('patientAge', () => {
 
 describe('patientDisplayStatus', () => {
   it('maps isActive:true to ACTIVE', () => {
-    expect(patientDisplayStatus(patient())).toBe(PatientStatusEnum.ACTIVE);
+    expect(patientDisplayStatus(patient())).toBe('active');
   });
 
   it('maps isActive:false to INACTIVE', () => {
-    expect(patientDisplayStatus(patient({ isActive: false }))).toBe(
-      PatientStatusEnum.INACTIVE,
-    );
+    expect(patientDisplayStatus(patient({ isActive: false }))).toBe('inactive');
   });
 });
 

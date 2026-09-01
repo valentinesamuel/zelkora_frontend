@@ -1,8 +1,4 @@
 import { NATIONALITIES } from '@/features/patients/data/nationalities';
-import {
-  PatientPaymentTypeEnum,
-  PatientSexEnum,
-} from '@/features/patients/types/patient.types';
 
 export interface SelectOption {
   readonly value: string;
@@ -10,15 +6,15 @@ export interface SelectOption {
 }
 
 export const GENDER_OPTIONS: readonly SelectOption[] = [
-  { value: PatientSexEnum.MALE, label: 'Male' },
-  { value: PatientSexEnum.FEMALE, label: 'Female' },
-  { value: PatientSexEnum.OTHER, label: 'Other' },
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+  { value: 'other', label: 'Other' },
 ];
 
 export const PAYMENT_TYPE_OPTIONS: readonly SelectOption[] = [
-  { value: PatientPaymentTypeEnum.HMO, label: 'HMO' },
-  { value: PatientPaymentTypeEnum.CASH, label: 'Cash' },
-  { value: PatientPaymentTypeEnum.CORPORATE, label: 'Corporate' },
+  { value: 'hmo', label: 'HMO' },
+  { value: 'cash', label: 'Cash' },
+  { value: 'corporate', label: 'Corporate' },
 ];
 
 export const BLOOD_GROUP_OPTIONS: readonly SelectOption[] = [

@@ -4,10 +4,10 @@ import {
   patientFullName,
   patientInitialsOf,
 } from '@/features/patients/patientView';
-import type { Patient } from '@/features/patients/types/patient.types';
+import type { PatientListRow } from '@/features/patients/components/patientColumns';
 
 interface PatientIdentityCellProps {
-  readonly patient: Patient;
+  readonly patient: PatientListRow;
 }
 
 export function PatientIdentityCell({ patient }: PatientIdentityCellProps) {

@@ -1,24 +1,20 @@
-import type { Patient } from '@/features/patients/types/patient.types';
-
 export type PatientSortField = 'name' | 'age' | 'registeredAt';
 export type SortDir = 'asc' | 'desc';
 
-export enum PatientStatusFilterEnum {
-  ALL = 'all',
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  DECEASED = 'deceased',
-}
+export type PatientStatusFilter = 'all' | 'active' | 'inactive';
+export const PATIENT_STATUS_FILTER_VALUES: readonly PatientStatusFilter[] = [
+  'all',
+  'active',
+  'inactive',
+];
 
-export enum PatientSexFilterEnum {
-  ALL = 'all',
-  MALE = 'male',
-  FEMALE = 'female',
-  OTHER = 'other',
-}
-
-export type PatientStatusFilter = PatientStatusFilterEnum;
-export type PatientSexFilter = PatientSexFilterEnum;
+export type PatientSexFilter = 'all' | 'male' | 'female' | 'other';
+export const PATIENT_SEX_FILTER_VALUES: readonly PatientSexFilter[] = [
+  'all',
+  'male',
+  'female',
+  'other',
+];
 
 export interface PatientListQuery {
   readonly search: string;
@@ -30,19 +26,5 @@ export interface PatientListQuery {
   readonly registeredTo: string | null; // "YYYY-MM-DD"
   readonly sortField: PatientSortField;
   readonly sortDir: SortDir;
-  readonly cursor: string | null;
   readonly limit: number;
-}
-
-export interface PatientPageInfo {
-  readonly nextCursor: string | null;
-  readonly prevCursor: string | null;
-  readonly hasNext: boolean;
-  readonly hasPrev: boolean;
-}
-
-export interface PatientListResult {
-  readonly patients: Patient[];
-  readonly pageInfo: PatientPageInfo;
-  readonly total: number | null;
 }

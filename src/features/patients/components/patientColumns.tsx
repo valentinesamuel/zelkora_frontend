@@ -17,7 +17,25 @@ import {
 } from '@/features/patients/patientView';
 import type { Patient } from '@/features/patients/types/patient.types';
 
-export const patientColumns: ColumnDef<Patient>[] = [
+
+export const PATIENT_LIST_FIELDS = [
+  'id',
+  'zrn',
+  'firstName',
+  'middleName',
+  'lastName',
+  'dateOfBirth',
+  'gender',
+  'phoneNumber',
+  'isActive',
+] as const;
+
+export type PatientListRow = Pick<
+  Patient,
+  (typeof PATIENT_LIST_FIELDS)[number]
+>;
+
+export const patientColumns: ColumnDef<PatientListRow>[] = [
   {
     id: 'patient',
     enableSorting: false,

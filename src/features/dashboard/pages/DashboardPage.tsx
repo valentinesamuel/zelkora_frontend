@@ -1,5 +1,4 @@
 import { useAuthStore } from '@/features/auth/authStore';
-import { RoleEnum } from '@/features/auth/types';
 
 import { CmoDashboardPage } from './CmoDashboardPage';
 
@@ -10,7 +9,7 @@ export function DashboardPage() {
     return null;
   }
 
-  if (user.role === RoleEnum.ADMIN) {
+  if (user.role === 'admin') {
     return <CmoDashboardPage />;
   }
 

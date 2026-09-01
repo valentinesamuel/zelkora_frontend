@@ -4,7 +4,6 @@ import { Navigate } from 'react-router-dom';
 import { Spinner } from '@/components/ui/spinner';
 
 import { useAuthStore } from './authStore';
-import { AuthStatusEnum } from './types';
 
 function AuthSpinner() {
   return (
@@ -21,10 +20,10 @@ function AuthSpinner() {
 
 export function RequireAuth({ children }: Readonly<{ children: ReactNode }>) {
   const status = useAuthStore((s) => s.status);
-  if (status === AuthStatusEnum.LOADING) {
+  if (status === 'loading') {
     return <AuthSpinner />;
   }
-  if (status === AuthStatusEnum.ANON) {
+  if (status === 'anon') {
     return <Navigate to="/login" replace />;
   }
   return <>{children}</>;
@@ -32,10 +31,10 @@ export function RequireAuth({ children }: Readonly<{ children: ReactNode }>) {
 
 export function PublicOnly({ children }: Readonly<{ children: ReactNode }>) {
   const status = useAuthStore((s) => s.status);
-  if (status === AuthStatusEnum.LOADING) {
+  if (status === 'loading') {
     return <AuthSpinner />;
   }
-  if (status === AuthStatusEnum.AUTHED) {
+  if (status === 'authed') {
     return <Navigate to="/" replace />;
   }
   return <>{children}</>;
