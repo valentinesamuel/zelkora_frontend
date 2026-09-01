@@ -5,8 +5,6 @@ import { cn } from '@/lib/utils';
 import type { Patient } from '@/features/patients/types/patient.types';
 import type { SortDir } from '@/features/patients/types/patientListQuery.types';
 
-// Byte-identical to the previous inline sortable-header button
-// (PatientTable.tsx:80). Do not retype — copied verbatim.
 const HEADER_BUTTON =
   '-mx-1 inline-flex items-center gap-1 rounded-sm px-1 py-0.5 text-xs font-medium tracking-wide text-muted-foreground uppercase transition-colors motion-reduce:transition-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring';
 
@@ -17,7 +15,7 @@ interface PatientSortableHeaderProps {
   readonly meta: TableMeta<Patient>;
 }
 
-function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
+function SortIcon({ active, dir }: Readonly<{ active: boolean; dir: SortDir }>) {
   if (!active) {
     return (
       <ChevronsUpDown
@@ -32,12 +30,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
   return <ArrowDown aria-hidden="true" className="size-3.5" />;
 }
 
-/**
- * The in-`<th>` sort toggle button. Visually identical to a plain header apart
- * from the trailing sort icon. `aria-sort` is deliberately NOT set here — it
- * belongs on the `<th>` (see PatientTable). `align="end"` reverses the flex row
- * so the icon sits left of the label in a right-aligned numeric column.
- */
+
 export function PatientSortableHeader({
   label,
   sortKey,

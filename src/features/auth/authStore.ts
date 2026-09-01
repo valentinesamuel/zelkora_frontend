@@ -3,11 +3,10 @@ import { create } from 'zustand';
 import { setOnAuthFailure } from '../../lib/apiClient';
 import * as api from './api';
 import { clearAccessToken, setAccessToken } from './tokenStore';
-import { AuthStatusEnum } from './types';
-import type { LoginRequest, LoginResult, User } from './types';
+import type { AuthStatus, LoginRequest, LoginResult, User } from './types';
 
 export interface AuthState {
-  status: AuthStatusEnum;
+  status: AuthStatus;
   user: User | null;
   loginWithCredentials(body: LoginRequest): Promise<LoginResult>;
   completeLogin(accessToken: string): Promise<void>;
@@ -18,7 +17,7 @@ export interface AuthState {
 let bootstrapped = false;
 
 export const useAuthStore = create<AuthState>((set) => ({
-  status: AuthStatusEnum.LOADING,
+  status: 'loading',
   user: null,
 
   loginWithCredentials: (body) => api.login(body),
@@ -27,10 +26,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     setAccessToken(accessToken);
     try {
       const me = await api.getMe();
-      set({ user: me, status: AuthStatusEnum.AUTHED });
+      set({ user: me, status: 'authed' });
     } catch (err) {
       clearAccessToken();
-      set({ user: null, status: AuthStatusEnum.ANON });
+      set({ user: null, status: 'anon' });
       throw err;
     }
   },
@@ -38,7 +37,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await api.logout().catch(() => {});
     clearAccessToken();
-    set({ user: null, status: AuthStatusEnum.ANON });
+    set({ user: null, status: 'anon' });
   },
 
   bootstrap: async () => {
@@ -51,21 +50,17 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { accessToken } = await api.refresh();
       setAccessToken(accessToken);
       const me = await api.getMe();
-      set({ user: me, status: AuthStatusEnum.AUTHED });
+      set({ user: me, status: 'authed' });
     } catch {
       clearAccessToken();
-      set({ user: null, status: AuthStatusEnum.ANON });
+      set({ user: null, status: 'anon' });
     } finally {
-      set((s) =>
-        s.status === AuthStatusEnum.LOADING
-          ? { status: AuthStatusEnum.ANON }
-          : {},
-      );
+      set((s) => (s.status === 'loading' ? { status: 'anon' } : {}));
     }
   },
 }));
 
 setOnAuthFailure(() => {
   clearAccessToken();
-  useAuthStore.setState({ user: null, status: AuthStatusEnum.ANON });
+  useAuthStore.setState({ user: null, status: 'anon' });
 });

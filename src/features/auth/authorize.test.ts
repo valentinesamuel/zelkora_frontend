@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { authorize, getUserPermissions } from './authorize';
-import { RoleEnum, type User } from './types';
+import type { User } from './types';
 
 // Pure-function coverage for the authorization decision. Node env, no DOM.
 
@@ -9,16 +9,16 @@ const doctor: User = {
   id: 'u1',
   email: 'doc@zelkora.local',
   fullName: 'Dr House',
-  role: RoleEnum.DOCTOR,
+  role: 'doctor',
   branchId: 'b1',
 };
 
-const admin: User = { ...doctor, id: 'u2', role: RoleEnum.ADMIN };
+const admin: User = { ...doctor, id: 'u2', role: 'admin' };
 
 describe('authorize — no authenticated user', () => {
   it('denies when user is null, whatever is asked', () => {
     expect(authorize({ user: null })).toBe(false);
-    expect(authorize({ user: null, role: [RoleEnum.DOCTOR] })).toBe(false);
+    expect(authorize({ user: null, role: ['doctor'] })).toBe(false);
     expect(authorize({ user: null, permission: ['patients.update'] })).toBe(false);
   });
 });
@@ -35,23 +35,23 @@ describe('authorize — no gate given', () => {
 
 describe('authorize — role matching (exact)', () => {
   it('grants on an exact role match', () => {
-    expect(authorize({ user: doctor, role: [RoleEnum.DOCTOR] })).toBe(true);
+    expect(authorize({ user: doctor, role: ['doctor'] })).toBe(true);
   });
 
   it('denies on a role mismatch', () => {
-    expect(authorize({ user: doctor, role: [RoleEnum.NURSE] })).toBe(false);
+    expect(authorize({ user: doctor, role: ['nurse'] })).toBe(false);
   });
 
-  it('grants admin only for RoleEnum.ADMIN', () => {
-    expect(authorize({ user: admin, role: [RoleEnum.ADMIN] })).toBe(true);
-    expect(authorize({ user: admin, role: [RoleEnum.DOCTOR] })).toBe(false);
+  it("grants admin only for 'admin'", () => {
+    expect(authorize({ user: admin, role: ['admin'] })).toBe(true);
+    expect(authorize({ user: admin, role: ['doctor'] })).toBe(false);
   });
 
   it('grants when any one role in the list matches', () => {
     expect(
       authorize({
         user: doctor,
-        role: [RoleEnum.ADMIN, RoleEnum.DOCTOR, RoleEnum.NURSE],
+        role: ['admin', 'doctor', 'nurse'],
       }),
     ).toBe(true);
   });
@@ -68,7 +68,7 @@ describe('authorize — role OR permission', () => {
     expect(
       authorize({
         user: doctor,
-        role: [RoleEnum.DOCTOR],
+        role: ['doctor'],
         permission: ['patients.update'],
       }),
     ).toBe(true);
@@ -78,7 +78,7 @@ describe('authorize — role OR permission', () => {
     expect(
       authorize({
         user: doctor,
-        role: [RoleEnum.NURSE],
+        role: ['nurse'],
         permission: ['patients.update'],
       }),
     ).toBe(false);

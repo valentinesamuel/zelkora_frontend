@@ -7,11 +7,7 @@ import {
   toPatientFormValues,
 } from '@/features/patients/patientForm';
 import type { PatientFormValues } from '@/features/patients/schemas/patientForm.schema';
-import {
-  PatientPaymentTypeEnum,
-  PatientSexEnum,
-  type Patient,
-} from '@/features/patients/types/patient.types';
+import type { Patient } from '@/features/patients/types/patient.types';
 
 function filledValues(
   overrides: Partial<PatientFormValues> = {},
@@ -23,8 +19,8 @@ function filledValues(
     email: '',
     phoneNumber: '08030000000',
     dateOfBirth: '1990-05-01',
-    gender: PatientSexEnum.FEMALE,
-    paymentType: PatientPaymentTypeEnum.CASH,
+    gender: 'female',
+    paymentType: 'cash',
     bloodGroup: '',
     maritalStatus: '',
     address: '',
@@ -48,8 +44,8 @@ const wire: Patient = {
   lastName: 'Okoro',
   phoneNumber: '08030000000',
   dateOfBirth: '1990-05-01',
-  gender: PatientSexEnum.FEMALE,
-  paymentType: PatientPaymentTypeEnum.CASH,
+  gender: 'female',
+  paymentType: 'cash',
   nextOfKin: {
     name: 'Ben Okoro',
     phone: '08030000001',

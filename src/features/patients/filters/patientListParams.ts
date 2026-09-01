@@ -1,27 +1,22 @@
-// Pure serde between the URL query string and `PatientListQuery`. NO I/O and no
-// React — `usePatientListParams` is the only module that touches
-// `useSearchParams`. Mirrors the `filtersPersistence.ts` pattern from the
-// dashboard: read + heal, and write only what differs from the default so a
-// pristine list is just `/patients`.
-
 import {
-  PatientSexFilterEnum,
-  PatientStatusFilterEnum,
+  PATIENT_SEX_FILTER_VALUES,
+  PATIENT_STATUS_FILTER_VALUES,
 } from '@/features/patients/types/patientListQuery.types';
 import type {
   PatientListQuery,
+  PatientSexFilter,
   PatientSortField,
+  PatientStatusFilter,
   SortDir,
 } from '@/features/patients/types/patientListQuery.types';
 
 export const DEFAULT_LIMIT = 25;
-export const LIMIT_OPTIONS = [10, 25, 50, 100] as const;
 
-const STATUS_VALUES: readonly PatientStatusFilterEnum[] = Object.values(
-  PatientStatusFilterEnum,
-);
-const SEX_VALUES: readonly PatientSexFilterEnum[] =
-  Object.values(PatientSexFilterEnum);
+export const LIMIT_OPTIONS = [10, 25, 50] as const;
+
+const STATUS_VALUES: readonly PatientStatusFilter[] =
+  PATIENT_STATUS_FILTER_VALUES;
+const SEX_VALUES: readonly PatientSexFilter[] = PATIENT_SEX_FILTER_VALUES;
 const SORT_FIELDS: readonly PatientSortField[] = [
   'name',
   'age',
@@ -31,15 +26,14 @@ const SORT_DIRS: readonly SortDir[] = ['asc', 'desc'];
 
 export const DEFAULT_PATIENT_LIST_QUERY: PatientListQuery = {
   search: '',
-  status: PatientStatusFilterEnum.ALL,
-  sex: PatientSexFilterEnum.ALL,
+  status: 'all',
+  sex: 'all',
   ageMin: null,
   ageMax: null,
   registeredFrom: null,
   registeredTo: null,
   sortField: 'name',
   sortDir: 'asc',
-  cursor: null,
   limit: DEFAULT_LIMIT,
 };
 
@@ -54,7 +48,6 @@ const KEY = {
   registeredTo: 'to',
   sortField: 'sort',
   sortDir: 'dir',
-  cursor: 'cursor',
   limit: 'limit',
 } as const;
 
@@ -70,21 +63,17 @@ function oneOf<T extends string>(
     : fallback;
 }
 
-/**
- * Narrow an arbitrary `<Select>` value to a filter enum, falling back to the
- * current value when it is off-list. Shares the whitelist the URL parser uses.
- */
 export function coerceStatusFilter(
   raw: string,
-  fallback: PatientStatusFilterEnum,
-): PatientStatusFilterEnum {
+  fallback: PatientStatusFilter,
+): PatientStatusFilter {
   return oneOf(raw, STATUS_VALUES, fallback);
 }
 
 export function coerceSexFilter(
   raw: string,
-  fallback: PatientSexFilterEnum,
-): PatientSexFilterEnum {
+  fallback: PatientSexFilter,
+): PatientSexFilter {
   return oneOf(raw, SEX_VALUES, fallback);
 }
 
@@ -101,7 +90,6 @@ function toIsoDate(raw: string | null): string | null {
   return Number.isNaN(d.getTime()) ? null : raw;
 }
 
-/** Read a validated, fully-resolved query from a `URLSearchParams`. Never throws. */
 export function parsePatientListParams(sp: URLSearchParams): PatientListQuery {
   let ageMin = toAge(sp.get(KEY.ageMin));
   let ageMax = toAge(sp.get(KEY.ageMax));
@@ -124,28 +112,20 @@ export function parsePatientListParams(sp: URLSearchParams): PatientListQuery {
     ? rawLimit
     : DEFAULT_LIMIT;
 
-  const rawCursor = sp.get(KEY.cursor);
-
   return {
     search: sp.get(KEY.search)?.trim() ?? '',
-    status: oneOf(
-      sp.get(KEY.status),
-      STATUS_VALUES,
-      PatientStatusFilterEnum.ALL,
-    ),
-    sex: oneOf(sp.get(KEY.sex), SEX_VALUES, PatientSexFilterEnum.ALL),
+    status: oneOf(sp.get(KEY.status), STATUS_VALUES, 'all'),
+    sex: oneOf(sp.get(KEY.sex), SEX_VALUES, 'all'),
     ageMin,
     ageMax,
     registeredFrom,
     registeredTo,
     sortField: oneOf(sp.get(KEY.sortField), SORT_FIELDS, 'name'),
     sortDir: oneOf(sp.get(KEY.sortDir), SORT_DIRS, 'asc'),
-    cursor: rawCursor !== null && rawCursor !== '' ? rawCursor : null,
     limit,
   };
 }
 
-/** Serialise to a flat record, omitting anything still at its default. */
 export function serializePatientListParams(
   query: PatientListQuery,
 ): Record<string, string> {
@@ -163,45 +143,31 @@ export function serializePatientListParams(
   if (query.sortField !== d.sortField) out[KEY.sortField] = query.sortField;
   if (query.sortDir !== d.sortDir) out[KEY.sortDir] = query.sortDir;
   if (query.limit !== d.limit) out[KEY.limit] = String(query.limit);
-  if (query.cursor !== null) out[KEY.cursor] = query.cursor;
 
   return out;
 }
 
-/**
- * Count of applied FILTERS for the "Filters (n)" badge. Search and sort are
- * their own controls and are deliberately excluded. An age or registered-date
- * range counts once, however many bounds are set.
- */
 export function countActiveFilters(query: PatientListQuery): number {
   let n = 0;
-  if (query.status !== PatientStatusFilterEnum.ALL) n += 1;
-  if (query.sex !== PatientSexFilterEnum.ALL) n += 1;
+  if (query.status !== 'all') n += 1;
+  if (query.sex !== 'all') n += 1;
   if (query.ageMin !== null || query.ageMax !== null) n += 1;
   if (query.registeredFrom !== null || query.registeredTo !== null) n += 1;
   return n;
 }
 
-/** True when search or any filter is applied (drives the "no results" empty state). */
 export function hasActiveQuery(query: PatientListQuery): boolean {
   return query.search.trim() !== '' || countActiveFilters(query) > 0;
 }
 
-/** Drop the cursor — call whenever search / filters / sort / limit change. */
-export function resetCursor(query: PatientListQuery): PatientListQuery {
-  return query.cursor === null ? query : { ...query, cursor: null };
-}
-
-/** Reset every filter (keeps search, sort, limit). */
 export function clearFilters(query: PatientListQuery): PatientListQuery {
   return {
     ...query,
-    status: PatientStatusFilterEnum.ALL,
-    sex: PatientSexFilterEnum.ALL,
+    status: 'all',
+    sex: 'all',
     ageMin: null,
     ageMax: null,
     registeredFrom: null,
     registeredTo: null,
-    cursor: null,
   };
 }

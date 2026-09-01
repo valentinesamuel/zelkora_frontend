@@ -1,23 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { apiRequest } from '@/lib/apiClient';
-import { patientsRepository } from '@/features/patients/api/patientsRepository';
-import { DEFAULT_PATIENT_LIST_QUERY } from '@/features/patients/filters/patientListParams';
-import {
-  PatientPaymentTypeEnum,
-  PatientSexEnum,
-  type ListPatientsResponse,
-  type Patient,
-} from '@/features/patients/types/patient.types';
-import type { PatientListQuery } from '@/features/patients/types/patientListQuery.types';
+import { ApiError, apiRequest } from '@/lib/apiClient';
+import { isCursorResult, isOffsetResult } from '@/lib/query';
 
-vi.mock('@/lib/apiClient', () => ({ apiRequest: vi.fn() }));
+import { patientQuery } from '@/features/patients/api/patient.queryMeta';
+import { patientsRepository } from '@/features/patients/api/patientsRepository';
+import type { Patient } from '@/features/patients/types/patient.types';
+
+vi.mock('@/lib/apiClient', async () => {
+  const actual =
+    await vi.importActual<typeof import('@/lib/apiClient')>('@/lib/apiClient');
+  return { ...actual, apiRequest: vi.fn() };
+});
 
 const apiRequestMock = vi.mocked(apiRequest);
-
-function query(overrides: Partial<PatientListQuery> = {}): PatientListQuery {
-  return { ...DEFAULT_PATIENT_LIST_QUERY, ...overrides };
-}
 
 function patientRow(id: string): Patient {
   return {
@@ -27,8 +23,8 @@ function patientRow(id: string): Patient {
     lastName: 'Okoro',
     phoneNumber: '08030000000',
     dateOfBirth: '1990-01-01',
-    gender: PatientSexEnum.FEMALE,
-    paymentType: PatientPaymentTypeEnum.CASH,
+    gender: 'female',
+    paymentType: 'cash',
     nextOfKin: {
       name: 'Ben',
       phone: '08030000001',
@@ -41,81 +37,118 @@ function patientRow(id: string): Patient {
   };
 }
 
-function listResponse(
-  overrides: Partial<ListPatientsResponse> = {},
-): ListPatientsResponse {
-  return {
-    patients: [patientRow('1')],
-    page: 1,
-    limit: 25,
-    total: 1,
-    ...overrides,
-  };
-}
-
 beforeEach(() => {
   apiRequestMock.mockReset();
 });
 
 describe('patientsRepository.list', () => {
-  it('requests page 1 when there is no cursor', async () => {
-    apiRequestMock.mockResolvedValue(listResponse());
-    await patientsRepository.list(query({ limit: 25 }));
-    expect(apiRequestMock).toHaveBeenCalledWith('/patients?page=1&limit=25');
+  it('requests the exact URL for a representative cursor query', async () => {
+    apiRequestMock.mockResolvedValue({ data: [] });
+
+    const state = patientQuery()
+      .where('isActive', 'eq', true)
+      .sort('createdAt', 'desc')
+      .limit(25)
+      .build();
+
+    await patientsRepository.list(state);
+
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      '/patients?filter%5BisActive%5D%5Beq%5D=true&sort=-createdAt&limit=25&paginationMode=cursor',
+    );
   });
 
-  it('returns the patient rows unchanged from the response', async () => {
+  it('parses a cursor-mode response into a tagged CursorResult', async () => {
     const row = patientRow('1');
-    apiRequestMock.mockResolvedValue(
-      listResponse({ patients: [row], total: 1 }),
-    );
-    const result = await patientsRepository.list(query());
-    expect(result.patients).toEqual([row]);
-    expect(result.total).toBe(1);
+    apiRequestMock.mockResolvedValue({
+      data: [row],
+      nextCursor: 'opaque-cursor',
+      total: 42,
+    });
+
+    const state = patientQuery().limit(25).withTotal(true).build();
+    const result = await patientsRepository.list(state);
+
+    expect(result.mode).toBe('cursor');
+    expect(isCursorResult(result)).toBe(true);
+    if (isCursorResult(result)) {
+      expect(result.data).toEqual([row]);
+      expect(result.nextCursor).toBe('opaque-cursor');
+      expect(result.total).toBe(42);
+    }
   });
 
-  it('exposes a forward cursor only on the first of several pages', async () => {
-    apiRequestMock.mockResolvedValue(
-      listResponse({ total: 60, limit: 25, patients: [] }),
-    );
-    const result = await patientsRepository.list(query({ limit: 25 }));
-    expect(result.pageInfo.hasPrev).toBe(false);
-    expect(result.pageInfo.prevCursor).toBeNull();
-    expect(result.pageInfo.hasNext).toBe(true);
-    expect(result.pageInfo.nextCursor).not.toBeNull();
+  it('parses an offset-mode response into a tagged OffsetResult', async () => {
+    const row = patientRow('1');
+    apiRequestMock.mockResolvedValue({
+      data: [row],
+      page: 2,
+      pageSize: 25,
+      total: 60,
+    });
+
+    const state = patientQuery().offset(2, 25).build();
+    const result = await patientsRepository.list(state);
+
+    expect(result.mode).toBe('offset');
+    expect(isOffsetResult(result)).toBe(true);
+    if (isOffsetResult(result)) {
+      expect(result.data).toEqual([row]);
+      expect(result.page).toBe(2);
+      expect(result.pageSize).toBe(25);
+      expect(result.total).toBe(60);
+    }
   });
 
-  it('round-trips the page number through the opaque cursor', async () => {
-    apiRequestMock.mockResolvedValue(listResponse({ total: 60, patients: [] }));
-    const first = await patientsRepository.list(query({ limit: 25 }));
+  it('normalises an absent nextCursor key to null', async () => {
+    apiRequestMock.mockResolvedValue({ data: [] });
 
-    apiRequestMock.mockResolvedValue(
-      listResponse({ total: 60, page: 2, patients: [] }),
-    );
-    await patientsRepository.list(
-      query({ limit: 25, cursor: first.pageInfo.nextCursor }),
-    );
-    expect(apiRequestMock).toHaveBeenLastCalledWith(
-      '/patients?page=2&limit=25',
-    );
+    const state = patientQuery().limit(25).build();
+    const result = await patientsRepository.list(state);
+
+    expect(isCursorResult(result)).toBe(true);
+    if (isCursorResult(result)) {
+      expect(result.nextCursor).toBeNull();
+    }
   });
 
-  it('has no next page when page * limit === total', async () => {
-    apiRequestMock.mockResolvedValue(
-      listResponse({ total: 50, limit: 25, page: 2, patients: [] }),
-    );
-    const result = await patientsRepository.list(
-      query({ limit: 25, cursor: btoa('p:2') }),
-    );
-    expect(result.pageInfo.hasNext).toBe(false);
-    expect(result.pageInfo.nextCursor).toBeNull();
-    expect(result.pageInfo.hasPrev).toBe(true);
-    expect(result.pageInfo.prevCursor).not.toBeNull();
+  it('normalises an explicit null nextCursor to null', async () => {
+    apiRequestMock.mockResolvedValue({ data: [], nextCursor: null });
+
+    const state = patientQuery().limit(25).build();
+    const result = await patientsRepository.list(state);
+
+    expect(isCursorResult(result)).toBe(true);
+    if (isCursorResult(result)) {
+      expect(result.nextCursor).toBeNull();
+    }
   });
 
-  it('clamps a malformed cursor back to page 1', async () => {
-    apiRequestMock.mockResolvedValue(listResponse());
-    await patientsRepository.list(query({ cursor: 'not-base64!!' }));
-    expect(apiRequestMock).toHaveBeenCalledWith('/patients?page=1&limit=25');
+  it('propagates an ApiError from apiClient unchanged', async () => {
+    const apiError = new ApiError(404, 'not found', [], 'req-1');
+    apiRequestMock.mockRejectedValue(apiError);
+
+    const state = patientQuery().build();
+
+    await expect(patientsRepository.list(state)).rejects.toBe(apiError);
+  });
+});
+
+describe('patientsRepository.get', () => {
+  it('requests /patients/:id and returns the raw patient', async () => {
+    const row = patientRow('7');
+    apiRequestMock.mockResolvedValue(row);
+
+    const result = await patientsRepository.get('7');
+
+    expect(apiRequestMock).toHaveBeenCalledWith('/patients/7');
+    expect(result).toEqual(row);
+  });
+
+  it('propagates an ApiError from apiClient unchanged', async () => {
+    const apiError = new ApiError(404, 'not found', [], 'req-2');
+    apiRequestMock.mockRejectedValue(apiError);
+
+    await expect(patientsRepository.get('missing')).rejects.toBe(apiError);
   });
 });

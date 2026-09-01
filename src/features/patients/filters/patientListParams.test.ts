@@ -6,8 +6,8 @@ import {
   DEFAULT_LIMIT,
   DEFAULT_PATIENT_LIST_QUERY,
   hasActiveQuery,
+  LIMIT_OPTIONS,
   parsePatientListParams,
-  resetCursor,
   serializePatientListParams,
 } from '@/features/patients/filters/patientListParams';
 import type { PatientListQuery } from '@/features/patients/types/patientListQuery.types';
@@ -23,7 +23,7 @@ describe('parsePatientListParams — defaults & healing', () => {
 
   it('reads a well-formed query', () => {
     const q = parse(
-      'q=ada&status=active&sex=female&ageMin=18&ageMax=65&from=2024-01-01&to=2024-12-31&sort=registeredAt&dir=desc&limit=50&cursor=abc',
+      'q=ada&status=active&sex=female&ageMin=18&ageMax=65&from=2024-01-01&to=2024-12-31&sort=registeredAt&dir=desc&limit=50',
     );
     expect(q).toEqual({
       search: 'ada',
@@ -35,7 +35,6 @@ describe('parsePatientListParams — defaults & healing', () => {
       registeredTo: '2024-12-31',
       sortField: 'registeredAt',
       sortDir: 'desc',
-      cursor: 'abc',
       limit: 50,
     });
   });
@@ -51,6 +50,19 @@ describe('parsePatientListParams — defaults & healing', () => {
   it('heals a non-option limit to the default', () => {
     expect(parse('limit=17').limit).toBe(DEFAULT_LIMIT);
     expect(parse('limit=abc').limit).toBe(DEFAULT_LIMIT);
+  });
+
+  it('heals limit=100 to the default — it exceeds the cursor max of 50', () => {
+    expect(parse('limit=100').limit).toBe(DEFAULT_LIMIT);
+  });
+
+  it('offers no limit option above the backend cursor max of 50 (INV-B4)', () => {
+    expect(Math.max(...LIMIT_OPTIONS)).toBeLessThanOrEqual(50);
+    expect(LIMIT_OPTIONS).not.toContain(100);
+  });
+
+  it('heals a legacy status=deceased link to "all" (R-OQ1)', () => {
+    expect(parse('status=deceased').status).toBe('all');
   });
 
   it('drops non-numeric / out-of-range ages', () => {
@@ -76,8 +88,10 @@ describe('parsePatientListParams — defaults & healing', () => {
     });
   });
 
-  it('treats an empty cursor as no cursor', () => {
-    expect(parse('cursor=').cursor).toBeNull();
+  it('ignores a cursor from an old shared link (R-OQ3 / INV-U1)', () => {
+    expect(parse('cursor=')).toEqual(DEFAULT_PATIENT_LIST_QUERY);
+    expect(parse('cursor=abc123')).toEqual(DEFAULT_PATIENT_LIST_QUERY);
+    expect(parse('q=ada&cursor=abc123')).not.toHaveProperty('cursor');
   });
 });
 
@@ -88,12 +102,18 @@ describe('serializePatientListParams', () => {
 
   it('round-trips a non-default query', () => {
     const original = parse(
-      'q=john&status=inactive&sex=male&ageMin=5&ageMax=9&from=2023-02-02&to=2023-03-03&sort=registeredAt&dir=desc&limit=10&cursor=xyz',
+      'q=john&status=inactive&sex=male&ageMin=5&ageMax=9&from=2023-02-02&to=2023-03-03&sort=registeredAt&dir=desc&limit=10',
     );
     const round = parsePatientListParams(
       new URLSearchParams(serializePatientListParams(original)),
     );
     expect(round).toEqual(original);
+  });
+
+  it('never writes a cursor back out, even from a link that had one', () => {
+    const out = serializePatientListParams(parse('q=john&cursor=xyz'));
+    expect(out).not.toHaveProperty('cursor');
+    expect(out).toEqual({ q: 'john' });
   });
 });
 
@@ -115,23 +135,10 @@ describe('countActiveFilters / hasActiveQuery', () => {
   });
 });
 
-describe('resetCursor / clearFilters', () => {
-  it('resetCursor clears only the cursor', () => {
-    const q = parse('q=ada&status=active&cursor=abc');
-    const next = resetCursor(q);
-    expect(next.cursor).toBeNull();
-    expect(next.search).toBe('ada');
-    expect(next.status).toBe('active');
-  });
-
-  it('resetCursor returns the same reference when there is no cursor', () => {
-    const q = parse('q=ada');
-    expect(resetCursor(q)).toBe(q);
-  });
-
+describe('clearFilters', () => {
   it('clearFilters resets every filter but keeps search, sort and limit', () => {
     const q = parse(
-      'q=ada&status=active&sex=male&ageMin=18&from=2024-01-01&sort=registeredAt&dir=desc&limit=50&cursor=abc',
+      'q=ada&status=active&sex=male&ageMin=18&from=2024-01-01&sort=registeredAt&dir=desc&limit=50',
     );
     const next = clearFilters(q);
     expect(next).toMatchObject({
@@ -145,7 +152,6 @@ describe('resetCursor / clearFilters', () => {
       sortField: 'registeredAt',
       sortDir: 'desc',
       limit: 50,
-      cursor: null,
     });
   });
 });

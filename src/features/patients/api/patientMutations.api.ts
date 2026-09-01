@@ -1,10 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 
 import { queryClient } from '@/app/providers/queryClient';
-import {
-  PATIENTS_QUERY_KEY,
-  patientDetailQueryKey,
-} from '@/features/patients/api/patients.api';
+import { patientQueryKeys } from '@/features/patients/api/patients.keys';
 import { apiRequest } from '@/lib/apiClient';
 import type {
   CreatePatientBody,
@@ -28,7 +25,7 @@ export function deletePatient(id: string): Promise<null> {
 }
 
 function invalidatePatients(): Promise<void> {
-  return queryClient.invalidateQueries({ queryKey: [PATIENTS_QUERY_KEY] });
+  return queryClient.invalidateQueries({ queryKey: patientQueryKeys.all });
 }
 
 export function useCreatePatient() {
@@ -50,7 +47,7 @@ export function useDeletePatient(id: string) {
     mutationFn: () => deletePatient(id),
     onSuccess: async () => {
       await invalidatePatients();
-      queryClient.removeQueries({ queryKey: patientDetailQueryKey(id) });
+      queryClient.removeQueries({ queryKey: patientQueryKeys.detail(id) });
     },
   });
 }
