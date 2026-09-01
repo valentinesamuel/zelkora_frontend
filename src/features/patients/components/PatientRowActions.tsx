@@ -23,7 +23,7 @@ import type { PatientListRow } from '@/features/patients/components/patientColum
 import { patientFullName } from '@/features/patients/patientView';
 import { Can } from '@/features/auth/Can';
 
- 
+
 interface PatientAction {
   readonly id: string;
   readonly label: string;
@@ -33,13 +33,6 @@ interface PatientAction {
 }
 
 const ACTIONS: readonly PatientAction[] = [
-  {
-    id: 'view',
-    label: 'View patient',
-    icon: Eye,
-    to: (p) => `/patients/${p.id}`,
-    enabled: true,
-  },
   {
     id: 'record',
     label: 'View medical record',

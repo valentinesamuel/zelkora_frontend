@@ -76,10 +76,12 @@ describe('toPatientQuery — purity & baseline', () => {
 });
 
 describe('toPatientQuery — search', () => {
-  it('fans a term out across firstName and lastName', () => {
+  it('fans a term out across firstName/lastName (trigram) and zrn/phoneNumber (ilike)', () => {
     expect(searchesOf({ search: 'ada' })).toEqual([
-      { field: 'firstName', mode: 'ilike', term: 'ada' },
-      { field: 'lastName', mode: 'ilike', term: 'ada' },
+      { field: 'firstName', mode: 'tri', term: 'ada' },
+      { field: 'lastName', mode: 'tri', term: 'ada' },
+      { field: 'zrn', mode: 'ilike', term: 'ada' },
+      { field: 'phoneNumber', mode: 'ilike', term: 'ada' },
     ]);
   });
 
@@ -95,7 +97,7 @@ describe('toPatientQuery — search', () => {
   it('clamps an over-long term to 200 chars rather than throwing', () => {
     const term = 'a'.repeat(500);
     const clauses = searchesOf({ search: term });
-    expect(clauses).toHaveLength(2);
+    expect(clauses).toHaveLength(4);
     expect(clauses[0]?.term).toHaveLength(200);
   });
 });
@@ -318,7 +320,7 @@ describe('toPatientQuery — combined', () => {
       NOW,
     ).build();
 
-    expect(state.searches).toHaveLength(2);
+    expect(state.searches).toHaveLength(4);
     expect(state.filters).toEqual([
       { field: 'isActive', op: 'eq', value: true },
       { field: 'gender', op: 'eq', value: 'female' },

@@ -84,10 +84,19 @@ function applySearch(
 ): PatientQueryBuilder {
   const term = rawSearch.trim().slice(0, MAX_SEARCH_TERM_LENGTH);
   if (term === '') return builder;
-  // AllowedSearch is exactly [firstName, lastName]; the backend ORs the two.
+  // AllowedSearch is [firstName, lastName, zrn, phoneNumber]; the backend
+  // ORs all four (queryconfig.go:69-73). Mixed mode is deliberate: trigram
+  // gives typo tolerance on free-text names, but zrn/phoneNumber are
+  // structured identifiers that share a literal prefix (e.g. every zrn
+  // starts with "ZRN-") — word_similarity() scores against the best-matching
+  // extent of the column, so a shared prefix alone clears the threshold and
+  // matches every row (see the "ZRN-0003s returns all patients" incident).
+  // ilike keeps these two fields to real substring matching.
   return builder
-    .search('firstName', 'ilike', term)
-    .search('lastName', 'ilike', term);
+    .search('firstName', 'tri', term)
+    .search('lastName', 'tri', term)
+    .search('zrn', 'ilike', term)
+    .search('phoneNumber', 'ilike', term);
 }
 
 function applyStatus(
