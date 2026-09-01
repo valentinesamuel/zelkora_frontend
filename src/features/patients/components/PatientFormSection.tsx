@@ -1,0 +1,38 @@
+import type { ReactNode } from 'react';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+
+interface PatientFormSectionProps {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}
+
+/**
+ * A titled card of related fields in the patient form. Each section is its own
+ * card (the shadcn settings-form pattern) so the form scans as a stack of
+ * self-contained groups rather than one long sheet.
+ */
+export function PatientFormSection({
+  title,
+  description,
+  children,
+}: Readonly<PatientFormSectionProps>) {
+  return (
+    <Card className="[--card-spacing:--spacing(6)]">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
+      </CardHeader>
+      <CardContent className="grid gap-4 sm:grid-cols-2">
+        {children}
+      </CardContent>
+    </Card>
+  );
+}

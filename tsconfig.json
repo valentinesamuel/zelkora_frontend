@@ -1,4 +1,15 @@
 {
+  // DO NOT REMOVE `compilerOptions` BELOW.
+  // This is a solution-style config (`"files": []`), so these options are inert
+  // for `tsc -b` — the real alias lives in tsconfig.app.json. They exist solely
+  // because `npx shadcn init` reads the ROOT tsconfig to detect the `@/*` alias
+  // and will fail/misconfigure without them. Not dead config; do not "clean up".
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },

@@ -16,10 +16,16 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path alias — mirrored in vite.config.ts, vitest.config.ts, tsconfig.json.
+       No `baseUrl`: TypeScript 6 deprecates it (TS5101) and resolves these
+       `./`-relative `paths` against this config file's directory instead. */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"]
