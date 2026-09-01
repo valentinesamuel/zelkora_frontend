@@ -1,10 +1,10 @@
-import type { RoleEnum, User } from './types';
+import type { Role, User } from './types';
 
 export type Permission = string;
 
 export interface AuthorizeInput {
   user: User | null;
-  role?: RoleEnum[];
+  role?: Role[];
   permission?: Permission[];
 }
 

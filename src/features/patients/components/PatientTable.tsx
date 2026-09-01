@@ -13,19 +13,21 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { patientColumns } from '@/features/patients/components/patientColumns';
-import type { Patient } from '@/features/patients/types/patient.types';
+import {
+  patientColumns,
+  type PatientListRow,
+} from '@/features/patients/components/patientColumns';
 import type { PatientListQuery } from '@/features/patients/types/patientListQuery.types';
 
 interface PatientTableProps {
-  readonly patients: Patient[];
+  readonly patients: PatientListRow[];
   readonly sort: PatientListQuery;
   readonly onToggleSort: (field: 'name' | 'age') => void;
 }
 
 
 function ariaSortFor(
-  meta: ColumnMeta<Patient, unknown> | undefined,
+  meta: ColumnMeta<PatientListRow, unknown> | undefined,
   sort: PatientListQuery,
 ): 'ascending' | 'descending' | 'none' | undefined {
   if (!meta?.sortKey) return undefined;

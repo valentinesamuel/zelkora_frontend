@@ -1,13 +1,11 @@
-export enum RoleEnum {
-  ADMIN = 'admin',
-  DOCTOR = 'doctor',
-  NURSE = 'nurse',
-  RECEPTIONIST = 'receptionist',
-  PHARMACIST = 'pharmacist',
-}
-
-/** Alias for annotations; identical to {@link RoleEnum}. */
-export type Role = RoleEnum;
+export type Role = 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'pharmacist';
+export const ROLE_VALUES: readonly Role[] = [
+  'admin',
+  'doctor',
+  'nurse',
+  'receptionist',
+  'pharmacist',
+];
 
 export interface User {
   id: string;
@@ -48,11 +46,9 @@ export interface RefreshResult {
   accessToken: string;
 }
 
-export enum AuthStatusEnum {
-  LOADING = 'loading',
-  AUTHED = 'authed',
-  ANON = 'anon',
-}
-
-/** Alias for annotations; identical to {@link AuthStatusEnum}. */
-export type AuthStatus = AuthStatusEnum;
+export type AuthStatus = 'loading' | 'authed' | 'anon';
+export const AUTH_STATUS_VALUES: readonly AuthStatus[] = [
+  'loading',
+  'authed',
+  'anon',
+];

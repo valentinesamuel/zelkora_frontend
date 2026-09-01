@@ -19,22 +19,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PatientDeleteDialog } from '@/features/patients/components/PatientDeleteDialog';
+import type { PatientListRow } from '@/features/patients/components/patientColumns';
 import { patientFullName } from '@/features/patients/patientView';
-import type { Patient } from '@/features/patients/types/patient.types';
 import { Can } from '@/features/auth/Can';
-import { RoleEnum } from '@/features/auth/types';
 
-/**
- * One row action. `enabled` is a static flag today; it is the seam where a
- * permission check (`can(user, 'patient:edit')`) will live once roles are
- * data-driven. Delete is handled separately below — it needs a confirm dialog
- * and is destructive, so it is not part of this link list.
- */
+ 
 interface PatientAction {
   readonly id: string;
   readonly label: string;
   readonly icon: LucideIcon;
-  readonly to?: (patient: Patient) => string;
+  readonly to?: (patient: PatientListRow) => string;
   readonly enabled: boolean;
 }
 
@@ -69,7 +63,7 @@ const ACTIONS: readonly PatientAction[] = [
 ];
 
 interface PatientRowActionsProps {
-  readonly patient: Patient;
+  readonly patient: PatientListRow;
 }
 
 export function PatientRowActions({ patient }: PatientRowActionsProps) {
@@ -116,7 +110,7 @@ export function PatientRowActions({ patient }: PatientRowActionsProps) {
             );
           })}
           <DropdownMenuSeparator />
-          <Can role={[RoleEnum.ADMIN, RoleEnum.NURSE, RoleEnum.RECEPTIONIST]}>
+          <Can role={['admin', 'nurse', 'receptionist']}>
             <DropdownMenuItem
               variant="destructive"
               onSelect={() => {

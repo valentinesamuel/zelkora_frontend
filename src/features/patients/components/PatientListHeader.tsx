@@ -3,10 +3,8 @@ import { UserPlus } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Can } from '@/features/auth/Can';
-import { RoleEnum } from '@/features/auth/types';
 
 export function PatientListHeader() {
-
   return (
     <header className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0">
@@ -17,7 +15,7 @@ export function PatientListHeader() {
           View and manage registered patients.
         </p>
       </div>
-      <Can role={[RoleEnum.ADMIN, RoleEnum.NURSE, RoleEnum.RECEPTIONIST]}>
+      <Can role={['admin', 'nurse', 'receptionist']}>
         <Button asChild>
           <Link to="/patients/new">
             <UserPlus aria-hidden="true" />

@@ -136,8 +136,11 @@ export function PatientFilters({
             <SelectContent>
               <SelectItem value="all">Any status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
+              {/* Only these three: `GET /patients` filters on the boolean
+                  `isActive` alone (INV-D1). The display union in
+                  `patient.types.ts` carries an extra state for the badge,
+                  which is deliberately not offerable here. */}
               <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="deceased">Deceased</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -1,5 +1,3 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -9,32 +7,36 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { LIMIT_OPTIONS } from '@/features/patients/filters/patientListParams';
-import type { PatientPageInfo } from '@/features/patients/types/patientListQuery.types';
 
 const countFormatter = new Intl.NumberFormat('en-NG');
 
 interface PatientListPaginationProps {
-  readonly pageCount: number;
+  readonly loadedCount: number;
   readonly total: number | null;
   readonly limit: number;
-  readonly pageInfo: PatientPageInfo;
+  readonly hasNextPage: boolean;
+  readonly isFetchingNextPage: boolean;
+  readonly onLoadMore: () => void;
   readonly onLimitChange: (limit: number) => void;
-  readonly onPrev: () => void;
-  readonly onNext: () => void;
 }
 
 export function PatientListPagination({
-  pageCount,
+  loadedCount,
   total,
   limit,
-  pageInfo,
+  hasNextPage,
+  isFetchingNextPage,
+  onLoadMore,
   onLimitChange,
-  onPrev,
-  onNext,
 }: PatientListPaginationProps) {
-  let summary = `Showing ${countFormatter.format(pageCount)} patients`;
+  let summary = `Showing ${countFormatter.format(loadedCount)} patients`;
   if (total !== null) {
-    summary = `Showing ${countFormatter.format(pageCount)} of ${countFormatter.format(total)} patients`;
+    summary = `Showing ${countFormatter.format(loadedCount)} of ${countFormatter.format(total)} patients`;
+  }
+
+  let loadMoreLabel = 'Load more';
+  if (isFetchingNextPage) {
+    loadMoreLabel = 'Loading…';
   }
 
   return (
@@ -67,26 +69,16 @@ export function PatientListPagination({
           </Select>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        {hasNextPage && (
           <Button
             variant="outline"
-            onClick={onPrev}
-            disabled={!pageInfo.hasPrev}
-            aria-label="Previous page"
+            onClick={onLoadMore}
+            disabled={isFetchingNextPage}
+            aria-label="Load more patients"
           >
-            <ChevronLeft aria-hidden="true" />
-            Previous
+            {loadMoreLabel}
           </Button>
-          <Button
-            variant="outline"
-            onClick={onNext}
-            disabled={!pageInfo.hasNext}
-            aria-label="Next page"
-          >
-            Next
-            <ChevronRight aria-hidden="true" />
-          </Button>
-        </div>
+        )}
       </div>
     </div>
   );
