@@ -1,10 +1,15 @@
 /**
  * Client-side auth validation schemas.
  *
- * These schemas are a STRICT SUBSET MIRROR of the backend binding tags in
- * `zelkora_backend/internal/auth/dto.go` (verified 2026-08-27). The backend is
- * authoritative. Never add a rule the backend does not enforce — a client rule
- * stricter than the server is a lockout (INV-A2).
+ * These schemas are a STRICT SUBSET MIRROR of the backend REQUEST binding tags
+ * in `zelkora_backend/internal/auth/dto.go` (verified 2026-09-02). The backend
+ * is authoritative. Never add a rule the backend does not enforce — a client
+ * rule stricter than the server is a lockout (INV-A2).
+ *
+ * Request vs response polarity: this file mirrors REQUEST bodies and INV-A2
+ * applies. The `MeResponse` mirror lives in `./me.schema.ts` — a RESPONSE
+ * schema, where strictness on identity fields is correct and INV-A2 does NOT
+ * apply (INV-P10).
  *
  * In particular: `passcode` is `binding:"required"` only; there is NO 6-digit
  * rule, no length rule, no charset rule. TOTP shape is validated by

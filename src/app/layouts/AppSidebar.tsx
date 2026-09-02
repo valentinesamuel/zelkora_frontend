@@ -314,7 +314,7 @@ export function AppSidebar() {
                 {user?.fullName ?? 'Unknown user'}
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                {user?.role ?? '—'}
+                {user?.roleName ?? '—'}
                 <BranchLabel />
               </p>
             </div>

@@ -1,30 +1,33 @@
 import type { ReactNode } from 'react';
 
-import type { Permission } from './authorize';
-import type { Role } from './types';
+import type { RequiredPermission } from './authorize';
 import { useCan } from './useCan';
 
 interface CanProps {
-  readonly role?: Role[];
-  readonly permission?: Permission[];
+  readonly permission?: RequiredPermission[];
   readonly children: ReactNode;
   readonly fallback?: ReactNode;
 }
 
 /**
  * Declarative authorization gate. UX gating only — the server re-checks every
- * request from the DB.
+ * request from the DB. (Today that re-check on patient mutations is role-name
+ * based, `RequireRole(...)`, not permission based — see INV-P9's footnote /
+ * plan D5. `<Can>` and the server therefore align only for `admin` this cycle.)
  *
- *   <Can role={['admin', 'doctor']} permission={['patients.update']}>
- *     <UpdatePatientButton />
+ *   <Can permission={['patient:delete']}>
+ *     <DeletePatientButton />
  *   </Can>
  *
- * Renders `children` when the user's role is in `role` OR they hold any listed
- * `permission`; otherwise renders `fallback` (nothing by default). Role matching
- * is exact. See `authorize` for the full rules.
+ * Renders `children` when the user holds EVERY listed permission (ALL
+ * semantics), otherwise `fallback` (nothing by default). A required `X:Y` is
+ * satisfied by a held `X:Y`, `*:*`, or `X:*` — and nothing else (no `*:Y`, no
+ * prefix/glob/regex). An empty or omitted `permission` means "authenticated
+ * only". See `authorize` for the full rules — because the server does no
+ * wildcard expansion, that function is authoritative.
  */
-export function Can({ role, permission, children, fallback = null }: CanProps) {
-  const allowed = useCan({ role, permission });
+export function Can({ permission, children, fallback = null }: CanProps) {
+  const allowed = useCan({ permission });
   if (allowed) {
     return <>{children}</>;
   }

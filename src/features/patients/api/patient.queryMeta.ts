@@ -12,7 +12,6 @@ const COLUMN_TYPE_TEXT: ColumnType = 'text';
 const COLUMN_TYPE_CITEXT: ColumnType = 'citext';
 const COLUMN_TYPE_DATE: ColumnType = 'date';
 const COLUMN_TYPE_TIMESTAMPTZ: ColumnType = 'timestamptz';
-const COLUMN_TYPE_ENUM: ColumnType = 'enum';
 const COLUMN_TYPE_BOOL: ColumnType = 'bool';
 
 export const patientQueryMeta = {
@@ -30,11 +29,13 @@ export const patientQueryMeta = {
     lastName: { type: COLUMN_TYPE_TEXT },
     email: { type: COLUMN_TYPE_CITEXT },
     phoneNumber: { type: COLUMN_TYPE_TEXT },
-    // Value sets imported from the Phase 2 unions (F3); never re-declared
-    // here (INV-D2).
-    gender: { type: COLUMN_TYPE_ENUM, values: PATIENT_SEX_VALUES },
+    // `gender` / `paymentType` are TEXT columns on the backend (the Postgres
+    // ENUMs were dropped; Go-side `.Valid()` validation is retained). The value
+    // sets below are the allowed values, imported from the type unions and
+    // never re-declared here (INV-D2) — orthogonal to the column type.
+    gender: { type: COLUMN_TYPE_TEXT, values: PATIENT_SEX_VALUES },
     paymentType: {
-      type: COLUMN_TYPE_ENUM,
+      type: COLUMN_TYPE_TEXT,
       values: PATIENT_PAYMENT_TYPE_VALUES,
     },
     maritalStatus: { type: COLUMN_TYPE_TEXT },

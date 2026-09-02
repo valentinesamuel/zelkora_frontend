@@ -15,7 +15,7 @@ export function PatientListHeader() {
           View and manage registered patients.
         </p>
       </div>
-      <Can role={['admin', 'nurse', 'receptionist']}>
+      <Can permission={['patient:create']}>
         <Button asChild>
           <Link to="/patients/new">
             <UserPlus aria-hidden="true" />

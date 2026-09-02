@@ -21,6 +21,7 @@ import { PatientDeleteDialog } from '@/features/patients/components/PatientDelet
 import type { PatientListRow } from '@/features/patients/components/patientColumns';
 import { patientFullName } from '@/features/patients/patientView';
 import { Can } from '@/features/auth/Can';
+import { PERMISSIONS } from '@/features/auth/permissions';
 
 
 interface PatientAction {
@@ -102,7 +103,7 @@ export function PatientRowActions({ patient }: PatientRowActionsProps) {
             );
           })}
           <DropdownMenuSeparator />
-          <Can role={['admin', 'nurse', 'receptionist']}>
+          <Can permission={[PERMISSIONS.PATIENT.DELETE]}>
             <DropdownMenuItem
               variant="destructive"
               onSelect={() => {

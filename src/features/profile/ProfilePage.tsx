@@ -44,7 +44,7 @@ export function ProfilePage() {
             </div>
             <div>
               <dt className="mb-0.5 text-sm leading-none font-medium">Role</dt>
-              <dd className="m-0 text-foreground">{user.role}</dd>
+              <dd className="m-0 text-foreground">{user.roleName}</dd>
             </div>
           </dl>
 
