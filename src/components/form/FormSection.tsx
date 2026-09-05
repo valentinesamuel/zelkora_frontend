@@ -8,22 +8,23 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
-interface PatientFormSectionProps {
+interface FormSectionProps {
   title: string;
   description?: string;
   children: ReactNode;
 }
 
 /**
- * A titled card of related fields in the patient form. Each section is its own
- * card (the shadcn settings-form pattern) so the form scans as a stack of
- * self-contained groups rather than one long sheet.
+ * A titled card of related fields. Each section is its own card (the shadcn
+ * settings-form pattern) so a form scans as a stack of self-contained groups
+ * rather than one long sheet. Entity-agnostic — shared by the patient and
+ * branch forms.
  */
-export function PatientFormSection({
+export function FormSection({
   title,
   description,
   children,
-}: Readonly<PatientFormSectionProps>) {
+}: Readonly<FormSectionProps>) {
   return (
     <Card className="[--card-spacing:--spacing(6)]">
       <CardHeader>

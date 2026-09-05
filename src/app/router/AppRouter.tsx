@@ -1,8 +1,12 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AppLayout } from '@/app/layouts/AppLayout';
-import { PublicOnly, RequireAuth } from '@/features/auth/guards';
+import { PublicOnly, RequireAuth, RequirePermission } from '@/features/auth/guards';
 import { LoginPage } from '@/features/auth/LoginPage';
+import { PERMISSIONS } from '@/features/auth/permissions';
+import { BranchCreatePage } from '@/features/branch/pages/BranchCreatePage';
+import { BranchEditPage } from '@/features/branch/pages/BranchEditPage';
+import { BranchListPage } from '@/features/branch/pages/BranchListPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { StubPage } from '@/features/dashboard/pages/StubPage';
 import { PatientCreatePage } from '@/features/patients/pages/PatientCreatePage';
@@ -36,6 +40,32 @@ export function AppRouter() {
         <Route path="patients/new" element={<PatientCreatePage />} />
         <Route path="patients/:patientId/edit" element={<PatientEditPage />} />
         <Route path="patients/:patientId" element={<PatientDetailPage />} />
+        {/* `branches/new` MUST precede any `branches/:branchId`-style route.
+            No detail route exists (list/create/edit only). */}
+        <Route
+          path="branches"
+          element={
+            <RequirePermission permission={[PERMISSIONS.BRANCH.READ]}>
+              <BranchListPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="branches/new"
+          element={
+            <RequirePermission permission={[PERMISSIONS.BRANCH.CREATE]}>
+              <BranchCreatePage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="branches/:branchId/edit"
+          element={
+            <RequirePermission permission={[PERMISSIONS.BRANCH.UPDATE]}>
+              <BranchEditPage />
+            </RequirePermission>
+          }
+        />
         <Route
           path="billing"
           element={

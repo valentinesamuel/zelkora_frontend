@@ -13,15 +13,15 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
+import { FormSection } from '@/components/form/FormSection';
+import { SelectField } from '@/components/form/SelectField';
+import { TextField } from '@/components/form/TextField';
+import { TextareaField } from '@/components/form/TextareaField';
 import {
   useCreatePatient,
   useUpdatePatient,
 } from '@/features/patients/api/patientMutations.api';
 import { PatientComboboxField } from '@/features/patients/components/PatientComboboxField';
-import { PatientFormSection } from '@/features/patients/components/PatientFormSection';
-import { PatientSelectField } from '@/features/patients/components/PatientSelectField';
-import { PatientTextField } from '@/features/patients/components/PatientTextField';
-import { PatientTextareaField } from '@/features/patients/components/PatientTextareaField';
 import {
   buildCreatePatientBody,
   buildUpdatePatientBody,
@@ -112,38 +112,38 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
           </Alert>
         )}
 
-        <PatientFormSection
+        <FormSection
           title="Identity"
           description="Legal name, date of birth and gender."
         >
-          <PatientTextField
+          <TextField
             control={form.control}
             name="firstName"
             label="First name"
             autoComplete="given-name"
             required
           />
-          <PatientTextField
+          <TextField
             control={form.control}
             name="lastName"
             label="Last name"
             autoComplete="family-name"
             required
           />
-          <PatientTextField
+          <TextField
             control={form.control}
             name="middleName"
             label="Middle name"
             autoComplete="additional-name"
           />
-          <PatientTextField
+          <TextField
             control={form.control}
             name="dateOfBirth"
             label="Date of birth"
             type="date"
             required
           />
-          <PatientSelectField
+          <SelectField
             control={form.control}
             name="gender"
             label="Gender"
@@ -151,13 +151,13 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
             placeholder="Select a gender"
             required
           />
-        </PatientFormSection>
+        </FormSection>
 
-        <PatientFormSection
+        <FormSection
           title="Contact"
           description="How the clinic reaches this patient."
         >
-          <PatientTextField
+          <TextField
             control={form.control}
             name="phoneNumber"
             label="Phone number"
@@ -165,33 +165,33 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
             autoComplete="tel"
             required
           />
-          <PatientTextField
+          <TextField
             control={form.control}
             name="email"
             label="Email"
             type="email"
             autoComplete="email"
           />
-          <PatientTextareaField
+          <TextareaField
             control={form.control}
             name="address"
             label="Residential address"
             className="sm:col-span-2"
           />
-        </PatientFormSection>
+        </FormSection>
 
-        <PatientFormSection
+        <FormSection
           title="Demographics"
           description="Optional background details."
         >
-          <PatientSelectField
+          <SelectField
             control={form.control}
             name="bloodGroup"
             label="Blood group"
             options={BLOOD_GROUP_OPTIONS}
             placeholder="Select a blood group"
           />
-          <PatientSelectField
+          <SelectField
             control={form.control}
             name="maritalStatus"
             label="Marital status"
@@ -205,18 +205,18 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
             options={NATIONALITY_OPTIONS}
             placeholder="Select nationality"
           />
-          <PatientTextField
+          <TextField
             control={form.control}
             name="occupation"
             label="Occupation"
           />
-        </PatientFormSection>
+        </FormSection>
 
-        <PatientFormSection
+        <FormSection
           title="Payment"
           description="Determines how visits are billed."
         >
-          <PatientSelectField
+          <SelectField
             control={form.control}
             name="paymentType"
             label="Payment type"
@@ -224,42 +224,42 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
             placeholder="Select a payment type"
             required
           />
-        </PatientFormSection>
+        </FormSection>
 
-        <PatientFormSection
+        <FormSection
           title="Next of kin"
           description="Emergency contact for this patient."
         >
-          <PatientTextField
+          <TextField
             control={form.control}
             name="nextOfKin.name"
             label="Full name"
             required
           />
-          <PatientTextField
+          <TextField
             control={form.control}
             name="nextOfKin.phone"
             label="Phone number"
             type="tel"
             required
           />
-          <PatientTextField
+          <TextField
             control={form.control}
             name="nextOfKin.relationship"
             label="Relationship"
             required
           />
-          <PatientTextareaField
+          <TextareaField
             control={form.control}
             name="nextOfKin.address"
             label="Address"
             className="sm:col-span-2"
             required
           />
-        </PatientFormSection>
+        </FormSection>
 
         {isEdit && (
-          <PatientFormSection
+          <FormSection
             title="Status"
             // description="Inactive patients stay on record but are filtered out by default."
           >
@@ -278,7 +278,7 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
                 </FormItem>
               )}
             />
-          </PatientFormSection>
+          </FormSection>
         )}
 
         <div className="sticky bottom-0 z-10 -mx-6 flex items-center gap-3 border-t bg-background/80 px-6 py-4 backdrop-blur">

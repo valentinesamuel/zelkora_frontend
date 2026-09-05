@@ -10,7 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-interface PatientTextFieldProps<T extends FieldValues> {
+interface TextFieldProps<T extends FieldValues> {
   control: Control<T>;
   name: FieldPath<T>;
   label: string;
@@ -21,8 +21,8 @@ interface PatientTextFieldProps<T extends FieldValues> {
   className?: string;
 }
 
-/** RHF-bound single-line input row for the patient form. */
-export function PatientTextField<T extends FieldValues>({
+/** RHF-bound single-line input row. Entity-agnostic (takes `control` + `name`). */
+export function TextField<T extends FieldValues>({
   control,
   name,
   label,
@@ -31,7 +31,7 @@ export function PatientTextField<T extends FieldValues>({
   autoComplete,
   required = false,
   className,
-}: Readonly<PatientTextFieldProps<T>>) {
+}: Readonly<TextFieldProps<T>>) {
   return (
     <FormField
       control={control}

@@ -26,6 +26,7 @@ import { readStorage, writeStorage } from '@/lib/storage';
 import { BranchLabel } from '@/features/branch/BranchLabel';
 
 import { useAuthStore } from '../../features/auth/authStore';
+import { authorize } from '../../features/auth/authorize';
 import { NAV_GROUPS } from './navigation';
 import type { NavItem } from './navigation';
 
@@ -196,6 +197,18 @@ export function AppSidebar() {
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
 
+  // Drop items the user cannot see (client-side UX gate — the route enforces
+  // its own `RequirePermission`), then drop any group left with no items.
+  // `authorize` is a pure predicate, safe to call in a loop (not a hook).
+  const navGroups = NAV_GROUPS.map((group) => ({
+    label: group.label,
+    items: group.items.filter(
+      (item) =>
+        item.permission === undefined ||
+        authorize({ user, permission: item.permission }),
+    ),
+  })).filter((group) => group.items.length > 0);
+
   function toggleCollapsed() {
     const next = !collapsed;
     setCollapsed(next);
@@ -273,7 +286,7 @@ export function AppSidebar() {
           aria-label="Primary"
           className="min-h-0 flex-1 overflow-y-auto py-2"
         >
-          {NAV_GROUPS.map((group) => (
+          {navGroups.map((group) => (
             <div key={group.label} className="mb-2">
               {!collapsed && (
                 <p className="px-3 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">

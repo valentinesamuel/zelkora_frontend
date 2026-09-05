@@ -14,21 +14,25 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  patientColumns,
-  type PatientListRow,
-} from '@/features/patients/components/patientColumns';
-import type { PatientListQuery } from '@/features/patients/types/patientListQuery.types';
+  branchColumns,
+  type BranchListRow,
+} from '@/features/branch/components/branchColumns';
 
-interface PatientTableProps {
-  readonly patients: PatientListRow[];
-  readonly sort: PatientListQuery;
-  readonly onToggleSort: (field: 'name' | 'age') => void;
+// Minimal sort shape — `BranchListQuery` (Phase 7) is structurally compatible.
+export interface BranchTableSort {
+  readonly sortField: 'name' | 'code';
+  readonly sortDir: 'asc' | 'desc';
 }
 
+interface BranchTableProps {
+  readonly branches: BranchListRow[];
+  readonly sort: BranchTableSort;
+  readonly onToggleSort: (field: 'name' | 'code') => void;
+}
 
 function ariaSortFor(
-  meta: ColumnMeta<PatientListRow, unknown> | undefined,
-  sort: PatientListQuery,
+  meta: ColumnMeta<BranchListRow, unknown> | undefined,
+  sort: BranchTableSort,
 ): 'ascending' | 'descending' | 'none' | undefined {
   if (!meta?.sortKey) return undefined;
   if (sort.sortField !== meta.sortKey) return 'none';
@@ -36,27 +40,26 @@ function ariaSortFor(
   return 'descending';
 }
 
-export function PatientTable({
-  patients,
+export function BranchTable({
+  branches,
   sort,
   onToggleSort,
-}: PatientTableProps) {
+}: BranchTableProps) {
   const table = useReactTable({
-    data: patients,
-    columns: patientColumns,
+    data: branches,
+    columns: branchColumns,
     getCoreRowModel: getCoreRowModel(),
     manualSorting: true,
     manualPagination: true,
     manualFiltering: true,
-    getRowId: (p) => p.id,
+    getRowId: (b) => b.id,
     meta: {
       sortField: sort.sortField,
       sortDir: sort.sortDir,
-      // The global `TableMeta.onToggleSort` is `(field: string) => void` now
-      // (INV-B16 — no entity-specific unions in the shared augmentation). The
-      // patient columns only ever pass `'name' | 'age'`, so re-narrow here.
+      // Shared `TableMeta.onToggleSort` is `(field: string) => void` (INV-B16);
+      // the branch columns only ever pass `'name' | 'code'`, re-narrow here.
       onToggleSort: (field: string) => {
-        onToggleSort(field as 'name' | 'age');
+        onToggleSort(field as 'name' | 'code');
       },
     },
   });

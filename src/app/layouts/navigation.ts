@@ -4,9 +4,10 @@
  * This is DATA, not a component — it lives in a `.ts` module so that
  * `react-refresh/only-export-components` does not fire on the sidebar.
  *
- * Only `Dashboard` and `Patients` are navigable today. Every other entry is
- * `enabled: false` and deliberately carries NO `to`, so it can never be linked
- * to by accident.
+ * Only `Dashboard`, `Patients`, and `Branches` are navigable today. Every other
+ * entry is `enabled: false` and deliberately carries NO `to`, so it can never
+ * be linked to by accident. `Branches` additionally carries a `permission`, so
+ * `AppSidebar` hides it from users who lack `branch:read`.
  */
 import {
   BarChart3,
@@ -23,8 +24,12 @@ import {
   Stethoscope,
   UserCog,
   Users,
+  UsersRound,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+
+import { PERMISSIONS } from '@/features/auth/permissions';
+import type { RequiredPermission } from '@/features/auth/authorize';
 
 export interface NavItem {
   label: string;
@@ -32,6 +37,13 @@ export interface NavItem {
   to?: string;
   icon: LucideIcon;
   enabled: boolean;
+  /**
+   * Optional client-side visibility gate. When set, `AppSidebar` hides the item
+   * unless the user holds every listed permission. UX only — the route also
+   * carries its own `RequirePermission` guard (INV-P9). Set only where a route
+   * is permission-gated (currently just Branches).
+   */
+  permission?: RequiredPermission[];
 }
 
 export interface NavGroup {
@@ -80,7 +92,16 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Pharmacy', icon: Pill, enabled: false },
       { label: 'Inventory', icon: Package, enabled: false },
-      { label: 'Staffing', icon: Building2, enabled: false },
+      {
+        label: 'Branches',
+        to: '/branches',
+        icon: Building2,
+        enabled: true,
+        permission: [PERMISSIONS.BRANCH.READ],
+      },
+      // `Building2` now belongs to Branches; Staffing takes `UsersRound` so no
+      // two items in this group share an icon.
+      { label: 'Staffing', icon: UsersRound, enabled: false },
       { label: 'Reports', icon: BarChart3, enabled: false },
     ],
   },
