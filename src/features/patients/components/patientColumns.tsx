@@ -43,7 +43,7 @@ export const patientColumns: ColumnDef<PatientListRow>[] = [
       <PatientSortableHeader
         label="Patient"
         sortKey="name"
-        meta={table.options.meta!}
+        meta={table.options.meta}
       />
     ),
     cell: ({ row }) => <PatientIdentityCell patient={row.original} />,
@@ -67,7 +67,7 @@ export const patientColumns: ColumnDef<PatientListRow>[] = [
         label="Age"
         sortKey="age"
         align="end"
-        meta={table.options.meta!}
+        meta={table.options.meta}
       />
     ),
     cell: ({ row }) => formatAge(patientAge(row.original)),

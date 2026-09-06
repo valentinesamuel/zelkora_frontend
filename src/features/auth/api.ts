@@ -2,6 +2,7 @@
 // single seam). No logic here beyond method/path/option selection.
 
 import { apiRequest } from '../../lib/apiClient';
+import { meResponseSchema } from './me.schema';
 import type {
   EnrollMfaResult,
   LoginRequest,
@@ -58,6 +59,18 @@ export async function logout(): Promise<void> {
   await apiRequest<null>('/auth/logout', { method: 'POST' });
 }
 
-export function getMe(): Promise<User> {
-  return apiRequest<User>('/auth/me');
+export async function getMe(): Promise<User> {
+  const raw = await apiRequest<unknown>('/auth/me');
+  // Strict on identity fields (throws → authStore fails closed, INV-P12);
+  // `permissions` collapses to [] on skew (INV-P4). Return type enforces the
+  // schema output is assignable to `User`.
+  if (
+    import.meta.env.DEV &&
+    (typeof raw !== 'object' || raw === null || !('permissions' in raw))
+  ) {
+    console.warn(
+      '[getMe] /auth/me response has no `permissions` key — backend may predate EXT-BE-PERMS; every permission gate will deny',
+    );
+  }
+  return meResponseSchema.parse(raw);
 }

@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/features/auth/authStore';
+import { isAdmin } from '@/features/auth/isAdmin';
 
 import { CmoDashboardPage } from './CmoDashboardPage';
 
@@ -9,7 +10,10 @@ export function DashboardPage() {
     return null;
   }
 
-  if (user.role === 'admin') {
+  // TODO(FU-1): roleName is now editable DB data, not an enum — move to a
+  // capability gate (useCan({ permission: ['dashboard:cmo'] })) once the backend
+  // seeds such a permission. Renaming the admin role silently kills this dashboard.
+  if (isAdmin(user)) {
     return <CmoDashboardPage />;
   }
 

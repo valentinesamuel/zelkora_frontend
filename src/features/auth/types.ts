@@ -1,19 +1,11 @@
-export type Role = 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'pharmacist';
-export const ROLE_VALUES: readonly Role[] = [
-  'admin',
-  'doctor',
-  'nurse',
-  'receptionist',
-  'pharmacist',
-];
-
 export interface User {
   id: string;
   email: string;
   fullName: string;
-  role: Role;
+  roleId: string;
+  roleName: string;
   branchId: string | null;
-  permissions?: string[];
+  permissions: string[];
 }
 
 export interface LoginRequest {

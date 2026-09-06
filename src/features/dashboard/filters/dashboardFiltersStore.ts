@@ -12,7 +12,6 @@ import {
   encodeFilters,
   FILTERS_STORAGE_KEY,
 } from '@/features/dashboard/filters/filtersPersistence';
-import { isKnownBranchId } from '@/features/branch/branches';
 import { readStorage, writeStorage } from '@/lib/storage';
 
 export function todayIso(): string {
@@ -20,7 +19,10 @@ export function todayIso(): string {
 }
 
 interface DashboardFiltersState {
-  branchId: string;
+  // `null` = "we don't know the branch yet" — a typed state, not a lie
+  // dressed as a fabricated id. It is resolved to a real id by
+  // `useBranchHydration` once `useActiveBranches()` returns (INV-B5).
+  branchId: string | null;
   selection: RangeSelection;
   persistedOnInit: boolean;
   userSeedApplied: boolean;
@@ -47,10 +49,13 @@ export const useDashboardFiltersStore = create<DashboardFiltersState>()(
     persistedOnInit: decoded.present,
     userSeedApplied: false,
 
+    // No identity guard (D2 Option B): the store cannot see branch data, so a
+    // guard here would be WRONG during the load window (rejecting every valid
+    // id until branches arrive). Validity is guaranteed at the edges —
+    // `BranchSwitcher` only emits ids it rendered, and `useBranchHydration`
+    // reconciles anything else (INV-B4, enforced by test, not by a runtime
+    // guard that can no longer be correct).
     setBranchId: (id) => {
-      if (!isKnownBranchId(id)) {
-        return;
-      }
       set({ branchId: id });
       writeStorage(FILTERS_STORAGE_KEY, encodeFilters(id, get().selection));
     },
@@ -71,7 +76,7 @@ export const useDashboardFiltersStore = create<DashboardFiltersState>()(
 );
 
 export function useDashboardQueryScope(): {
-  branchId: string;
+  branchId: string | null;
   rangeKey: string;
   from: string;
   to: string;

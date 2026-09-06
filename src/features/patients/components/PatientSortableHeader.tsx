@@ -12,7 +12,10 @@ interface PatientSortableHeaderProps {
   readonly label: string;
   readonly sortKey: 'name' | 'age';
   readonly align?: 'start' | 'end';
-  readonly meta: TableMeta<Patient>;
+  // Optional: `TableMeta`'s fields are optional in the shared augmentation
+  // (INV-B16), so `table.options.meta` is `TableMeta<Patient> | undefined` at
+  // the call site — passed through without a non-null assertion.
+  readonly meta: TableMeta<Patient> | undefined;
 }
 
 function SortIcon({ active, dir }: Readonly<{ active: boolean; dir: SortDir }>) {
@@ -37,8 +40,8 @@ export function PatientSortableHeader({
   align,
   meta,
 }: PatientSortableHeaderProps) {
-  const active = meta.sortField === sortKey;
-  const dir = meta.sortDir;
+  const active = meta?.sortField === sortKey;
+  const dir: SortDir = meta?.sortDir ?? 'desc';
 
   let currentOrder = 'descending';
   if (dir === 'asc') {
@@ -53,7 +56,7 @@ export function PatientSortableHeader({
   return (
     <button
       type="button"
-      onClick={() => meta.onToggleSort(sortKey)}
+      onClick={() => meta?.onToggleSort?.(sortKey)}
       aria-label={ariaLabel}
       className={cn(HEADER_BUTTON, align === 'end' && 'flex-row-reverse')}
     >

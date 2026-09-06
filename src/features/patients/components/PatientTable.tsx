@@ -52,7 +52,12 @@ export function PatientTable({
     meta: {
       sortField: sort.sortField,
       sortDir: sort.sortDir,
-      onToggleSort,
+      // The global `TableMeta.onToggleSort` is `(field: string) => void` now
+      // (INV-B16 — no entity-specific unions in the shared augmentation). The
+      // patient columns only ever pass `'name' | 'age'`, so re-narrow here.
+      onToggleSort: (field: string) => {
+        onToggleSort(field as 'name' | 'age');
+      },
     },
   });
 

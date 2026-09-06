@@ -21,7 +21,7 @@ interface SelectOption {
   label: string;
 }
 
-interface PatientSelectFieldProps<T extends FieldValues> {
+interface SelectFieldProps<T extends FieldValues> {
   control: Control<T>;
   name: FieldPath<T>;
   label: string;
@@ -33,9 +33,9 @@ interface PatientSelectFieldProps<T extends FieldValues> {
 
 /**
  * When a record loads with a value the option list doesn't contain (e.g. a
- * free-text blood group / marital status entered before this became a dropdown),
- * surface it as an extra item so the field renders the real value rather than
- * an empty placeholder — and doesn't silently blank it on save.
+ * free-text value entered before this became a dropdown), surface it as an
+ * extra item so the field renders the real value rather than an empty
+ * placeholder — and doesn't silently blank it on save.
  */
 function withCurrentValue(
   options: readonly SelectOption[],
@@ -46,8 +46,8 @@ function withCurrentValue(
   return [...options, { value, label: value }];
 }
 
-/** RHF-bound Radix select row for the patient form. */
-export function PatientSelectField<T extends FieldValues>({
+/** RHF-bound Radix select row. Entity-agnostic (takes `control` + `name`). */
+export function SelectField<T extends FieldValues>({
   control,
   name,
   label,
@@ -55,7 +55,7 @@ export function PatientSelectField<T extends FieldValues>({
   placeholder,
   required = false,
   className,
-}: PatientSelectFieldProps<T>) {
+}: SelectFieldProps<T>) {
   return (
     <FormField
       control={control}

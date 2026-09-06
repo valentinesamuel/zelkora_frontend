@@ -10,7 +10,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
-interface PatientTextareaFieldProps<T extends FieldValues> {
+interface TextareaFieldProps<T extends FieldValues> {
   control: Control<T>;
   name: FieldPath<T>;
   label: string;
@@ -19,15 +19,15 @@ interface PatientTextareaFieldProps<T extends FieldValues> {
   className?: string;
 }
 
-/** RHF-bound multi-line input row for the patient form. */
-export function PatientTextareaField<T extends FieldValues>({
+/** RHF-bound multi-line input row. Entity-agnostic (takes `control` + `name`). */
+export function TextareaField<T extends FieldValues>({
   control,
   name,
   label,
   placeholder,
   required = false,
   className,
-}: PatientTextareaFieldProps<T>) {
+}: TextareaFieldProps<T>) {
   return (
     <FormField
       control={control}

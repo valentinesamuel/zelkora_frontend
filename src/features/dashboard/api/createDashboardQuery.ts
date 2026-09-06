@@ -18,6 +18,12 @@ export function createDashboardQuery<T>(name: string, fixture: T) {
         await new Promise((resolve) => setTimeout(resolve, FIXTURE_DELAY_MS));
         return fixture;
       },
+      // `branchId` is `null` only in the brief window before
+      // `useBranchHydration` resolves the active branch (INV-B11). Disable the
+      // query rather than coercing to `''` — an empty-string branch id would
+      // collapse distinct scopes onto one cache entry. The dependent card
+      // shows its normal pending affordance until the scope is known.
+      enabled: scope.branchId !== null,
       placeholderData: keepPreviousData,
     });
   };

@@ -1,92 +1,157 @@
 import { describe, expect, it } from 'vitest';
 
-import { authorize, getUserPermissions } from './authorize';
+import {
+  authorize,
+  getUserPermissions,
+  permissionSatisfies,
+} from './authorize';
 import type { User } from './types';
 
 // Pure-function coverage for the authorization decision. Node env, no DOM.
+// Because the backend does NO wildcard expansion (invariants I48), this matrix
+// is the ONLY specification of the matching rules. Fixtures use the real
+// `000007_seed_patient_permissions` names so they double as vocabulary docs.
 
-const doctor: User = {
+const base: Omit<User, 'permissions'> = {
   id: 'u1',
-  email: 'doc@zelkora.local',
-  fullName: 'Dr House',
-  role: 'doctor',
+  email: 'u@zelkora.local',
+  fullName: 'Ada Lovelace',
+  roleId: 'r1',
+  roleName: 'doctor',
   branchId: 'b1',
 };
 
-const admin: User = { ...doctor, id: 'u2', role: 'admin' };
+const withPerms = (permissions: string[]): User => ({ ...base, permissions });
 
 describe('authorize — no authenticated user', () => {
   it('denies when user is null, whatever is asked', () => {
     expect(authorize({ user: null })).toBe(false);
-    expect(authorize({ user: null, role: ['doctor'] })).toBe(false);
-    expect(authorize({ user: null, permission: ['patients.update'] })).toBe(false);
+    expect(authorize({ user: null, permission: ['patient:create'] })).toBe(false);
   });
 });
 
 describe('authorize — no gate given', () => {
-  it('grants an authenticated user when neither role nor permission is specified', () => {
-    expect(authorize({ user: doctor })).toBe(true);
+  it('grants an authenticated user when no permission is specified', () => {
+    expect(authorize({ user: withPerms([]) })).toBe(true);
   });
 
-  it('treats empty lists as "not gated on that axis"', () => {
-    expect(authorize({ user: doctor, role: [], permission: [] })).toBe(true);
+  it('treats an empty permission list as "authenticated only"', () => {
+    expect(authorize({ user: withPerms([]), permission: [] })).toBe(true);
   });
 });
 
-describe('authorize — role matching (exact)', () => {
-  it('grants on an exact role match', () => {
-    expect(authorize({ user: doctor, role: ['doctor'] })).toBe(true);
-  });
-
-  it('denies on a role mismatch', () => {
-    expect(authorize({ user: doctor, role: ['nurse'] })).toBe(false);
-  });
-
-  it("grants admin only for 'admin'", () => {
-    expect(authorize({ user: admin, role: ['admin'] })).toBe(true);
-    expect(authorize({ user: admin, role: ['doctor'] })).toBe(false);
-  });
-
-  it('grants when any one role in the list matches', () => {
+describe('authorize — exact match', () => {
+  it('grants on an exact permission hit', () => {
     expect(
       authorize({
-        user: doctor,
-        role: ['admin', 'doctor', 'nurse'],
-      }),
-    ).toBe(true);
-  });
-});
-
-describe('authorize — permission axis (inert today)', () => {
-  it('denies a permission-only check while getUserPermissions returns []', () => {
-    expect(authorize({ user: doctor, permission: ['patients.update'] })).toBe(false);
-  });
-});
-
-describe('authorize — role OR permission', () => {
-  it('grants when the role matches even though no permission is held', () => {
-    expect(
-      authorize({
-        user: doctor,
-        role: ['doctor'],
-        permission: ['patients.update'],
+        user: withPerms(['patient:create']),
+        permission: ['patient:create'],
       }),
     ).toBe(true);
   });
 
-  it('denies when the role mismatches and no permission is held', () => {
+  it('denies on an exact miss', () => {
     expect(
       authorize({
-        user: doctor,
-        role: ['nurse'],
-        permission: ['patients.update'],
+        user: withPerms(['patient:read']),
+        permission: ['patient:create'],
+      }),
+    ).toBe(false);
+  });
+
+  it('denies every gate when the user holds no permissions', () => {
+    expect(
+      authorize({
+        user: withPerms([]),
+        permission: ['patient:read'],
       }),
     ).toBe(false);
   });
 });
 
+describe('authorize — wildcards (the three grant forms only)', () => {
+  it('`*:*` grants anything', () => {
+    expect(
+      authorize({ user: withPerms(['*:*']), permission: ['patient:delete'] }),
+    ).toBe(true);
+    expect(
+      authorize({ user: withPerms(['*:*']), permission: ['billing:refund'] }),
+    ).toBe(true);
+  });
+
+  it('`resource:*` grants same-resource, denies other-resource', () => {
+    expect(
+      authorize({
+        user: withPerms(['patient:*']),
+        permission: ['patient:update'],
+      }),
+    ).toBe(true);
+    expect(
+      authorize({
+        user: withPerms(['patient:*']),
+        permission: ['billing:update'],
+      }),
+    ).toBe(false);
+  });
+
+  it('`*:action` does NOT grant (negative lock — unsupported form)', () => {
+    expect(
+      authorize({
+        user: withPerms(['*:create']),
+        permission: ['patient:create'],
+      }),
+    ).toBe(false);
+    expect(permissionSatisfies('*:create', 'patient:create')).toBe(false);
+  });
+
+  it('no prefix / substring matching', () => {
+    expect(permissionSatisfies('patient:*', 'patients:read')).toBe(false);
+    expect(permissionSatisfies('patient:read', 'patient:readonly')).toBe(false);
+  });
+});
+
+describe('authorize — ALL semantics for a list', () => {
+  it('denies when only some required permissions are held', () => {
+    expect(
+      authorize({
+        user: withPerms(['patient:create']),
+        permission: ['patient:create', 'patient:delete'],
+      }),
+    ).toBe(false);
+  });
+
+  it('grants when every required permission is held', () => {
+    expect(
+      authorize({
+        user: withPerms(['patient:create', 'patient:delete']),
+        permission: ['patient:create', 'patient:delete'],
+      }),
+    ).toBe(true);
+  });
+
+  it('grants a multi-entry list via `*:*`', () => {
+    expect(
+      authorize({
+        user: withPerms(['*:*']),
+        permission: ['patient:create', 'patient:delete'],
+      }),
+    ).toBe(true);
+  });
+});
+
+describe('permissionSatisfies (single pair)', () => {
+  it('covers the three grant forms and nothing else', () => {
+    expect(permissionSatisfies('patient:create', 'patient:create')).toBe(true);
+    expect(permissionSatisfies('*:*', 'anything:here')).toBe(true);
+    expect(permissionSatisfies('patient:*', 'patient:delete')).toBe(true);
+    expect(permissionSatisfies('patient:read', 'patient:create')).toBe(false);
+    expect(permissionSatisfies('other:*', 'patient:create')).toBe(false);
+  });
+});
+
 describe('getUserPermissions', () => {
-  it('returns an empty list until the backend issues permissions', () => {
-    expect(getUserPermissions(doctor)).toEqual([]);
+  it('returns the array identity from the user', () => {
+    const perms = ['patient:read'];
+    expect(getUserPermissions(withPerms(perms))).toBe(perms);
   });
 });

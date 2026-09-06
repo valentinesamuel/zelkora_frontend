@@ -32,7 +32,7 @@ export function PatientEditPage() {
 
   let subtitle = 'Update an existing patient record.';
   if (data) {
-    subtitle = fullNameOf(data);
+    subtitle = `${fullNameOf(data)} - ${data.zrn}`;
   }
 
   return (

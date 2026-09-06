@@ -1,14 +1,12 @@
 import { useAuthStore } from './authStore';
 import { authorize } from './authorize';
-import type { Permission } from './authorize';
-import type { Role } from './types';
+import type { RequiredPermission } from './authorize';
 
 export interface UseCanInput {
-  role?: Role[];
-  permission?: Permission[];
+  permission?: RequiredPermission[];
 }
- 
-export function useCan({ role, permission }: UseCanInput): boolean {
+
+export function useCan({ permission }: UseCanInput): boolean {
   const user = useAuthStore((s) => s.user);
-  return authorize({ user, role, permission });
+  return authorize({ user, permission });
 }

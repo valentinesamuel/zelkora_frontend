@@ -52,11 +52,22 @@ afterEach(() => {
 describe('apiRequest', () => {
   it('unwraps the success envelope and always sends credentials: include', async () => {
     const { apiRequest } = await import('./apiClient');
-    fetchMock.mockResolvedValueOnce(successResponse({ id: 1 }));
+    // Realistic /me payload — this test exercises envelope unwrapping only
+    // (it does not import getMe or the schema); it is not a getMe test.
+    const me = {
+      id: 'u1',
+      email: 'admin@zelkora.test',
+      fullName: 'Seed Admin',
+      roleId: 'r1',
+      roleName: 'admin',
+      branchId: 'b1',
+      permissions: ['*:*'],
+    };
+    fetchMock.mockResolvedValueOnce(successResponse(me));
 
-    const result = await apiRequest<{ id: number }>('/auth/me');
+    const result = await apiRequest<typeof me>('/auth/me');
 
-    expect(result).toEqual({ id: 1 });
+    expect(result).toEqual(me);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe(`${BASE}/auth/me`);

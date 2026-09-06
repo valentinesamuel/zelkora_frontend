@@ -1,8 +1,12 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AppLayout } from '@/app/layouts/AppLayout';
-import { PublicOnly, RequireAuth } from '@/features/auth/guards';
+import { PublicOnly, RequireAdmin, RequireAuth, RequirePermission } from '@/features/auth/guards';
 import { LoginPage } from '@/features/auth/LoginPage';
+import { PERMISSIONS } from '@/features/auth/permissions';
+import { BranchCreatePage } from '@/features/branch/pages/BranchCreatePage';
+import { BranchEditPage } from '@/features/branch/pages/BranchEditPage';
+import { BranchListPage } from '@/features/branch/pages/BranchListPage';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { StubPage } from '@/features/dashboard/pages/StubPage';
 import { PatientCreatePage } from '@/features/patients/pages/PatientCreatePage';
@@ -10,6 +14,9 @@ import { PatientDetailPage } from '@/features/patients/pages/PatientDetailPage';
 import { PatientEditPage } from '@/features/patients/pages/PatientEditPage';
 import { PatientListPage } from '@/features/patients/pages/PatientListPage';
 import { ProfilePage } from '@/features/profile/ProfilePage';
+import { SettingsLayout } from '@/features/settings/SettingsLayout';
+import { SETTINGS_INDEX_REDIRECT } from '@/features/settings/settingsNav';
+import { BranchSettingsPage } from '@/features/settings/sections/BranchSettingsPage';
 
 export function AppRouter() {
   return (
@@ -36,6 +43,46 @@ export function AppRouter() {
         <Route path="patients/new" element={<PatientCreatePage />} />
         <Route path="patients/:patientId/edit" element={<PatientEditPage />} />
         <Route path="patients/:patientId" element={<PatientDetailPage />} />
+        {/* `branches/new` MUST precede any `branches/:branchId`-style route.
+            No detail route exists (list/create/edit only). */}
+        <Route
+          path="branches"
+          element={
+            <RequirePermission permission={[PERMISSIONS.BRANCH.READ]}>
+              <BranchListPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="branches/new"
+          element={
+            <RequirePermission permission={[PERMISSIONS.BRANCH.CREATE]}>
+              <BranchCreatePage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="branches/:branchId/edit"
+          element={
+            <RequirePermission permission={[PERMISSIONS.BRANCH.UPDATE]}>
+              <BranchEditPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <RequireAdmin>
+              <SettingsLayout />
+            </RequireAdmin>
+          }
+        >
+          <Route
+            index
+            element={<Navigate to={SETTINGS_INDEX_REDIRECT} replace />}
+          />
+          <Route path="branch" element={<BranchSettingsPage />} />
+        </Route>
         <Route
           path="billing"
           element={

@@ -15,7 +15,7 @@ import {
 
 const EXPECTED_FILTER_COUNT = 24;
 const EXPECTED_SORT_COUNT = 6;
-const EXPECTED_SEARCH_COUNT = 2;
+const EXPECTED_SEARCH_COUNT = 4;
 const EXPECTED_RELATION_COUNT = 3;
 
 describe('patientQueryMeta drift tripwire', () => {
@@ -33,7 +33,7 @@ describe('patientQueryMeta drift tripwire', () => {
     expect(patientQueryMeta.sortFields).toHaveLength(EXPECTED_SORT_COUNT);
   });
 
-  it('exposes exactly 2 search fields (AllowedSearch, queryconfig.go:69-72)', () => {
+  it('exposes exactly 4 search fields (AllowedSearch, queryconfig.go:69-73)', () => {
     expect(patientQueryMeta.searchFields).toHaveLength(EXPECTED_SEARCH_COUNT);
   });
 
