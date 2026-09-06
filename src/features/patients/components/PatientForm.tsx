@@ -22,10 +22,14 @@ import {
   useUpdatePatient,
 } from '@/features/patients/api/patientMutations.api';
 import { PatientComboboxField } from '@/features/patients/components/PatientComboboxField';
+import { useAuthStore } from '@/features/auth/authStore';
+import { isAdmin } from '@/features/auth/isAdmin';
+import { useDashboardFiltersStore } from '@/features/dashboard/filters/dashboardFiltersStore';
 import {
   buildCreatePatientBody,
   buildUpdatePatientBody,
   emptyPatientFormValues,
+  resolveCreateBranchId,
   toPatientFormValues,
 } from '@/features/patients/patientForm';
 import {
@@ -56,6 +60,12 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
   const navigate = useNavigate();
   const isEdit = props.mode === 'edit';
 
+  // Read unconditionally at component top level (INV-F6). The create-submit path
+  // needs the caller's role and the globally selected branch; the edit path
+  // ignores both.
+  const user = useAuthStore((s) => s.user);
+  const filterBranchId = useDashboardFiltersStore((s) => s.branchId);
+
   const createPatient = useCreatePatient();
   let updateId = '';
   if (isEdit) {
@@ -79,7 +89,19 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
   async function onSubmit(values: PatientFormValues) {
     try {
       if (props.mode === 'create') {
-        await createPatient.mutateAsync(buildCreatePatientBody(values));
+        const resolution = resolveCreateBranchId(isAdmin(user), filterBranchId);
+        if (!resolution.ok) {
+          // Admin with no concrete branch: block submit, send no request
+          // (INV-F3). The backend enforces the same rule independently.
+          form.setError('root', {
+            message:
+              'No branch is selected. Choose a branch in the branch switcher before registering a patient.',
+          });
+          return;
+        }
+        await createPatient.mutateAsync(
+          buildCreatePatientBody(values, resolution.branchId),
+        );
       } else {
         const body = buildUpdatePatientBody(values, form.formState.dirtyFields);
         if (Object.keys(body).length === 0) {

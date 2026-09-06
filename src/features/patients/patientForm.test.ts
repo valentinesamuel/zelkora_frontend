@@ -4,6 +4,7 @@ import {
   buildCreatePatientBody,
   buildUpdatePatientBody,
   emptyPatientFormValues,
+  resolveCreateBranchId,
   toPatientFormValues,
 } from '@/features/patients/patientForm';
 import type { PatientFormValues } from '@/features/patients/schemas/patientForm.schema';
@@ -137,6 +138,64 @@ describe('buildCreatePatientBody', () => {
     const body = buildCreatePatientBody(filledValues());
     expect(body).not.toHaveProperty('isActive');
     expect(body).not.toHaveProperty('lgaId');
+  });
+
+  it('omits branchId entirely when called with one argument', () => {
+    const body = buildCreatePatientBody(filledValues());
+    expect('branchId' in body).toBe(false);
+  });
+
+  it('includes branchId when a concrete id is passed', () => {
+    const body = buildCreatePatientBody(filledValues(), 'branch-uuid');
+    expect(body.branchId).toBe('branch-uuid');
+  });
+
+  it('trims a padded branchId', () => {
+    const body = buildCreatePatientBody(filledValues(), '  branch-uuid  ');
+    expect(body.branchId).toBe('branch-uuid');
+  });
+
+  it('omits branchId when it is empty or blank', () => {
+    expect('branchId' in buildCreatePatientBody(filledValues(), '')).toBe(false);
+    expect('branchId' in buildCreatePatientBody(filledValues(), '   ')).toBe(
+      false,
+    );
+  });
+});
+
+describe('resolveCreateBranchId', () => {
+  it('non-admin: resolves ok with no branchId even when the store holds one', () => {
+    expect(resolveCreateBranchId(false, null)).toEqual({ ok: true });
+
+    const resolved = resolveCreateBranchId(false, 'some-uuid');
+    expect(resolved).toEqual({ ok: true });
+    expect('branchId' in resolved).toBe(false);
+  });
+
+  it('admin with no concrete branch: blocks submit', () => {
+    expect(resolveCreateBranchId(true, null)).toEqual({
+      ok: false,
+      reason: 'admin-no-branch',
+    });
+    expect(resolveCreateBranchId(true, '')).toEqual({
+      ok: false,
+      reason: 'admin-no-branch',
+    });
+    expect(resolveCreateBranchId(true, '   ')).toEqual({
+      ok: false,
+      reason: 'admin-no-branch',
+    });
+  });
+
+  it('admin with a concrete branch: resolves ok with the trimmed id', () => {
+    expect(resolveCreateBranchId(true, 'branch-uuid')).toEqual({
+      ok: true,
+      branchId: 'branch-uuid',
+    });
+    expect(resolveCreateBranchId(true, '  branch-uuid  ')).toEqual({
+      ok: true,
+      branchId: 'branch-uuid',
+    });
   });
 });
 

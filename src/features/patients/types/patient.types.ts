@@ -66,6 +66,11 @@ export interface CreatePatientBody {
   occupation?: string;
   paymentType: PatientPaymentType;
   nextOfKin: PatientNextOfKin;
+  // Sent only for admin callers, carrying the branch selected in the global
+  // switcher (`useDashboardFiltersStore.branchId`). The backend ignores it for
+  // non-admins (the JWT branch is authoritative) and requires it for admins.
+  // The key is omitted entirely for non-admins — never sent as `undefined`.
+  branchId?: string;
 }
 
 export interface UpdatePatientBody {

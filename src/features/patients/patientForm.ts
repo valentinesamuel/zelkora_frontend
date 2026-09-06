@@ -65,8 +65,29 @@ export function toPatientFormValues(wire: Patient): PatientFormValues {
   };
 }
 
+export type CreateBranchResolution =
+  | { ok: true; branchId?: string }
+  | { ok: false; reason: 'admin-no-branch' };
+
+// Pure decision for which `branchId` (if any) a create request should carry.
+// Non-admin: never a branchId — the JWT branch is authoritative server-side.
+// Admin: the global switcher value is required; `null` or blank-after-trim is
+// "not yet resolved" and must block submit (INV-F1, INV-F3).
+export function resolveCreateBranchId(
+  isAdminCaller: boolean,
+  storeBranchId: string | null,
+): CreateBranchResolution {
+  if (!isAdminCaller) return { ok: true };
+
+  const trimmed = storeBranchId?.trim() ?? '';
+  if (trimmed === '') return { ok: false, reason: 'admin-no-branch' };
+
+  return { ok: true, branchId: trimmed };
+}
+
 export function buildCreatePatientBody(
   values: PatientFormValues,
+  branchId?: string,
 ): CreatePatientBody {
   const body: CreatePatientBody = {
     firstName: values.firstName.trim(),
@@ -89,6 +110,10 @@ export function buildCreatePatientBody(
   for (const field of OPTIONAL_TEXT_FIELDS) {
     const value = values[field].trim();
     if (value !== '') body[field] = value;
+  }
+
+  if (branchId !== undefined && branchId.trim() !== '') {
+    body.branchId = branchId.trim();
   }
 
   return body;
