@@ -40,6 +40,21 @@ export async function verifyEnroll(
   });
 }
 
+// Public endpoint: the invite token IS the credential and travels in the body,
+// so no Authorization header and no refresh retry (a 401/400 here means the
+// invite is spent or expired, not that a session lapsed).
+export async function acceptInvite(
+  token: string,
+  newPassword: string,
+): Promise<void> {
+  await apiRequest<null>('/auth/invite/accept', {
+    method: 'POST',
+    body: { token, newPassword },
+    skipAuth: true,
+    skipRefreshRetry: true,
+  });
+}
+
 export function verifyMfa(body: VerifyMfaRequest): Promise<VerifyMfaResult> {
   return apiRequest<VerifyMfaResult>('/auth/mfa/verify', {
     method: 'POST',

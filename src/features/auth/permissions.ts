@@ -17,6 +17,11 @@
  * `RequiredPermission` is derived from this object (`authorize.ts:22`) and
  * `Can permission={['branch:create']}` would not compile without it. DELETE is
  * omitted deliberately — there is no DELETE route and no delete UI (INV-B2).
+ *
+ * STAFF / USER: seeded in
+ * `zelkora_backend/migrations/000009_seed_staff_user_permissions.up.sql` and
+ * defined in `zelkora_backend/internal/auth/permission.go`. `staff:delete` and
+ * `user:*` beyond invite/disable are omitted — no route and no UI for them.
  */
 export const PERMISSIONS = {
   PATIENT: {
@@ -30,4 +35,6 @@ export const PERMISSIONS = {
     READ: 'branch:read',
     UPDATE: 'branch:update',
   },
+  STAFF: { CREATE: 'staff:create', READ: 'staff:read', UPDATE: 'staff:update' },
+  USER: { INVITE: 'user:invite', DISABLE: 'user:disable' },
 } as const;

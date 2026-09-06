@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AppLayout } from '@/app/layouts/AppLayout';
+import { AcceptInvitePage } from '@/features/auth/AcceptInvitePage';
 import { PublicOnly, RequireAdmin, RequireAuth, RequirePermission } from '@/features/auth/guards';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { PERMISSIONS } from '@/features/auth/permissions';
@@ -14,6 +15,8 @@ import { PatientDetailPage } from '@/features/patients/pages/PatientDetailPage';
 import { PatientEditPage } from '@/features/patients/pages/PatientEditPage';
 import { PatientListPage } from '@/features/patients/pages/PatientListPage';
 import { ProfilePage } from '@/features/profile/ProfilePage';
+import { StaffInvitePage } from '@/features/staff/pages/StaffInvitePage';
+import { StaffListPage } from '@/features/staff/pages/StaffListPage';
 import { SettingsLayout } from '@/features/settings/SettingsLayout';
 import { SETTINGS_INDEX_REDIRECT } from '@/features/settings/settingsNav';
 import { BranchSettingsPage } from '@/features/settings/sections/BranchSettingsPage';
@@ -26,6 +29,14 @@ export function AppRouter() {
         element={
           <PublicOnly>
             <LoginPage />
+          </PublicOnly>
+        }
+      />
+      <Route
+        path="/invite/:token/accept"
+        element={
+          <PublicOnly>
+            <AcceptInvitePage />
           </PublicOnly>
         }
       />
@@ -66,6 +77,24 @@ export function AppRouter() {
           element={
             <RequirePermission permission={[PERMISSIONS.BRANCH.UPDATE]}>
               <BranchEditPage />
+            </RequirePermission>
+          }
+        />
+        {/* `staff/new` MUST precede any `staff/:id`-style route (branch
+            precedent). No detail route exists this phase (list/create only). */}
+        <Route
+          path="staff"
+          element={
+            <RequirePermission permission={[PERMISSIONS.STAFF.READ]}>
+              <StaffListPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="staff/new"
+          element={
+            <RequirePermission permission={[PERMISSIONS.STAFF.CREATE]}>
+              <StaffInvitePage />
             </RequirePermission>
           }
         />

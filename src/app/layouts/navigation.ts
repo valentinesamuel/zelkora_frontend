@@ -90,7 +90,13 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'People',
     items: [
-      { label: 'Staff', icon: UserCog, enabled: false },
+      {
+        label: 'Staff',
+        to: '/staff',
+        icon: UserCog,
+        enabled: true,
+        permission: [PERMISSIONS.STAFF.READ],
+      },
       { label: 'Roles / Permissions', icon: ShieldCheck, enabled: false },
     ],
   },

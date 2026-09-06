@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { AuthShell } from './components/AuthShell';
 import { CredentialsStep } from './components/CredentialsStep';
@@ -12,7 +13,18 @@ type Step =
   | { name: 'verify'; preAuthToken: string };
 
 export function LoginPage() {
-  const [step, setStep] = useState<Step>({ name: 'credentials' });
+  // Router state is untrusted input (anyone can craft a `navigate` state), so
+  // narrow it to a string before it reaches the notice Alert.
+  const location = useLocation();
+  const routerNotice = (location.state as { notice?: unknown } | null)?.notice;
+  let initialNotice: string | undefined;
+  if (typeof routerNotice === 'string') {
+    initialNotice = routerNotice;
+  }
+  const [step, setStep] = useState<Step>({
+    name: 'credentials',
+    notice: initialNotice,
+  });
 
   function handleCredentialsResult(result: LoginResult) {
     if (result.requiresEnrollment) {
