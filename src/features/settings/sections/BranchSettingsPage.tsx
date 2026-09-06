@@ -107,8 +107,7 @@ export function BranchSettingsPage() {
       <p className="mt-1 text-sm text-muted-foreground">
         This chooses the branch this device is scoped to, and it applies to
         dashboards and lists on this device only. The choice is stored locally in
-        this browser (<code>zelkora.dashboard.filters</code>) — there is no
-        backend for it.
+        this browser.
       </p>
       <div className="mt-4">
         {renderBranchControl(view, { setBranchId, canCreate })}
