@@ -28,10 +28,17 @@ export const staffQueryMeta = {
   // No AllowedSearch server-side.
   searchFields: [],
 
-  // The `branch` relation is intentionally NOT whitelisted — the list shows
-  // `branchId`, not a joined name (plan: omit relations, return IDs).
-  relations: [],
+  // `user` IS whitelisted — backend AllowedRelations includes Rel_User, and
+  // the join is narrowed server-side to fullName/email by dotted
+  // AllowedFields (internal/staff/queryconfig.go). `branch` is still NOT
+  // whitelisted here even though the backend allows it, because the list
+  // shows `branchId`, not a joined branch name.
+  relations: ['user'],
 
+  // Do NOT add 'user' here: projectableFields feeds fields[Staff]=… (root
+  // projection), not the join. The backend silently drops an unregistered
+  // `user` root property (buildRootSelect), so it would be dead weight that
+  // also invites confusion about what actually drives the join (.include()).
   projectableFields: [
     'id',
     'userId',
@@ -43,6 +50,7 @@ export const staffQueryMeta = {
   ],
 } as const satisfies EntityQueryMeta<StaffListItem>;
 
-export const staffQuery = defineEntityQuery<StaffListItem, typeof staffQueryMeta>(
-  staffQueryMeta,
-);
+export const staffQuery = defineEntityQuery<
+  StaffListItem,
+  typeof staffQueryMeta
+>(staffQueryMeta);

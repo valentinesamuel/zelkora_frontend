@@ -40,7 +40,12 @@ function formatCreatedAt(value: string): string {
 
 export function StaffListPage() {
   const query = useMemo(
-    () => staffQuery().sort('createdAt', 'desc').offset(1, PAGE_SIZE).withTotal(true),
+    () =>
+      staffQuery()
+        .sort('createdAt', 'desc')
+        .offset(1, PAGE_SIZE)
+        .withTotal(true)
+        .include('user'),
     [],
   );
   const { data, isPending, isError, refetch } = useStaffList(query);
@@ -86,6 +91,8 @@ export function StaffListPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
+                  <TableHead className="min-w-48">Name</TableHead>
+                  <TableHead className="min-w-56">Email</TableHead>
                   <TableHead className="w-40">Staff number</TableHead>
                   <TableHead className="w-32">Profession</TableHead>
                   <TableHead className="min-w-56">Branch</TableHead>
@@ -95,7 +102,13 @@ export function StaffListPage() {
               <TableBody>
                 {rows.map((staff) => (
                   <TableRow key={staff.id}>
-                    <TableCell className={`${MONO_CELL} font-medium`}>
+                    <TableCell className="font-medium">
+                      {staff.user?.fullName || EMPTY_CELL}
+                    </TableCell>
+                    <TableCell className="break-all text-muted-foreground">
+                      {staff.user?.email || EMPTY_CELL}
+                    </TableCell>
+                    <TableCell className={MONO_CELL}>
                       {staff.staffNumber || EMPTY_CELL}
                     </TableCell>
                     <TableCell>

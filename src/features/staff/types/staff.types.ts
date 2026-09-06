@@ -26,6 +26,16 @@ export interface StaffMe {
   departmentName: string | null;
 }
 
+// Nested join object, populated only when the request sends `include=user`
+// (backend: internal/staff/queryconfig.go AllowedRelations + dotted
+// AllowedFields). `fullName`/`email` are NOT NULL on `users`, so they are
+// non-nullable here — the ref itself only exists on a join hit.
+export interface StaffUserRef {
+  id: string;
+  fullName: string;
+  email: string;
+}
+
 export interface StaffListItem {
   id: string;
   userId: string;
@@ -34,6 +44,9 @@ export interface StaffListItem {
   branchId: string;
   departmentId: string | null;
   createdAt: string;
+  // `null` means the joined `users` row is soft-deleted, not "not requested" —
+  // the engine always emits this key when `user` is in the query plan.
+  user: StaffUserRef | null;
 }
 
 export interface OnboardStaffBody {
