@@ -7,8 +7,6 @@
  */
 import { Bell, Search } from 'lucide-react';
 
-import { BranchSwitcher } from '@/features/branch/BranchSwitcher';
-
 import { useAuthStore } from '../../features/auth/authStore';
 
 function greetingFor(hours: number): string {
@@ -56,8 +54,7 @@ export function AppHeader() {
         <span className="truncate">Search patients…</span>
       </button>
 
-      <div className="flex min-w-0 items-center gap-2 justify-self-end">
-        <BranchSwitcher />
+      <div className="flex items-center justify-self-end">
         <button
           type="button"
           aria-label="Notifications"

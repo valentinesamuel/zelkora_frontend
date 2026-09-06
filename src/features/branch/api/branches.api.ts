@@ -24,7 +24,7 @@ type BranchRow<Selected extends keyof Branch & string> = [Selected] extends [
 
 // The projected shape the chrome needs: id (value), name (label at sm+),
 // code (label below sm — D3), isActive (defensive; the filter is server-side).
-type ActiveBranch = Pick<Branch, 'id' | 'name' | 'code' | 'isActive'>;
+export type ActiveBranch = Pick<Branch, 'id' | 'name' | 'code' | 'isActive'>;
 
 // ---------------------------------------------------------------------------
 // Thin repository wrappers.
@@ -75,6 +75,11 @@ export function useBranches<Selected extends keyof Branch & string = never>(
 // `retry: false` (D4): `GET /branches` requires `branch:read`, which is not
 // seeded for any non-admin role (H-3) — do not retry a guaranteed 403 three
 // times on every page load.
+//
+// INV-B16 (invariants.md): consumers MUST NOT gate rendering on `isError` (or
+// `isPending`) while `data` is present — one unretried background refetch
+// failure flips `status` to `'error'` permanently with the cache still
+// populated. Derive the precondition from the data itself.
 //
 // `enabled` (D4, Phase 4): callers pass `enabled: canRead` (from a
 // `useCan(['branch:read'])` pre-flight) so a user who provably lacks the

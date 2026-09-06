@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AppLayout } from '@/app/layouts/AppLayout';
-import { PublicOnly, RequireAuth, RequirePermission } from '@/features/auth/guards';
+import { PublicOnly, RequireAdmin, RequireAuth, RequirePermission } from '@/features/auth/guards';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { PERMISSIONS } from '@/features/auth/permissions';
 import { BranchCreatePage } from '@/features/branch/pages/BranchCreatePage';
@@ -14,6 +14,9 @@ import { PatientDetailPage } from '@/features/patients/pages/PatientDetailPage';
 import { PatientEditPage } from '@/features/patients/pages/PatientEditPage';
 import { PatientListPage } from '@/features/patients/pages/PatientListPage';
 import { ProfilePage } from '@/features/profile/ProfilePage';
+import { SettingsLayout } from '@/features/settings/SettingsLayout';
+import { SETTINGS_INDEX_REDIRECT } from '@/features/settings/settingsNav';
+import { BranchSettingsPage } from '@/features/settings/sections/BranchSettingsPage';
 
 export function AppRouter() {
   return (
@@ -66,6 +69,20 @@ export function AppRouter() {
             </RequirePermission>
           }
         />
+        <Route
+          path="settings"
+          element={
+            <RequireAdmin>
+              <SettingsLayout />
+            </RequireAdmin>
+          }
+        >
+          <Route
+            index
+            element={<Navigate to={SETTINGS_INDEX_REDIRECT} replace />}
+          />
+          <Route path="branch" element={<BranchSettingsPage />} />
+        </Route>
         <Route
           path="billing"
           element={

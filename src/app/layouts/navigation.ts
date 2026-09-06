@@ -20,6 +20,7 @@ import {
   Package,
   Pill,
   ReceiptText,
+  Settings2,
   ShieldCheck,
   Stethoscope,
   UserCog,
@@ -44,6 +45,12 @@ export interface NavItem {
    * is permission-gated (currently just Branches).
    */
   permission?: RequiredPermission[];
+  /**
+   * Optional client-side visibility gate. When true, `AppSidebar` hides the item
+   * unless `isAdmin(user)`. UX only — the route also carries its own
+   * `RequireAdmin` guard (INV-P9). Set only where a route is admin-gated.
+   */
+  adminOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -103,6 +110,18 @@ export const NAV_GROUPS: NavGroup[] = [
       // two items in this group share an icon.
       { label: 'Staffing', icon: UsersRound, enabled: false },
       { label: 'Reports', icon: BarChart3, enabled: false },
+    ],
+  },
+  {
+    label: 'Administration',
+    items: [
+      {
+        label: 'Settings',
+        to: '/settings',
+        icon: Settings2,
+        enabled: true,
+        adminOnly: true,
+      },
     ],
   },
 ];

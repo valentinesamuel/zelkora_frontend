@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { initialsOf } from '@/lib/name';
 import { readStorage, writeStorage } from '@/lib/storage';
 import { BranchLabel } from '@/features/branch/BranchLabel';
+import { isAdmin } from '@/features/auth/isAdmin';
 
 import { useAuthStore } from '../../features/auth/authStore';
 import { authorize } from '../../features/auth/authorize';
@@ -198,15 +199,22 @@ export function AppSidebar() {
   const navigate = useNavigate();
 
   // Drop items the user cannot see (client-side UX gate — the route enforces
-  // its own `RequirePermission`), then drop any group left with no items.
-  // `authorize` is a pure predicate, safe to call in a loop (not a hook).
+  // its own `RequireAdmin` / `RequirePermission`), then drop any group left with
+  // no items. `isAdmin` and `authorize` are pure predicates, safe in a loop.
+  function isNavItemVisible(item: NavItem): boolean {
+    if (item.adminOnly === true && !isAdmin(user)) return false;
+    if (
+      item.permission !== undefined &&
+      !authorize({ user, permission: item.permission })
+    ) {
+      return false;
+    }
+    return true;
+  }
+
   const navGroups = NAV_GROUPS.map((group) => ({
     label: group.label,
-    items: group.items.filter(
-      (item) =>
-        item.permission === undefined ||
-        authorize({ user, permission: item.permission }),
-    ),
+    items: group.items.filter(isNavItemVisible),
   })).filter((group) => group.items.length > 0);
 
   function toggleCollapsed() {
