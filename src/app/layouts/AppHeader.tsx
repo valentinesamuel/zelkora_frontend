@@ -2,12 +2,13 @@
  * Authenticated-app header bar.
  *
  * Chrome only: a time-of-day greeting on the left, a centered patient-search
- * trigger, and a notifications bell on the right. User identity and sign-out
- * live in the sidebar footer, not here.
+ * trigger, and a branch switcher + notifications bell on the right. User
+ * identity and sign-out live in the sidebar footer, not here.
  */
 import { Bell, Search } from 'lucide-react';
 
 import { useAuthStore } from '../../features/auth/authStore';
+import { BranchSwitcher } from '../../features/branch/components/BranchSwitcher';
 
 function greetingFor(hours: number): string {
   if (hours < 12) return 'Good morning';
@@ -54,7 +55,8 @@ export function AppHeader() {
         <span className="truncate">Search patients…</span>
       </button>
 
-      <div className="flex items-center justify-self-end">
+      <div className="flex items-center gap-2 justify-self-end">
+        <BranchSwitcher />
         <button
           type="button"
           aria-label="Notifications"

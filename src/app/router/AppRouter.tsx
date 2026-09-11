@@ -18,9 +18,6 @@ import { ProfilePage } from '@/features/profile/ProfilePage';
 import { StaffEditPage } from '@/features/staff/pages/StaffEditPage';
 import { StaffInvitePage } from '@/features/staff/pages/StaffInvitePage';
 import { StaffListPage } from '@/features/staff/pages/StaffListPage';
-import { SettingsLayout } from '@/features/settings/SettingsLayout';
-import { SETTINGS_INDEX_REDIRECT } from '@/features/settings/settingsNav';
-import { BranchSettingsPage } from '@/features/settings/sections/BranchSettingsPage';
 import { RoleCreatePage } from '@/features/roles/pages/RoleCreatePage';
 import { RoleEditPage } from '@/features/roles/pages/RoleEditPage';
 import { RoleListPage } from '@/features/roles/pages/RoleListPage';
@@ -111,46 +108,41 @@ export function AppRouter() {
             </RequirePermission>
           }
         />
+        {/* `settings/roles/new` MUST precede any `settings/roles/:id`-style
+            route (branch/staff precedent). The Settings shell/sub-nav was
+            removed since Roles & Permissions is reached via the sidebar;
+            these routes stay at the same paths so that sidebar link keeps
+            working. */}
         <Route
-          path="settings"
+          path="settings/roles"
           element={
             <RequireAdmin>
-              <SettingsLayout />
-            </RequireAdmin>
-          }
-        >
-          <Route
-            index
-            element={<Navigate to={SETTINGS_INDEX_REDIRECT} replace />}
-          />
-          <Route path="branch" element={<BranchSettingsPage />} />
-          {/* `roles/new` MUST precede any `roles/:id`-style route (branch/staff
-              precedent). */}
-          <Route
-            path="roles"
-            element={
               <RequirePermission permission={[PERMISSIONS.ROLE.READ]}>
                 <RoleListPage />
               </RequirePermission>
-            }
-          />
-          <Route
-            path="roles/new"
-            element={
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="settings/roles/new"
+          element={
+            <RequireAdmin>
               <RequirePermission permission={[PERMISSIONS.ROLE.CREATE]}>
                 <RoleCreatePage />
               </RequirePermission>
-            }
-          />
-          <Route
-            path="roles/:roleId/edit"
-            element={
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="settings/roles/:roleId/edit"
+          element={
+            <RequireAdmin>
               <RequirePermission permission={[PERMISSIONS.ROLE.UPDATE]}>
                 <RoleEditPage />
               </RequirePermission>
-            }
-          />
-        </Route>
+            </RequireAdmin>
+          }
+        />
         <Route
           path="billing"
           element={
