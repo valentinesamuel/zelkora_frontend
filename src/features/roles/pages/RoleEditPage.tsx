@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useRole } from '@/features/roles/hooks/useRole';
 import { RoleForm } from '@/features/roles/components/RoleForm';
+import { RoleUsersRail } from '@/features/roles/components/RoleUsersRail';
 import { ApiError } from '@/lib/apiClient';
 
 export function RoleEditPage() {
@@ -56,7 +57,12 @@ export function RoleEditPage() {
         <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
       </header>
 
-      {body}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_580px]">
+        <div className="min-w-0">{body}</div>
+        {/* Only once the role has loaded — during the loading/error states
+            there is no membership list to show yet. */}
+        {data && <RoleUsersRail users={data.users} />}
+      </div>
     </div>
   );
 }

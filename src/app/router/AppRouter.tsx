@@ -15,6 +15,7 @@ import { PatientDetailPage } from '@/features/patients/pages/PatientDetailPage';
 import { PatientEditPage } from '@/features/patients/pages/PatientEditPage';
 import { PatientListPage } from '@/features/patients/pages/PatientListPage';
 import { ProfilePage } from '@/features/profile/ProfilePage';
+import { StaffEditPage } from '@/features/staff/pages/StaffEditPage';
 import { StaffInvitePage } from '@/features/staff/pages/StaffInvitePage';
 import { StaffListPage } from '@/features/staff/pages/StaffListPage';
 import { SettingsLayout } from '@/features/settings/SettingsLayout';
@@ -84,7 +85,8 @@ export function AppRouter() {
           }
         />
         {/* `staff/new` MUST precede any `staff/:id`-style route (branch
-            precedent). No detail route exists this phase (list/create only). */}
+            precedent). Edit-only this phase (no read-only detail view, same
+            as Branch/Role). */}
         <Route
           path="staff"
           element={
@@ -98,6 +100,14 @@ export function AppRouter() {
           element={
             <RequirePermission permission={[PERMISSIONS.STAFF.CREATE]}>
               <StaffInvitePage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="staff/:staffId/edit"
+          element={
+            <RequirePermission permission={[PERMISSIONS.STAFF.UPDATE]}>
+              <StaffEditPage />
             </RequirePermission>
           }
         />

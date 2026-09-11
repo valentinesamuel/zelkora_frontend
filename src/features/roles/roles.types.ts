@@ -13,12 +13,26 @@ export interface Permission {
   readonly name: string; // "resource:action", e.g. "patient:read"
 }
 
+// One member of a role's membership list (GetRole's "who holds this role"
+// section). Mirrors zelkora_backend/internal/auth/dto.go RoleUserResponse.
+// Included (disabled accounts too) — not the same as `userCount`, which
+// excludes disabled users for last-admin protection.
+export interface RoleUser {
+  readonly id: string;
+  readonly fullName: string;
+  readonly email: string;
+  readonly status: string;
+}
+
 export interface Role {
   readonly id: string;
   readonly name: string;
   readonly description: string;
   readonly userCount: number;
   readonly permissions: readonly Permission[];
+  // Always an array (never undefined) — populated by GET /auth/roles/:id;
+  // GET /auth/roles (the list) sends `[]` for every row (INV-4).
+  readonly users: readonly RoleUser[];
   readonly createdAt: string; // RFC3339
   readonly updatedAt: string; // RFC3339
 }

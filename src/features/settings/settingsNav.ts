@@ -17,9 +17,13 @@ export interface SettingsSection {
   enabled: boolean;
 }
 
+// Staff deliberately does NOT appear here: it already lives as its own
+// top-level item in `src/app/layouts/navigation.ts` (`/staff`, "People"
+// group). A disabled `/settings/staff` placeholder used to sit alongside it,
+// listing Staff a second time with no route behind it — removed so Staff has
+// exactly one place in the sidebar.
 export const SETTINGS_SECTIONS: SettingsSection[] = [
   { label: 'Branch', to: '/settings/branch', enabled: true },
-  { label: 'Staff', to: '/settings/staff', enabled: false },
   { label: 'Roles & Permissions', to: '/settings/roles', enabled: true },
 ];
 

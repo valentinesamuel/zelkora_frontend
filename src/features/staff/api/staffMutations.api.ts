@@ -4,7 +4,11 @@ import { queryClient } from '@/app/providers/queryClient';
 import { apiRequest } from '@/lib/apiClient';
 
 import { staffKeys } from '@/features/staff/api/staff.keys';
-import type { OnboardStaffBody } from '@/features/staff/types/staff.types';
+import { staffRepository } from '@/features/staff/api/staffRepository';
+import type {
+  OnboardStaffBody,
+  UpdateStaffBody,
+} from '@/features/staff/types/staff.types';
 
 // Response of `POST /staff` — mirrors `StaffResponse` in
 // `zelkora_backend/internal/staff/dto.go`. Success is HTTP 200 (NOT 201);
@@ -36,6 +40,22 @@ function invalidateStaff(): Promise<void> {
 export function useOnboardStaff() {
   return useMutation({
     mutationFn: onboardStaff,
+    onSuccess: invalidateStaff,
+  });
+}
+
+export interface UpdateStaffInput {
+  id: string;
+  body: UpdateStaffBody;
+}
+
+function updateStaff({ id, body }: UpdateStaffInput) {
+  return staffRepository.update(id, body);
+}
+
+export function useUpdateStaff() {
+  return useMutation({
+    mutationFn: updateStaff,
     onSuccess: invalidateStaff,
   });
 }

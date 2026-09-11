@@ -19,8 +19,10 @@ import { staffMeSchema } from '@/features/staff/schemas/staffMe.schema';
 import type {
   Department,
   Role,
+  StaffDetail,
   StaffListItem,
   StaffMe,
+  UpdateStaffBody,
 } from '@/features/staff/types/staff.types';
 
 // ---------------------------------------------------------------------------
@@ -85,8 +87,12 @@ async function list(state: QueryState): Promise<PaginatedResult<StaffListItem>> 
   return toPaginatedResult(state.pagination.mode, raw);
 }
 
-function get(id: string): Promise<StaffListItem> {
-  return apiRequest<StaffListItem>(`/staff/${id}`);
+function get(id: string): Promise<StaffDetail> {
+  return apiRequest<StaffDetail>(`/staff/${id}`);
+}
+
+function update(id: string, body: UpdateStaffBody): Promise<StaffDetail> {
+  return apiRequest<StaffDetail>(`/staff/${id}`, { method: 'PATCH', body });
 }
 
 async function me(): Promise<StaffMe> {
@@ -103,4 +109,4 @@ function roles(): Promise<Role[]> {
   return apiRequest<Role[]>('/auth/roles');
 }
 
-export const staffRepository = { list, get, me, departments, roles };
+export const staffRepository = { list, get, update, me, departments, roles };

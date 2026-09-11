@@ -15,10 +15,13 @@ import {
 } from '@/components/ui/table';
 import { isOffsetResult } from '@/lib/query';
 
+import { userStatusBadgeVariant, userStatusLabel } from '@/lib/userStatus';
+
 import { Can } from '@/features/auth/Can';
 import { PERMISSIONS } from '@/features/auth/permissions';
 import { staffQuery } from '@/features/staff/api/staff.queryMeta';
 import { StaffRowActions } from '@/features/staff/components/StaffRowActions';
+import { useRoles } from '@/features/staff/hooks/useRoles';
 import { useStaffList } from '@/features/staff/hooks/useStaffList';
 
 const PAGE_SIZE = 25;
@@ -39,6 +42,15 @@ function formatCreatedAt(value: string): string {
   return dateFormatter.format(parsed);
 }
 
+function StaffStatusCell({ status }: { readonly status: string | undefined }) {
+  if (status === undefined) return EMPTY_CELL;
+  return (
+    <Badge variant={userStatusBadgeVariant(status)}>
+      {userStatusLabel(status)}
+    </Badge>
+  );
+}
+
 export function StaffListPage() {
   const query = useMemo(
     () =>
@@ -50,6 +62,15 @@ export function StaffListPage() {
     [],
   );
   const { data, isPending, isError, refetch } = useStaffList(query);
+
+  const rolesQuery = useRoles();
+  const roleNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const role of rolesQuery.data ?? []) {
+      map.set(role.id, role.name);
+    }
+    return map;
+  }, [rolesQuery.data]);
 
   let results: ReactNode;
   if (isPending) {
@@ -96,7 +117,9 @@ export function StaffListPage() {
                   <TableHead className="min-w-56">Email</TableHead>
                   <TableHead className="w-40">Staff number</TableHead>
                   <TableHead className="w-32">Profession</TableHead>
+                  <TableHead className="w-40">Role</TableHead>
                   <TableHead className="min-w-56">Branch</TableHead>
+                  <TableHead className="w-32">Status</TableHead>
                   <TableHead className="w-32">Created</TableHead>
                   <TableHead className="w-11">
                     <span className="sr-only">Actions</span>
@@ -118,8 +141,16 @@ export function StaffListPage() {
                     <TableCell>
                       <Badge variant="outline">{staff.profession}</Badge>
                     </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {(staff.user &&
+                        roleNameById.get(staff.user.roleId)) ||
+                        EMPTY_CELL}
+                    </TableCell>
                     <TableCell className={`${MONO_CELL} text-muted-foreground`}>
                       {staff.branchId || EMPTY_CELL}
+                    </TableCell>
+                    <TableCell>
+                      <StaffStatusCell status={staff.user?.status} />
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatCreatedAt(staff.createdAt)}

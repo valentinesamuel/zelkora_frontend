@@ -38,11 +38,19 @@ export interface StaffMe {
 // config-listed columns). It is the CURRENT role of the joined user; the
 // role's NAME is resolved client-side from `useRoles()` — deliberately not a
 // wire field.
+//
+// `status` was added to the same whitelist alongside `roleId` (see
+// internal/staff/queryconfig.go) so the staff list can show account status
+// without a per-row fetch. Typed as `string`, not `UserStatus`
+// (`@/lib/userStatus`) — the badge helpers there already fall back safely for
+// an unrecognized value, so this stays a plain string rather than risking a
+// runtime cast.
 export interface StaffUserRef {
   id: string;
   fullName: string;
   email: string;
   roleId: string;
+  status: string;
 }
 
 export interface StaffListItem {
@@ -58,6 +66,30 @@ export interface StaffListItem {
   user: StaffUserRef | null;
 }
 
+// Wire shape of `GET /staff/:id` — mirrors `StaffDetailResponse` in
+// `zelkora_backend/internal/staff/dto.go` EXACTLY. Deliberately NOT
+// `StaffListItem`: this is a service-layer read, not the query engine
+// (handler.go GetStaff), so there is no joined `user` object — no
+// fullName/email/status, only `userId`. `roleId` IS present (unlike the plain
+// `StaffResponse` that `PATCH /staff/:id` and `POST /staff` return) — it's
+// GetStaffDetailByID's one addition, added specifically so the edit page can
+// pre-select the member's current role. Callers that need the member's
+// name/email (e.g. an edit page header) must get them from the staff list's
+// cached `StaffListItem` rather than from this endpoint.
+export interface StaffDetail {
+  id: string;
+  userId: string;
+  staffNumber: string;
+  profession: Profession;
+  branchId: string;
+  baseBranchId: string;
+  departmentId: string | null;
+  licenseNumber: string;
+  roleId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface OnboardStaffBody {
   email: string;
   fullName: string;
@@ -66,6 +98,20 @@ export interface OnboardStaffBody {
   profession: Profession;
   licenseNumber: string;
   departmentId?: string;
+}
+
+// `PATCH /staff/:id` body. Mirrors
+// zelkora_backend/internal/staff/dto.go UpdateStaffRequest EXACTLY — no
+// branchId or roleId field, because the backend doesn't accept either here
+// (branch isn't patchable at all; role is reassigned via the separate
+// `PUT /auth/users/:id/role` flow, StaffRoleDialog). `clearDepartment: true`
+// is how a department is unset — a JSON `null` and an absent key are both
+// "nothing sent" at this layer, so it needs its own explicit flag.
+export interface UpdateStaffBody {
+  profession?: Profession;
+  licenseNumber?: string;
+  departmentId?: string;
+  clearDepartment?: boolean;
 }
 
 export interface Role {
