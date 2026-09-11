@@ -53,6 +53,17 @@ export interface StaffUserRef {
   status: string;
 }
 
+// Nested join object, populated only when the request sends `include=branch`
+// (backend: internal/staff/queryconfig.go AllowedRelations + the dotted
+// `branch.name` AllowedFields entry). `id` is always present because the
+// query engine forces it into every data join regardless of the field
+// whitelist (engine INVARIANT 6); `name` is the only other column the
+// whitelist admits.
+export interface StaffBranchRef {
+  id: string;
+  name: string;
+}
+
 export interface StaffListItem {
   id: string;
   userId: string;
@@ -64,6 +75,10 @@ export interface StaffListItem {
   // `null` means the joined `users` row is soft-deleted, not "not requested" —
   // the engine always emits this key when `user` is in the query plan.
   user: StaffUserRef | null;
+  // `null` means the joined `branches` row is soft-deleted, not "not
+  // requested" — same semantics as `user` above. `branchId` stays the filter
+  // key regardless of whether this join is requested.
+  branch: StaffBranchRef | null;
 }
 
 // Wire shape of `GET /staff/:id` — mirrors `StaffDetailResponse` in
@@ -76,6 +91,11 @@ export interface StaffListItem {
 // pre-select the member's current role. Callers that need the member's
 // name/email (e.g. an edit page header) must get them from the staff list's
 // cached `StaffListItem` rather than from this endpoint.
+// `branchName` is a flat resolved string, NOT a join object like
+// `StaffListItem.branch` — this endpoint is a hand-built DTO, not query-engine
+// output, so there is no join-object convention to mirror here. It is always
+// present in the JSON and is `""` only when the `branches` row no longer
+// exists at all (deactivated/soft-deleted branches still resolve a name).
 export interface StaffDetail {
   id: string;
   userId: string;
@@ -88,6 +108,7 @@ export interface StaffDetail {
   roleId: string;
   createdAt: string;
   updatedAt: string;
+  branchName: string;
 }
 
 export interface OnboardStaffBody {
@@ -102,14 +123,17 @@ export interface OnboardStaffBody {
 
 // `PATCH /staff/:id` body. Mirrors
 // zelkora_backend/internal/staff/dto.go UpdateStaffRequest EXACTLY — no
-// branchId or roleId field, because the backend doesn't accept either here
-// (branch isn't patchable at all; role is reassigned via the separate
-// `PUT /auth/users/:id/role` flow, StaffRoleDialog). `clearDepartment: true`
-// is how a department is unset — a JSON `null` and an absent key are both
-// "nothing sent" at this layer, so it needs its own explicit flag.
+// roleId field, because the backend doesn't accept it here (role is
+// reassigned via the separate `PUT /auth/users/:id/role` flow,
+// StaffRoleDialog). `branchId` IS accepted by this body, so a staff member's
+// branch can be reassigned in the same PATCH as profession/licenseNumber.
+// `clearDepartment: true` is how a department is unset — a JSON `null` and
+// an absent key are both "nothing sent" at this layer, so it needs its own
+// explicit flag.
 export interface UpdateStaffBody {
   profession?: Profession;
   licenseNumber?: string;
+  branchId?: string;
   departmentId?: string;
   clearDepartment?: boolean;
 }

@@ -44,7 +44,7 @@ import { PERMISSIONS } from './permissions';
  *
  *   000001_init_auth_rbac                 `*:*`
  *   000007_seed_patient_permissions       patient:*
- *   000009_seed_staff_user_permissions    staff:*, user:invite, user:disable
+ *   000009_seed_staff_user_permissions    staff:*, user:invite, user:disable, user:enable
  *   000011_seed_role_branch_permissions   branch:*, role:*, user:assign_role
  */
 const SEEDED_PERMISSION_NAMES: readonly string[] = [
@@ -61,6 +61,7 @@ const SEEDED_PERMISSION_NAMES: readonly string[] = [
   'staff:update',
   'user:invite',
   'user:disable',
+  'user:enable',
   // 000011_seed_role_branch_permissions.up.sql
   'branch:create',
   'branch:read',

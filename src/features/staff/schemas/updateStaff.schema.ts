@@ -2,7 +2,7 @@
  * Form-input schema for the staff edit form. Two fields map to two DIFFERENT
  * backend calls, both submitted from the one form:
  *
- * - profession / licenseNumber / departmentId → `PATCH /staff/:id`
+ * - profession / licenseNumber / departmentId / branchId → `PATCH /staff/:id`
  *   (`UpdateStaffRequest` in `zelkora_backend/internal/staff/dto.go`).
  * - roleId → `PUT /auth/users/:id/role` (`AssignRoleRequest`, the same
  *   endpoint `StaffRoleDialog` uses) — NOT part of `UpdateStaffBody`, which
@@ -24,6 +24,7 @@ export const updateStaffSchema = z.object({
   profession: z.enum(PROFESSION_VALUES),
   licenseNumber: z.string().trim().min(1),
   departmentId: z.string(),
+  branchId: z.string().uuid('Select a branch.'),
   roleId: z.string().uuid('Select a role.'),
 });
 

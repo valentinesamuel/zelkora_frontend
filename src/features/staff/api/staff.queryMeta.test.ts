@@ -11,30 +11,38 @@ import { staffQueryMeta } from './staff.queryMeta';
 
 const EXPECTED_SORT_COUNT = 3;
 const EXPECTED_FIELD_COUNT = 4;
-const EXPECTED_RELATION_COUNT = 1;
+const EXPECTED_RELATION_COUNT = 2;
 
 describe('staffQueryMeta drift tripwire', () => {
   it('resolves the entity name to the exact staffcols.StaffEntityName value', () => {
     expect(staffQueryMeta.entity).toBe('Staff');
   });
 
-  it('exposes exactly 1 relation, "user" (AllowedRelations, queryconfig.go)', () => {
+  it('exposes exactly 2 relations, "user" and "branch" (AllowedRelations, queryconfig.go)', () => {
     expect(staffQueryMeta.relations).toHaveLength(EXPECTED_RELATION_COUNT);
-    expect(staffQueryMeta.relations).toEqual(['user']);
+    expect(staffQueryMeta.relations).toEqual(['user', 'branch']);
   });
 
-  it('never allows branch as a frontend-includable relation (list shows branchId, not a joined name)', () => {
-    expect(staffQueryMeta.relations).not.toContain('branch');
+  it('allows branch as an includable relation (AllowedRelations + dotted branch.name in queryconfig.go)', () => {
+    expect(staffQueryMeta.relations).toContain('branch');
   });
 
   it('never adds user to projectableFields (it drives fields[Staff], not the join)', () => {
     expect(staffQueryMeta.projectableFields).not.toContain('user');
   });
 
+  it('never adds branch to projectableFields (it drives fields[Staff], not the join)', () => {
+    expect(staffQueryMeta.projectableFields).not.toContain('branch');
+  });
+
   it('exposes exactly 4 filterable fields (AllowedFilters ∩ list-UI whitelist)', () => {
     expect(Object.keys(staffQueryMeta.fields)).toHaveLength(
       EXPECTED_FIELD_COUNT,
     );
+  });
+
+  it('never adds branch to fields (filterable root columns only, branchId already covers filtering)', () => {
+    expect(Object.keys(staffQueryMeta.fields)).not.toContain('branch');
   });
 
   it('exposes exactly 3 sort fields (AllowedSort, queryconfig.go)', () => {

@@ -34,15 +34,19 @@ export const staffQueryMeta = {
   // (internal/staff/queryconfig.go). All three arrive from a bare
   // `.include('user')` — no `fields[user]=…` param is needed, because
   // buildJoinSelects falls back to the full config whitelist when the caller
-  // projects nothing. `branch` is still NOT
-  // whitelisted here even though the backend allows it, because the list
-  // shows `branchId`, not a joined branch name.
-  relations: ['user'],
+  // projects nothing.
+  //
+  // `branch` is likewise whitelisted — the join is narrowed server-side to
+  // `name` (+ the always-present `id`) by the single dotted `branch.name`
+  // entry in `internal/staff/queryconfig.go`'s AllowedFields. A bare
+  // `.include('branch')` is sufficient, same fallback mechanism as `user`.
+  relations: ['user', 'branch'],
 
-  // Do NOT add 'user' here: projectableFields feeds fields[Staff]=… (root
-  // projection), not the join. The backend silently drops an unregistered
-  // `user` root property (buildRootSelect), so it would be dead weight that
-  // also invites confusion about what actually drives the join (.include()).
+  // Do NOT add 'user' or 'branch' here: projectableFields feeds
+  // fields[Staff]=… (root projection), not the join. The backend silently
+  // drops an unregistered root property (buildRootSelect), so either would be
+  // dead weight that also invites confusion about what actually drives the
+  // join (.include()).
   projectableFields: [
     'id',
     'userId',

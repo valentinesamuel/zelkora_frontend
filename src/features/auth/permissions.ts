@@ -56,6 +56,7 @@ export const PERMISSIONS = {
   USER: {
     INVITE: 'user:invite',
     DISABLE: 'user:disable',
+    ENABLE: 'user:enable',
     ASSIGN_ROLE: 'user:assign_role',
   },
 } as const;

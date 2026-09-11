@@ -13,6 +13,7 @@ import { Form } from '@/components/ui/form';
 import { ApiError } from '@/lib/apiClient';
 import { setRootSubmitError } from '@/lib/formErrors';
 
+import { useActiveBranches } from '@/features/branch/api/branches.api';
 import {
   useAssignStaffRole,
   useUpdateStaff,
@@ -59,6 +60,7 @@ function StaffEditForm({ staffId, initialData }: Readonly<StaffEditFormProps>) {
   const assignRole = useAssignStaffRole();
   const departments = useDepartments();
   const roles = useRoles();
+  const branches = useActiveBranches({ enabled: true });
 
   const departmentOptions = [
     { value: NO_DEPARTMENT_VALUE, label: 'No department' },
@@ -70,6 +72,10 @@ function StaffEditForm({ staffId, initialData }: Readonly<StaffEditFormProps>) {
   const roleOptions = (roles.data ?? []).map((role) => ({
     value: role.id,
     label: role.name,
+  }));
+  const branchOptions = (branches.data?.data ?? []).map((branch) => ({
+    value: branch.id,
+    label: branch.name,
   }));
 
   const form = useForm<UpdateStaffValues>({
@@ -161,6 +167,14 @@ function StaffEditForm({ staffId, initialData }: Readonly<StaffEditFormProps>) {
               Could not load roles.
             </p>
           )}
+          <SelectField
+            control={form.control}
+            name="branchId"
+            label="Branch"
+            options={branchOptions}
+            placeholder="Select a branch"
+            required
+          />
         </FormSection>
 
         <FormSection

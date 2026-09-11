@@ -8,7 +8,6 @@ import { TextField } from '@/components/form/TextField';
 import { TextareaField } from '@/components/form/TextareaField';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -16,6 +15,13 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   useCreateBranch,
   useUpdateBranch,
@@ -45,6 +51,11 @@ function submitLabel(isSubmitting: boolean, isEdit: boolean): string {
 function statusDescription(isEdit: boolean): string | undefined {
   if (isEdit) return undefined;
   return 'Inactive branches are hidden from the branch switcher.';
+}
+
+function statusValue(isActive: boolean): 'active' | 'inactive' {
+  if (isActive) return 'active';
+  return 'inactive';
 }
 
 export function BranchForm(props: Readonly<BranchFormProps>) {
@@ -163,14 +174,22 @@ export function BranchForm(props: Readonly<BranchFormProps>) {
             control={form.control}
             name="isActive"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center gap-2 sm:col-span-2">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={(v) => field.onChange(v === true)}
-                  />
-                </FormControl>
-                <FormLabel>Active branch</FormLabel>
+              <FormItem className="sm:col-span-2">
+                <FormLabel>Status</FormLabel>
+                <Select
+                  value={statusValue(field.value)}
+                  onValueChange={(value) => field.onChange(value === 'active')}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
               </FormItem>
             )}
           />

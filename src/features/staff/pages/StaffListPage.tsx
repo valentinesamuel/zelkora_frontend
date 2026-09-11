@@ -58,7 +58,8 @@ export function StaffListPage() {
         .sort('createdAt', 'desc')
         .offset(1, PAGE_SIZE)
         .withTotal(true)
-        .include('user'),
+        .include('user')
+        .include('branch'),
     [],
   );
   const { data, isPending, isError, refetch } = useStaffList(query);
@@ -146,8 +147,8 @@ export function StaffListPage() {
                         roleNameById.get(staff.user.roleId)) ||
                         EMPTY_CELL}
                     </TableCell>
-                    <TableCell className={`${MONO_CELL} text-muted-foreground`}>
-                      {staff.branchId || EMPTY_CELL}
+                    <TableCell className="text-muted-foreground">
+                      {staff.branch?.name || EMPTY_CELL}
                     </TableCell>
                     <TableCell>
                       <StaffStatusCell status={staff.user?.status} />

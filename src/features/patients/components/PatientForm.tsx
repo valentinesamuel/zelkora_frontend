@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -13,6 +12,13 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { FormSection } from '@/components/form/FormSection';
 import { SelectField } from '@/components/form/SelectField';
 import { TextField } from '@/components/form/TextField';
@@ -54,6 +60,11 @@ function submitLabel(isSubmitting: boolean, isEdit: boolean): string {
   if (isSubmitting) return 'Saving…';
   if (isEdit) return 'Save changes';
   return 'Register patient';
+}
+
+function statusValue(isActive: boolean): 'active' | 'inactive' {
+  if (isActive) return 'active';
+  return 'inactive';
 }
 
 export function PatientForm(props: Readonly<PatientFormProps>) {
@@ -289,14 +300,24 @@ export function PatientForm(props: Readonly<PatientFormProps>) {
               control={form.control}
               name="isActive"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center gap-2 sm:col-span-2">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={(v) => field.onChange(v === true)}
-                    />
-                  </FormControl>
-                  <FormLabel>Active patient</FormLabel>
+                <FormItem className="sm:col-span-2">
+                  <FormLabel>Status</FormLabel>
+                  <Select
+                    value={statusValue(field.value)}
+                    onValueChange={(value) =>
+                      field.onChange(value === 'active')
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </FormItem>
               )}
             />

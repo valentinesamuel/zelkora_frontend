@@ -18,6 +18,7 @@ export function toStaffFormValues(wire: StaffDetail): UpdateStaffValues {
     profession: wire.profession,
     licenseNumber: wire.licenseNumber,
     departmentId: wire.departmentId ?? NO_DEPARTMENT_VALUE,
+    branchId: wire.branchId,
     roleId: wire.roleId,
   };
 }
@@ -41,6 +42,7 @@ export function buildUpdateStaffBody(
   if (dirtyFields.licenseNumber) {
     body.licenseNumber = values.licenseNumber.trim();
   }
+  if (dirtyFields.branchId) body.branchId = values.branchId;
 
   if (dirtyFields.departmentId) {
     if (values.departmentId === NO_DEPARTMENT_VALUE) {
