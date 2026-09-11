@@ -20,7 +20,6 @@ import {
   Package,
   Pill,
   ReceiptText,
-  Settings2,
   ShieldCheck,
   Stethoscope,
   UserCog,
@@ -122,18 +121,6 @@ export const NAV_GROUPS: NavGroup[] = [
       // two items in this group share an icon.
       { label: 'Staffing', icon: UsersRound, enabled: false },
       { label: 'Reports', icon: BarChart3, enabled: false },
-    ],
-  },
-  {
-    label: 'Administration',
-    items: [
-      {
-        label: 'Settings',
-        to: '/settings',
-        icon: Settings2,
-        enabled: true,
-        adminOnly: true,
-      },
     ],
   },
 ];
