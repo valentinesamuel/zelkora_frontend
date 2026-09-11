@@ -18,6 +18,7 @@ import { isOffsetResult } from '@/lib/query';
 import { Can } from '@/features/auth/Can';
 import { PERMISSIONS } from '@/features/auth/permissions';
 import { staffQuery } from '@/features/staff/api/staff.queryMeta';
+import { StaffRowActions } from '@/features/staff/components/StaffRowActions';
 import { useStaffList } from '@/features/staff/hooks/useStaffList';
 
 const PAGE_SIZE = 25;
@@ -97,6 +98,9 @@ export function StaffListPage() {
                   <TableHead className="w-32">Profession</TableHead>
                   <TableHead className="min-w-56">Branch</TableHead>
                   <TableHead className="w-32">Created</TableHead>
+                  <TableHead className="w-11">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -119,6 +123,9 @@ export function StaffListPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatCreatedAt(staff.createdAt)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <StaffRowActions staff={staff} />
                     </TableCell>
                   </TableRow>
                 ))}

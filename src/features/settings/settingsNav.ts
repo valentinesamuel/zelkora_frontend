@@ -20,7 +20,7 @@ export interface SettingsSection {
 export const SETTINGS_SECTIONS: SettingsSection[] = [
   { label: 'Branch', to: '/settings/branch', enabled: true },
   { label: 'Staff', to: '/settings/staff', enabled: false },
-  { label: 'Roles & Permissions', to: '/settings/roles', enabled: false },
+  { label: 'Roles & Permissions', to: '/settings/roles', enabled: true },
 ];
 
 /** Where `/settings` redirects to. Must point at an `enabled` section. */

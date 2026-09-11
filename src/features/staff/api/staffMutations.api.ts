@@ -39,3 +39,47 @@ export function useOnboardStaff() {
     onSuccess: invalidateStaff,
   });
 }
+
+export interface AssignStaffRoleInput {
+  // The USER id (`StaffListItem.userId` / `StaffListItem.user.id`) — NOT the
+  // staff id. `PUT /auth/users/:id/role` resolves `:id` against `users`, so a
+  // staff id here would 404 (or, worse, hit an unrelated user).
+  userId: string;
+  roleId: string;
+}
+
+// `PUT /auth/users/:id/role` — responds 200 with a null `result`
+// (internal/auth/handler.go AssignUserRole: `response.OK[any](c, ..., nil)`).
+// Sentinel errors: 409 last-admin guard, 404 user-or-role gone. A re-scope 401
+// is byte-identical to an expired-token 401 and is already recovered
+// transparently by `apiRequest`'s single-flight refresh (INV-13) — there is
+// deliberately no special-casing for it here.
+export function assignStaffRole({
+  userId,
+  roleId,
+}: AssignStaffRoleInput): Promise<null> {
+  return apiRequest<null>(`/auth/users/${userId}/role`, {
+    method: 'PUT',
+    body: { roleId },
+  });
+}
+
+// Invalidates BOTH subtrees:
+//   - `['staff']` so the list re-reads the joined `user.roleId`;
+//   - `['roles']` (`staffKeys.roles()`, the same literal tuple as
+//     `rolesKeys.root`) so the role list's per-role user counts and the staff
+//     role dropdown both refresh. Required, not incidental — a role
+//     reassignment moves a user between two roles' counts.
+async function invalidateStaffAndRoles(): Promise<void> {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: staffKeys.all }),
+    queryClient.invalidateQueries({ queryKey: staffKeys.roles() }),
+  ]);
+}
+
+export function useAssignStaffRole() {
+  return useMutation({
+    mutationFn: assignStaffRole,
+    onSuccess: invalidateStaffAndRoles,
+  });
+}

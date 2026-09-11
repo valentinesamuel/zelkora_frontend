@@ -7,21 +7,32 @@
  * future seed migration; it is not hand-extended speculatively ahead of what is
  * seeded.
  *
- * BRANCH: sourced from ENFORCED ROUTE MIDDLEWARE, not a seed migration.
+ * BRANCH: enforced by route middleware —
  * `zelkora_backend/internal/branch/routes.go` guards every `/branches` route
- * with `auth.RequirePermission(...)`, and the constants are defined in
- * `zelkora_backend/internal/auth/permission.go:39-42`. No `permissions` row and
- * no `role_permissions` link is seeded for `branch:*` (tracked as H-3), so
- * server-side only the `admin` role (`*:*`, migration 000001) satisfies these
- * today; every other role gets 403. Listed here regardless because
- * `RequiredPermission` is derived from this object (`authorize.ts:22`) and
- * `Can permission={['branch:create']}` would not compile without it. DELETE is
- * omitted deliberately — there is no DELETE route and no delete UI (INV-B2).
+ * with `auth.RequirePermission(...)` — AND now seeded:
+ * `zelkora_backend/migrations/000011_seed_role_branch_permissions.up.sql`
+ * inserts `branch:{create,read,update,delete}` into the `permissions` table, so
+ * H-3 (route-enforced but unseeded vocabulary) is fixed and a non-admin role
+ * can be granted these through `role_permissions`. No `role_permissions` link
+ * is seeded by that migration — `admin` already satisfies them via `*:*`
+ * (migration 000001). DELETE is still omitted from this frontend constant
+ * deliberately — there is no DELETE route and no delete UI (INV-B2) — even
+ * though the permission itself is now seeded.
  *
  * STAFF / USER: seeded in
  * `zelkora_backend/migrations/000009_seed_staff_user_permissions.up.sql` and
- * defined in `zelkora_backend/internal/auth/permission.go`. `staff:delete` and
- * `user:*` beyond invite/disable are omitted — no route and no UI for them.
+ * defined in `zelkora_backend/internal/platform/authz/authz.go`. `staff:delete`
+ * and `user:*` beyond invite/disable/assign_role are omitted — no route and no
+ * UI for them.
+ *
+ * ROLE / USER.ASSIGN_ROLE: seeded in
+ * `zelkora_backend/migrations/000011_seed_role_branch_permissions.up.sql` and
+ * mirrored in `zelkora_backend/internal/platform/authz/authz.go`.
+ *
+ * This lockstep is enforced mechanically, not by review: `permissions.sync.test.ts`
+ * asserts every value here is seeded by a backend migration. It is a SUBSET
+ * assertion — see that file for why `*:*` and `branch:delete` are seeded but
+ * deliberately absent from this constant.
  */
 export const PERMISSIONS = {
   PATIENT: {
@@ -36,5 +47,15 @@ export const PERMISSIONS = {
     UPDATE: 'branch:update',
   },
   STAFF: { CREATE: 'staff:create', READ: 'staff:read', UPDATE: 'staff:update' },
-  USER: { INVITE: 'user:invite', DISABLE: 'user:disable' },
+  ROLE: {
+    CREATE: 'role:create',
+    READ: 'role:read',
+    UPDATE: 'role:update',
+    DELETE: 'role:delete',
+  },
+  USER: {
+    INVITE: 'user:invite',
+    DISABLE: 'user:disable',
+    ASSIGN_ROLE: 'user:assign_role',
+  },
 } as const;

@@ -97,7 +97,13 @@ export const NAV_GROUPS: NavGroup[] = [
         enabled: true,
         permission: [PERMISSIONS.STAFF.READ],
       },
-      { label: 'Roles / Permissions', icon: ShieldCheck, enabled: false },
+      {
+        label: 'Roles / Permissions',
+        to: '/settings/roles',
+        icon: ShieldCheck,
+        enabled: true,
+        permission: [PERMISSIONS.ROLE.READ],
+      },
     ],
   },
   {

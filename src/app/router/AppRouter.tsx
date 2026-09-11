@@ -20,6 +20,9 @@ import { StaffListPage } from '@/features/staff/pages/StaffListPage';
 import { SettingsLayout } from '@/features/settings/SettingsLayout';
 import { SETTINGS_INDEX_REDIRECT } from '@/features/settings/settingsNav';
 import { BranchSettingsPage } from '@/features/settings/sections/BranchSettingsPage';
+import { RoleCreatePage } from '@/features/roles/pages/RoleCreatePage';
+import { RoleEditPage } from '@/features/roles/pages/RoleEditPage';
+import { RoleListPage } from '@/features/roles/pages/RoleListPage';
 
 export function AppRouter() {
   return (
@@ -111,6 +114,32 @@ export function AppRouter() {
             element={<Navigate to={SETTINGS_INDEX_REDIRECT} replace />}
           />
           <Route path="branch" element={<BranchSettingsPage />} />
+          {/* `roles/new` MUST precede any `roles/:id`-style route (branch/staff
+              precedent). */}
+          <Route
+            path="roles"
+            element={
+              <RequirePermission permission={[PERMISSIONS.ROLE.READ]}>
+                <RoleListPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="roles/new"
+            element={
+              <RequirePermission permission={[PERMISSIONS.ROLE.CREATE]}>
+                <RoleCreatePage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="roles/:roleId/edit"
+            element={
+              <RequirePermission permission={[PERMISSIONS.ROLE.UPDATE]}>
+                <RoleEditPage />
+              </RequirePermission>
+            }
+          />
         </Route>
         <Route
           path="billing"

@@ -29,8 +29,12 @@ export const staffQueryMeta = {
   searchFields: [],
 
   // `user` IS whitelisted — backend AllowedRelations includes Rel_User, and
-  // the join is narrowed server-side to fullName/email by dotted
-  // AllowedFields (internal/staff/queryconfig.go). `branch` is still NOT
+  // the join is narrowed server-side to fullName/email/roleId (+ the
+  // always-present id) by dotted AllowedFields
+  // (internal/staff/queryconfig.go). All three arrive from a bare
+  // `.include('user')` — no `fields[user]=…` param is needed, because
+  // buildJoinSelects falls back to the full config whitelist when the caller
+  // projects nothing. `branch` is still NOT
   // whitelisted here even though the backend allows it, because the list
   // shows `branchId`, not a joined branch name.
   relations: ['user'],

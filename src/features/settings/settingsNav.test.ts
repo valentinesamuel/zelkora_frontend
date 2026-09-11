@@ -30,6 +30,14 @@ describe('SETTINGS_SECTIONS', () => {
     const enabled = SETTINGS_SECTIONS.filter((section) => section.enabled);
     expect(enabled.length).toBeGreaterThan(0);
   });
+
+  it('has an enabled `Roles & Permissions` section', () => {
+    const section = SETTINGS_SECTIONS.find(
+      (s) => s.label === 'Roles & Permissions',
+    );
+    expect(section?.enabled).toBe(true);
+    expect(section?.to).toBe('/settings/roles');
+  });
 });
 
 describe('SETTINGS_INDEX_REDIRECT', () => {

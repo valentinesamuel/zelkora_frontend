@@ -30,10 +30,19 @@ export interface StaffMe {
 // (backend: internal/staff/queryconfig.go AllowedRelations + dotted
 // AllowedFields). `fullName`/`email` are NOT NULL on `users`, so they are
 // non-nullable here — the ref itself only exists on a join hit.
+//
+// `roleId` is in the same dotted `user.*` whitelist, so it arrives with the
+// default join projection — `include=user` alone is enough, no `fields[user]`
+// param needed (queryengine/build.go `buildJoinSelects`: with a config
+// restriction and no user projection, `cols = relAllowed`, i.e. ALL
+// config-listed columns). It is the CURRENT role of the joined user; the
+// role's NAME is resolved client-side from `useRoles()` — deliberately not a
+// wire field.
 export interface StaffUserRef {
   id: string;
   fullName: string;
   email: string;
+  roleId: string;
 }
 
 export interface StaffListItem {
