@@ -29,6 +29,9 @@ import {
   type AppointmentStatusFilter,
   type AppointmentTypeFilter,
 } from '@/features/appointments/filters/appointmentListParams';
+import { useAuthStore } from '@/features/auth/authStore';
+import { isAdmin } from '@/features/auth/isAdmin';
+import { useDashboardFiltersStore } from '@/features/dashboard/filters/dashboardFiltersStore';
 
 interface AppointmentFiltersProps {
   readonly query: AppointmentListQuery;
@@ -74,12 +77,11 @@ export function AppointmentFilters({
 }: AppointmentFiltersProps) {
   const patientLabel = usePatientOptionLabel(query.patientId ?? '');
   const staffLabel = useStaffOptionLabel(query.staffId ?? '');
-  // Out of scope for this plan's branch-scoping change: this filter searches
-  // across whatever the list page itself is already scoped to, so it stays
-  // unscoped here (no `branchId` filter is ever added — same as before).
+  const user = useAuthStore((s) => s.user);
+  const filterBranchId = useDashboardFiltersStore((s) => s.branchId);
   const searchStaffOptions = createSearchStaffOptions({
-    isAdminCaller: false,
-    branchId: null,
+    isAdminCaller: isAdmin(user),
+    branchId: filterBranchId,
   });
 
   const form = useForm<PickerValues>({
