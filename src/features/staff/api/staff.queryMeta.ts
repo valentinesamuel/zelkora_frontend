@@ -12,9 +12,12 @@ export const staffQueryMeta = {
   entity: 'Staff',
 
   // AllowedFilters ∩ plan whitelist — internal/staff/queryconfig.go. Backend
-  // also allows `id, userId, baseBranchId, staffNumber`, but the list UI only
-  // filters on these four.
+  // also allows `userId, baseBranchId, staffNumber`, but the list UI only
+  // filters on these five. `id` is here (not just in `projectableFields`) so
+  // `appointmentPickers.ts`'s `useStaffOptionLabel` can do a single-row
+  // `.where('id', 'eq', id)` lookup.
   fields: {
+    id: { type: COLUMN_TYPE_UUID },
     profession: { type: COLUMN_TYPE_TEXT },
     branchId: { type: COLUMN_TYPE_UUID },
     departmentId: { type: COLUMN_TYPE_UUID },
@@ -25,8 +28,11 @@ export const staffQueryMeta = {
   // tiebreaker itself (INV-Q8) — never emit a trailing `id` sort.
   sortFields: ['createdAt', 'staffNumber', 'profession'],
 
-  // No AllowedSearch server-side.
-  searchFields: [],
+  // AllowedSearch — queryconfig.go. `user.fullName` is trigram search over the
+  // joined user's name; `staffNumber` is ilike search over the plain root
+  // "staff code" column — same name+identifier split as patient's
+  // firstName/lastName (trigram) + zrn (ilike).
+  searchFields: ['user.fullName', 'staffNumber'],
 
   // `user` IS whitelisted — backend AllowedRelations includes Rel_User, and
   // the join is narrowed server-side to fullName/email/roleId (+ the

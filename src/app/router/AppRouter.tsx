@@ -1,6 +1,10 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AppLayout } from '@/app/layouts/AppLayout';
+import { AppointmentCreatePage } from '@/features/appointments/pages/AppointmentCreatePage';
+import { AppointmentDetailPage } from '@/features/appointments/pages/AppointmentDetailPage';
+import { AppointmentEditPage } from '@/features/appointments/pages/AppointmentEditPage';
+import { AppointmentListPage } from '@/features/appointments/pages/AppointmentListPage';
 import { AcceptInvitePage } from '@/features/auth/AcceptInvitePage';
 import { PublicOnly, RequireAdmin, RequireAuth, RequirePermission } from '@/features/auth/guards';
 import { LoginPage } from '@/features/auth/LoginPage';
@@ -78,6 +82,42 @@ export function AppRouter() {
           element={
             <RequirePermission permission={[PERMISSIONS.BRANCH.UPDATE]}>
               <BranchEditPage />
+            </RequirePermission>
+          }
+        />
+        {/* `appointments/new` and `appointments/:id/edit` MUST precede
+            `appointments/:appointmentId` (branch/staff precedent). Separate
+            from the `/queue` stub below, which is reserved for the walk-in
+            queue feature. */}
+        <Route
+          path="appointments"
+          element={
+            <RequirePermission permission={[PERMISSIONS.APPOINTMENT.READ]}>
+              <AppointmentListPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="appointments/new"
+          element={
+            <RequirePermission permission={[PERMISSIONS.APPOINTMENT.CREATE]}>
+              <AppointmentCreatePage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="appointments/:appointmentId/edit"
+          element={
+            <RequirePermission permission={[PERMISSIONS.APPOINTMENT.UPDATE]}>
+              <AppointmentEditPage />
+            </RequirePermission>
+          }
+        />
+        <Route
+          path="appointments/:appointmentId"
+          element={
+            <RequirePermission permission={[PERMISSIONS.APPOINTMENT.READ]}>
+              <AppointmentDetailPage />
             </RequirePermission>
           }
         />

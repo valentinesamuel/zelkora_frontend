@@ -46,6 +46,7 @@ import { PERMISSIONS } from './permissions';
  *   000007_seed_patient_permissions       patient:*
  *   000009_seed_staff_user_permissions    staff:*, user:invite, user:disable, user:enable
  *   000011_seed_role_branch_permissions   branch:*, role:*, user:assign_role
+ *   000013_seed_appointment_permissions   appointment:*
  */
 const SEEDED_PERMISSION_NAMES: readonly string[] = [
   // 000001_init_auth_rbac.up.sql
@@ -72,6 +73,11 @@ const SEEDED_PERMISSION_NAMES: readonly string[] = [
   'role:update',
   'role:delete',
   'user:assign_role',
+  // 000013_seed_appointment_permissions.up.sql
+  'appointment:create',
+  'appointment:read',
+  'appointment:update',
+  'appointment:delete',
 ];
 
 /** Seeded but deliberately not exposed as a `PERMISSIONS` constant. */

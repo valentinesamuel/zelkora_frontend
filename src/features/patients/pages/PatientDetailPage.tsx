@@ -2,7 +2,6 @@ import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Activity,
-  CalendarClock,
   FileText,
   Pencil,
   Receipt,
@@ -14,6 +13,7 @@ import type { LucideIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PatientAppointmentsSection } from '@/features/appointments/components/PatientAppointmentsSection';
 import { usePatient } from '@/features/patients/api/patients.api';
 import { PatientDetailField } from '@/features/patients/components/PatientDetailField';
 import { PatientDetailPlaceholder } from '@/features/patients/components/PatientDetailPlaceholder';
@@ -50,12 +50,6 @@ const PATIENT_DETAIL_PLACEHOLDERS: ReadonlyArray<{
   description: string;
   icon: LucideIcon;
 }> = [
-  {
-    id: 'appointments',
-    title: 'Appointments',
-    description: 'Upcoming and past visits for this patient.',
-    icon: CalendarClock,
-  },
   {
     id: 'clinical',
     title: 'Clinical / medical record',
@@ -283,6 +277,8 @@ function PatientDetailContent({
               />
             </dl>
           </PatientDetailSection>
+
+          <PatientAppointmentsSection patientId={patient.id} />
 
           {PATIENT_DETAIL_PLACEHOLDERS.map((section) => (
             <PatientDetailPlaceholder

@@ -29,6 +29,10 @@
  * `zelkora_backend/migrations/000011_seed_role_branch_permissions.up.sql` and
  * mirrored in `zelkora_backend/internal/platform/authz/authz.go`.
  *
+ * APPOINTMENT: seeded in
+ * `zelkora_backend/migrations/000013_seed_appointment_permissions.up.sql` and
+ * mirrored in `internal/platform/authz/authz.go`.
+ *
  * This lockstep is enforced mechanically, not by review: `permissions.sync.test.ts`
  * asserts every value here is seeded by a backend migration. It is a SUBSET
  * assertion — see that file for why `*:*` and `branch:delete` are seeded but
@@ -52,6 +56,12 @@ export const PERMISSIONS = {
     READ: 'role:read',
     UPDATE: 'role:update',
     DELETE: 'role:delete',
+  },
+  APPOINTMENT: {
+    CREATE: 'appointment:create',
+    READ: 'appointment:read',
+    UPDATE: 'appointment:update',
+    DELETE: 'appointment:delete',
   },
   USER: {
     INVITE: 'user:invite',

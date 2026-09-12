@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { staffQueryMeta } from './staff.queryMeta';
 
 const EXPECTED_SORT_COUNT = 3;
-const EXPECTED_FIELD_COUNT = 4;
+const EXPECTED_FIELD_COUNT = 5;
 const EXPECTED_RELATION_COUNT = 2;
 
 describe('staffQueryMeta drift tripwire', () => {
@@ -35,7 +35,7 @@ describe('staffQueryMeta drift tripwire', () => {
     expect(staffQueryMeta.projectableFields).not.toContain('branch');
   });
 
-  it('exposes exactly 4 filterable fields (AllowedFilters ∩ list-UI whitelist)', () => {
+  it('exposes exactly 5 filterable fields (AllowedFilters ∩ list-UI whitelist)', () => {
     expect(Object.keys(staffQueryMeta.fields)).toHaveLength(
       EXPECTED_FIELD_COUNT,
     );
@@ -49,7 +49,8 @@ describe('staffQueryMeta drift tripwire', () => {
     expect(staffQueryMeta.sortFields).toHaveLength(EXPECTED_SORT_COUNT);
   });
 
-  it('has no AllowedSearch fields', () => {
-    expect(staffQueryMeta.searchFields).toHaveLength(0);
+  it('exposes exactly 2 AllowedSearch fields, "user.fullName" (trigram) and "staffNumber" (ilike)', () => {
+    expect(staffQueryMeta.searchFields).toHaveLength(2);
+    expect(staffQueryMeta.searchFields).toEqual(['user.fullName', 'staffNumber']);
   });
 });

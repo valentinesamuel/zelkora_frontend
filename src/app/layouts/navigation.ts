@@ -12,6 +12,7 @@
 import {
   BarChart3,
   Building2,
+  CalendarCheck,
   CalendarClock,
   CreditCard,
   FileCheck,
@@ -73,6 +74,15 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Patient Care',
     items: [
       { label: 'Patients', to: '/patients', icon: Users, enabled: true },
+      {
+        label: 'Appointments',
+        to: '/appointments',
+        icon: CalendarCheck,
+        enabled: true,
+        permission: [PERMISSIONS.APPOINTMENT.READ],
+      },
+      // `CalendarClock` stays with the Queue stub — the walk-in queue is a
+      // separate future feature, not a second entry point to Appointments.
       { label: 'Queue & Appointments', icon: CalendarClock, enabled: false },
       { label: 'Consultations', icon: Stethoscope, enabled: false },
       { label: 'Lab', icon: FlaskConical, enabled: false },
