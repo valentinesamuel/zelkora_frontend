@@ -2,6 +2,10 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import type { PaginatedResult, QueryBuilder, QueryState } from '@/lib/query';
 
+import { isAdmin } from '@/features/auth/isAdmin';
+import { useAuthStore } from '@/features/auth/authStore';
+import { resolveBranchScopeParam } from '@/features/branch/resolveBranchScopeParam';
+import { useDashboardFiltersStore } from '@/features/dashboard/filters/dashboardFiltersStore';
 import { appointmentQueryMeta } from '@/features/appointments/api/appointment.queryMeta';
 import { appointmentQueryKeys } from '@/features/appointments/api/appointments.keys';
 import { appointmentsRepository } from '@/features/appointments/api/appointmentsRepository';
@@ -22,8 +26,12 @@ type AppointmentRow<Selected extends keyof Appointment & string> = [
 
 function listAppointments<Selected extends keyof Appointment & string = never>(
   state: QueryState,
+  branchId?: string,
 ): Promise<PaginatedResult<AppointmentRow<Selected>>> {
-  return appointmentsRepository.list<AppointmentRow<Selected>>(state);
+  return appointmentsRepository.list<AppointmentRow<Selected>>(
+    state,
+    branchId,
+  );
 }
 
 // Parameterised list query, mirroring `useBranches`.
@@ -40,9 +48,18 @@ export function useAppointments<
   Selected extends keyof Appointment & string = never,
 >(query: AppointmentQueryBuilder<Selected>) {
   const state = query.build();
+  const user = useAuthStore((s) => s.user);
+  const storeBranchId = useDashboardFiltersStore((s) => s.branchId);
+  const admin = isAdmin(user);
+  const branchId = resolveBranchScopeParam(admin, storeBranchId);
+
   return useQuery<PaginatedResult<AppointmentRow<Selected>>>({
-    queryKey: appointmentQueryKeys.list(state),
-    queryFn: () => listAppointments<Selected>(state),
+    queryKey: appointmentQueryKeys.list(state, branchId),
+    queryFn: () => listAppointments<Selected>(state, branchId),
+    // Admin requests require a branchId server-side; disable rather than
+    // send a request guaranteed to 400 during the brief window before
+    // `useBranchHydration` resolves the active branch (INV-B11).
+    enabled: !admin || branchId !== undefined,
     placeholderData: keepPreviousData,
   });
 }

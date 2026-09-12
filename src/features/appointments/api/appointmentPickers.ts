@@ -17,6 +17,10 @@
 import type { AsyncComboboxOption } from '@/components/form/AsyncComboboxField';
 import { useQuery } from '@tanstack/react-query';
 
+import { isAdmin } from '@/features/auth/isAdmin';
+import { useAuthStore } from '@/features/auth/authStore';
+import { resolveBranchScopeParam } from '@/features/branch/resolveBranchScopeParam';
+import { useDashboardFiltersStore } from '@/features/dashboard/filters/dashboardFiltersStore';
 import { patientQuery } from '@/features/patients/api/patient.queryMeta';
 import { patientsApi } from '@/features/patients/api/patients.api';
 import { patientFullName } from '@/features/patients/patientView';
@@ -96,9 +100,10 @@ export interface StaffSearchScope {
 // functions, not hooks), so the caller resolves the scope and closes over it.
 //
 // Edge cases (decided): empty term still returns a default sorted page
-// (mirrors patient); admin with no branch selected yet gets an unfiltered
-// all-branch list rather than a disabled/blocked combo; non-admins never send
-// `branchId` regardless of what is in the store.
+// (mirrors patient); non-admins never send `branchId` regardless of what is
+// in the store. An admin with no branch selected yet sends no `branchId` and
+// the request 400s server-side (`branchscope.ResolveBranchID` requires it
+// for admin callers) — there is no "all branches" mode for this endpoint.
 export function createSearchStaffOptions(scope: Readonly<StaffSearchScope>) {
   return async function searchStaffOptions(
     term: string,
@@ -114,12 +119,14 @@ export function createSearchStaffOptions(scope: Readonly<StaffSearchScope>) {
         .search('staffNumber', 'ilike', trimmed);
     }
 
-    if (scope.isAdminCaller && scope.branchId) {
-      builder = builder.where('branchId', 'eq', scope.branchId);
-    }
+    const branchId = resolveBranchScopeParam(
+      scope.isAdminCaller,
+      scope.branchId,
+    );
 
     const page = await staffRepository.list(
       builder.sort('createdAt', 'desc').limit(STAFF_PAGE_SIZE).build(),
+      branchId,
     );
 
     return page.data.map((staff) => ({
@@ -148,8 +155,12 @@ export function usePatientOptionLabel(id: string): string | undefined {
 // tiny one-row list query (`id eq`) rather than the search endpoint — it
 // needs to work for a staff member the search page would not itself surface.
 export function useStaffOptionLabel(id: string): string | undefined {
+  const user = useAuthStore((s) => s.user);
+  const storeBranchId = useDashboardFiltersStore((s) => s.branchId);
+  const branchId = resolveBranchScopeParam(isAdmin(user), storeBranchId);
+
   const { data } = useQuery({
-    queryKey: ['appointment-staff-label', id],
+    queryKey: ['appointment-staff-label', id, branchId],
     queryFn: async () => {
       const page = await staffRepository.list(
         staffQuery()
@@ -157,6 +168,7 @@ export function useStaffOptionLabel(id: string): string | undefined {
           .include('user')
           .limit(1)
           .build(),
+        branchId,
       );
       return page.data[0];
     },

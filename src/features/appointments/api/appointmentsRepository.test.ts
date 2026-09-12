@@ -107,6 +107,41 @@ describe('appointmentsRepository.list', () => {
 
     await expect(appointmentsRepository.list(state)).rejects.toBe(apiError);
   });
+
+  // Backend `branchscope.ResolveBranchID` requires this as a bare
+  // `?branchId=` param from admin callers, alongside (not instead of) the
+  // usual filter/sort/page params.
+  it('appends a bare branchId param when supplied', async () => {
+    apiRequestMock.mockResolvedValue({
+      data: [],
+      page: 1,
+      pageSize: 25,
+      total: 0,
+    });
+
+    const state = appointmentQuery().offset(1, 25).build();
+    await appointmentsRepository.list(state, 'a0359696-51e0-48c0-ba37-4adefe284711');
+
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      '/appointments?page=1&pageSize=25&paginationMode=offset&branchId=a0359696-51e0-48c0-ba37-4adefe284711',
+    );
+  });
+
+  it('omits the branchId param entirely when not supplied', async () => {
+    apiRequestMock.mockResolvedValue({
+      data: [],
+      page: 1,
+      pageSize: 25,
+      total: 0,
+    });
+
+    const state = appointmentQuery().offset(1, 25).build();
+    await appointmentsRepository.list(state);
+
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      '/appointments?page=1&pageSize=25&paginationMode=offset',
+    );
+  });
 });
 
 describe('appointmentsRepository.get', () => {

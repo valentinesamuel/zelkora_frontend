@@ -75,14 +75,23 @@ function toPaginatedResult<T>(
   };
 }
 
-function buildListPath(state: QueryState): string {
+// `branchId` is the bare `?branchId=` param `branchscope.ResolveBranchID`
+// requires from admin callers — distinct from any `filter[branchId][...]`
+// clause `state` may carry, which the backend does not honor for this check.
+function buildListPath(state: QueryState, branchId?: string): string {
   const qs = toQueryString(state, staffQueryMeta.entity);
-  return qs.length > 0 ? `/staff?${qs}` : '/staff';
+  const params = new URLSearchParams(qs);
+  if (branchId !== undefined) params.set('branchId', branchId);
+  const finalQs = params.toString();
+  return finalQs.length > 0 ? `/staff?${finalQs}` : '/staff';
 }
 
-async function list(state: QueryState): Promise<PaginatedResult<StaffListItem>> {
+async function list(
+  state: QueryState,
+  branchId?: string,
+): Promise<PaginatedResult<StaffListItem>> {
   const raw = await apiRequest<RawQueryPage<StaffListItem>>(
-    buildListPath(state),
+    buildListPath(state, branchId),
   );
   return toPaginatedResult(state.pagination.mode, raw);
 }

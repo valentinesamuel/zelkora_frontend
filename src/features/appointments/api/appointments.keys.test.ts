@@ -53,4 +53,18 @@ describe('appointmentQueryKeys', () => {
       appointmentQueryKeys.list(without),
     );
   });
+
+  it('list() distinguishes requests for different branchIds so switching branch refetches', () => {
+    const state = appointmentQuery().offset(1, 25).build();
+    expect(appointmentQueryKeys.list(state, 'branch-a')).not.toEqual(
+      appointmentQueryKeys.list(state, 'branch-b'),
+    );
+  });
+
+  it('list() is stable when branchId is omitted', () => {
+    const state = appointmentQuery().offset(1, 25).build();
+    expect(appointmentQueryKeys.list(state)).toEqual(
+      appointmentQueryKeys.list(state),
+    );
+  });
 });

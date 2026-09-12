@@ -51,41 +51,40 @@ beforeEach(() => {
 });
 
 describe('createSearchStaffOptions', () => {
-  it('sends a branchId where-clause for an admin caller with a selected branch', async () => {
+  // The backend requires the branch scope as a bare `?branchId=` query param
+  // (`branchscope.ResolveBranchID`), not a `filter[branchId][...]` clause —
+  // so it's passed as `staffRepository.list`'s second argument, not a
+  // `.where()` filter on the built query state.
+  it('passes branchId as the second list() argument for an admin caller with a selected branch', async () => {
     const search = createSearchStaffOptions({
       isAdminCaller: true,
       branchId: BRANCH_ID,
     });
     await search('');
 
+    expect(listMock.mock.calls[0]?.[1]).toBe(BRANCH_ID);
     const query = listMock.mock.calls[0]?.[0];
-    expect(query?.filters).toContainEqual({
-      field: 'branchId',
-      op: 'eq',
-      value: BRANCH_ID,
-    });
+    expect(query?.filters.some((f) => f.field === 'branchId')).toBe(false);
   });
 
-  it('never sends a branchId filter for a non-admin caller, even if one is present in scope', async () => {
+  it('never sends a branchId param for a non-admin caller, even if one is present in scope', async () => {
     const search = createSearchStaffOptions({
       isAdminCaller: false,
       branchId: BRANCH_ID,
     });
     await search('');
 
-    const query = listMock.mock.calls[0]?.[0];
-    expect(query?.filters.some((f) => f.field === 'branchId')).toBe(false);
+    expect(listMock.mock.calls[0]?.[1]).toBeUndefined();
   });
 
-  it('sends no branchId filter for an admin caller with no branch selected', async () => {
+  it('sends no branchId param for an admin caller with no branch selected', async () => {
     const search = createSearchStaffOptions({
       isAdminCaller: true,
       branchId: null,
     });
     await search('');
 
-    const query = listMock.mock.calls[0]?.[0];
-    expect(query?.filters.some((f) => f.field === 'branchId')).toBe(false);
+    expect(listMock.mock.calls[0]?.[1]).toBeUndefined();
   });
 
   it('builds both the user.fullName (tri) and staffNumber (ilike) search clauses for a non-empty term', async () => {

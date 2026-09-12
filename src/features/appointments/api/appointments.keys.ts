@@ -18,8 +18,8 @@ function lists() {
   return [...all, 'list'] as const;
 }
 
-function list(state: QueryState) {
-  return [...lists(), canonicalizeForKey(state)] as const;
+function list(state: QueryState, branchId?: string) {
+  return [...lists(), canonicalizeForKey(state), branchId ?? null] as const;
 }
 
 function details() {

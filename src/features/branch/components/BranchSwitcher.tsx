@@ -1,5 +1,6 @@
 import { Building2 } from 'lucide-react';
 
+import { queryClient } from '@/app/providers/queryClient';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,7 +55,17 @@ export function BranchSwitcher() {
         {view.branches.map((branch) => (
           <DropdownMenuItem
             key={branch.id}
-            onSelect={() => setBranchId(branch.id)}
+            onSelect={() => {
+              setBranchId(branch.id);
+              // Deliberate full clear, not a targeted invalidation: any
+              // query added later that turns out to be branch-sensitive is
+              // covered by default instead of silently showing stale
+              // cross-branch data. A mutation in flight at the moment of
+              // switch still settles and its onSuccess invalidation fires
+              // against an already-empty cache — a harmless no-op, not
+              // guarded against.
+              queryClient.clear();
+            }}
           >
             {branch.name}
           </DropdownMenuItem>
